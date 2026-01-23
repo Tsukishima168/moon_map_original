@@ -139,12 +139,24 @@ const App = () => {
     <>
       <style>{`
         :root {
+          /* Existing Colors */
           --c-cream: ${CONFIG.BRAND_COLORS.creamWhite};
           --c-black: ${CONFIG.BRAND_COLORS.emotionBlack};
           --c-yellow: ${CONFIG.BRAND_COLORS.moonYellow};
           --c-blue: ${CONFIG.BRAND_COLORS.islandBlue};
           --c-gray: ${CONFIG.BRAND_COLORS.grayText};
           --c-line: ${CONFIG.BRAND_COLORS.grayLine};
+          
+          /* Glassmorphism Variables */
+          --glass-white-light: rgba(255, 255, 255, 0.6);
+          --glass-white-medium: rgba(255, 255, 255, 0.8);
+          --glass-white-strong: rgba(255, 255, 255, 0.95);
+          
+          /* Shadows */
+          --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+          --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.12);
+          --shadow-glow-blue: 0 0 20px rgba(88, 120, 240, 0.3);
+          --shadow-glow-yellow: 0 0 20px rgba(216, 224, 56, 0.4);
         }
         
         * { 
@@ -227,19 +239,25 @@ const App = () => {
         
         /* Components - Glassmorphism */
         .btn-entry {
+          background: var(--glass-white-medium);
+          backdrop-filter: blur(16px) saturate(180%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: var(--shadow-glass),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          border-radius: 12px; 
           display: flex; justify-content: space-between; align-items: center;
           width: 100%; padding: 20px; margin-bottom: 12px;
-          border: 1px solid rgba(0, 0, 0, 0.3);
-          background: rgba(255, 255, 255, 0.95);
-          backdrop-filter: blur(10px);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           min-height: 60px;
         }
         .btn-entry:active { transform: scale(0.98); }
         .btn-entry:hover { 
-          box-shadow: 4px 4px 0 var(--c-yellow), 0 4px 16px rgba(0, 0, 0, 0.15);
-          transform: translateY(-2px);
+          background: var(--glass-white-strong);
+          backdrop-filter: blur(20px) saturate(200%);
+          box-shadow: var(--shadow-glass-hover),
+                      0 0 0 1px rgba(88, 120, 240, 0.2),
+                      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+          transform: translateY(-4px);
         }
         
         @media (min-width: 768px) {
@@ -250,14 +268,22 @@ const App = () => {
         
         .btn-primary {
           display: block; width: 100%; text-align: center;
-          background: var(--c-blue); color: white;
+          background: linear-gradient(135deg, var(--c-blue) 0%, #6a88f5 100%);
+          color: white;
           padding: 16px; border-radius: 40px; font-weight: bold;
           min-height: 50px;
-          box-shadow: 0 4px 12px rgba(88, 120, 240, 0.3);
+          box-shadow: 0 8px 24px rgba(88, 120, 240, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          position: relative; overflow: hidden;
         }
+        .btn-primary::before {
+          content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+          transform: scale(0); transition: transform 0.6s;
+        }
+        .btn-primary:hover::before { transform: scale(1); }
         .btn-primary:hover {
           background: #4a68d8;
-          box-shadow: 0 6px 20px rgba(88, 120, 240, 0.4);
+          box-shadow: var(--shadow-glow-blue), 0 12px 32px rgba(88, 120, 240, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
         
         .btn-small {
@@ -274,8 +300,17 @@ const App = () => {
         }
 
         /* Timeline */
-        .timeline { padding-left: 20px; border-left: 1px solid var(--c-black); margin-left: 10px; }
-        .timeline-item { position: relative; margin-bottom: 30px; padding-left: 20px; }
+        .timeline { 
+          padding-left: 20px; 
+          margin-left: 10px;
+          background: var(--glass-white-light);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          padding: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          box-shadow: var(--shadow-glass);
+        }
+        .timeline-item { position: relative; margin-bottom: 30px; padding-left: 20px; border-left: 1px solid var(--c-black); }
         .timeline-item::before {
           content: ''; position: absolute; left: -25px; top: 8px;
           width: 9px; height: 9px; background: var(--c-black); border-radius: 50%;
@@ -297,9 +332,10 @@ const App = () => {
         
         .state-btn {
           padding: 24px 12px; 
-          border: 1px solid var(--c-line); 
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
+          backdrop-filter: blur(12px) saturate(150%);
+          box-shadow: var(--shadow-glass);
           text-align: center; 
           font-size: 0.95rem; 
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -307,16 +343,24 @@ const App = () => {
           display: flex;
           align-items: center;
           justify-content: center;
+          position: relative;
+          overflow: hidden;
         }
+        .state-btn::before {
+          content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+          transition: left 0.5s;
+        }
+        .state-btn:hover::before { left: 100%; }
         .state-btn:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .state-btn.selected {
-          border-color: var(--c-blue); 
-          background: var(--c-blue); 
+          background: linear-gradient(135deg, rgba(88, 120, 240, 0.8), rgba(88, 120, 240, 0.6));
+          border-color: rgba(255, 255, 255, 0.5);
           color: white;
-          box-shadow: 0 4px 16px rgba(88, 120, 240, 0.4);
+          box-shadow: var(--shadow-glow-blue), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
         
         @media (min-width: 768px) {
@@ -328,14 +372,21 @@ const App = () => {
 
         /* Result Card */
         .result-card {
-          background: rgba(255, 255, 255, 0.95); 
-          backdrop-filter: blur(10px);
-          border: 2px dashed var(--c-black); 
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+          backdrop-filter: blur(20px) saturate(180%);
+          border: 1px solid rgba(255, 255, 255, 0.5);
+          box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(88, 120, 240, 0.1);
+          border-radius: 20px;
           padding: 24px;
           margin-top: 30px; 
           animation: fadeIn 0.5s ease forwards; 
           opacity: 0;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          position: relative;
+          overflow: hidden;
+        }
+        .result-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, var(--c-blue), var(--c-yellow), transparent);
         }
         
         @media (min-width: 768px) {
@@ -349,12 +400,19 @@ const App = () => {
           to { opacity: 1; transform: translateY(0); } 
         }
         
+        @keyframes float {
+          0% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-15px) rotate(2deg); }
+          100% { transform: translateY(0px) rotate(0deg); }
+        }
+        
         .link-list { 
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(8px);
-          border: 1px solid rgba(0, 0, 0, 0.1);
+          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
+          backdrop-filter: blur(16px) saturate(160%);
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          box-shadow: var(--shadow-glass);
           padding: 0 20px;
-          border-radius: 8px;
+          border-radius: 12px;
         }
         .link-list li { 
           border-bottom: 1px solid var(--c-line); 
@@ -375,7 +433,18 @@ const App = () => {
 
       <div className="container">
         {/* A. HERO */}
-        <header style={{ paddingTop: '80px', paddingBottom: '40px' }}>
+        <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
+          <div style={{
+            position: 'absolute',
+            top: '20px',
+            right: '-20px',
+            width: '180px',
+            animation: 'float 6s ease-in-out infinite',
+            zIndex: -1
+          }}>
+            <img src="/assets/character-enter.webp" alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
+          </div>
+
           <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem' }}>WELCOME TO MOON ISLAND</div>
           <h1 style={{ fontSize: '2.5rem', lineHeight: '1.1', marginBottom: '10px', fontWeight: 700 }}>
             {CONFIG.STORE_NAME_EN}<br />Island Landing
@@ -411,7 +480,7 @@ const App = () => {
         </header>
 
         {/* B. MAP */}
-        <section className="section-padding border-y" style={{ background: 'white' }}>
+        <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
           <h2 className="font-mono" style={{ marginBottom: '20px' }}>VISITOR GUIDE MAP</h2>
           <div className="timeline">
             <div className="timeline-item">
