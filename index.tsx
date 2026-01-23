@@ -158,8 +158,7 @@ const App = () => {
         }
         
         body {
-          background: linear-gradient(180deg, #1a2332 0%, #2d3e50 30%, #5878F0 70%, #D8E038 100%);
-          background-attachment: fixed;
+          background: var(--c-cream);
           color: var(--c-black);
           font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
@@ -167,20 +166,7 @@ const App = () => {
           min-height: 100vh;
           position: relative;
         }
-        
-        body::before {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: url('/assets/moon-island-bg.png') center bottom no-repeat;
-          background-size: contain;
-          opacity: 0.15;
-          pointer-events: none;
-          z-index: 0;
-        }
+
         
         a { 
           text-decoration: none; 
