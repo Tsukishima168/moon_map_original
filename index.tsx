@@ -446,9 +446,15 @@ const App = () => {
           </div>
 
           <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem' }}>WELCOME TO MOON ISLAND</div>
-          <h1 style={{ fontSize: '2.5rem', lineHeight: '1.1', marginBottom: '10px', fontWeight: 700 }}>
-            {CONFIG.STORE_NAME_EN}<br />Island Landing
-          </h1>
+
+          {/* Logo Integration */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto' }} />
+            <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
+              Island Landing
+            </h1>
+          </div>
+
           <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px' }}>{CONFIG.TAGLINE}</p>
 
           <a href="#checkin" className="btn-entry" onClick={() => track('click_hero_checkin')}>
@@ -607,7 +613,11 @@ const App = () => {
 
         {/* G. KIWIMU */}
         <section className="section-padding" style={{ background: CONFIG.BRAND_COLORS.emotionBlack, color: 'white', marginLeft: '-20px', marginRight: '-20px', paddingLeft: '20px', paddingRight: '20px', textAlign: 'center' }}>
-          <h2 className="font-mono text-yellow" style={{ marginBottom: '10px' }}>KIWIMU LAB</h2>
+          {/* Kiwimu Logo */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+            <img src="/assets/logo-kiwimu.png" alt="KIWIMU LAB" style={{ maxWidth: '200px', height: 'auto', filter: 'invert(1)' }} />
+          </div>
+
           <p style={{ opacity: 0.8, marginBottom: '30px' }}>
             KIWIMU 是月島的互動角色宇宙。<br />
             這裡收藏了所有登島者的情緒檔案。
