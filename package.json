@@ -1,8 +1,16 @@
 {
-  "name": "moon_map",
+  "name": "moon-island-landing",
+  "description": "月島甜點店 MOON MOON 品牌導覽網站 - Island Landing Page",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "keywords": [
+    "moon-island",
+    "kiwimu",
+    "dessert",
+    "patisserie",
+    "brand-navigation"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",

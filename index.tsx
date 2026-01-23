@@ -17,15 +17,15 @@ const CONFIG = {
     grayLine: '#E0E0E0',
   },
   LINKS: {
-    preorder_pickup_url: "https://shop.example.com/pickup",
-    delivery_url: "https://shop.example.com/delivery",
-    line_url: "https://line.me/R/ti/p/@moonmoon",
-    mbti_lab_url: "https://kiwimu.com/mbti",
+    preorder_pickup_url: "https://lin.ee/MndRHE2",
+    delivery_url: "https://lin.ee/MndRHE2",
+    line_url: "https://lin.ee/MndRHE2",
+    mbti_lab_url: "https://kiwimu-mbti.vercel.app",
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
     wallpaper_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
     line_theme_url: "https://store.line.me/themeshop/product/moonmoon",
-    kiwimu_ig_url: "https://instagram.com/kiwimu_official",
-    instagram_moonmoon_url: "https://instagram.com/moonmoon_patisserie",
+    kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
+    instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台北市大安區月島路 101 號",
     hours_text: "Wed - Sun / 13:00 - 19:00",
   }
@@ -84,7 +84,7 @@ const App = () => {
     setSelectedState(stateKey);
     setShowResult(false); // Reset animation
     track('select_state', { state: stateKey });
-    
+
     // Tiny delay for visual feedback
     setTimeout(() => {
       setShowResult(true);
@@ -95,7 +95,7 @@ const App = () => {
   const handleDownloadCard = () => {
     if (!selectedState) return;
     track('generate_mission_card', { state: selectedState });
-    
+
     const data = STATE_DATA[selectedState];
     // Create a simple SVG blob for download (No external libs needed)
     const svgContent = `
@@ -119,7 +119,7 @@ const App = () => {
         <text x="40" y="550" font-family="monospace" font-size="12" fill="#999">VALID FOR 24 HOURS</text>
       </svg>
     `;
-    
+
     const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -128,12 +128,12 @@ const App = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     alert("任務卡已生成！\n(手機請截圖保存，電腦已自動下載 SVG)");
   };
 
   const today = new Date();
-  const dateStr = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
+  const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
 
   return (
     <>
@@ -146,20 +146,91 @@ const App = () => {
           --c-gray: ${CONFIG.BRAND_COLORS.grayText};
           --c-line: ${CONFIG.BRAND_COLORS.grayLine};
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        * { 
+          box-sizing: border-box; 
+          margin: 0; 
+          padding: 0; 
+        }
+        
+        html {
+          scroll-behavior: smooth;
+        }
+        
         body {
-          background-color: var(--c-cream);
+          background: linear-gradient(180deg, #1a2332 0%, #2d3e50 30%, #5878F0 70%, #D8E038 100%);
+          background-attachment: fixed;
           color: var(--c-black);
           font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
+          min-height: 100vh;
+          position: relative;
         }
-        a { text-decoration: none; color: inherit; transition: opacity 0.2s; }
-        a:hover { opacity: 0.7; }
-        button { cursor: pointer; border: none; outline: none; background: none; font-family: inherit; }
         
-        .container { max-width: 600px; margin: 0 auto; padding: 0 20px; position: relative; min-height: 100vh; display: flex; flex-direction: column; }
+        body::before {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: url('/assets/moon-island-bg.png') center bottom no-repeat;
+          background-size: contain;
+          opacity: 0.15;
+          pointer-events: none;
+          z-index: 0;
+        }
+        
+        a { 
+          text-decoration: none; 
+          color: inherit; 
+          transition: all 0.3s ease; 
+        }
+        a:hover { opacity: 0.8; transform: translateY(-1px); }
+        
+        button { 
+          cursor: pointer; 
+          border: none; 
+          outline: none; 
+          background: none; 
+          font-family: inherit;
+          transition: all 0.3s ease;
+        }
+        
+        .container { 
+          max-width: 600px; 
+          margin: 0 auto; 
+          padding: 0 20px; 
+          position: relative; 
+          min-height: 100vh; 
+          display: flex; 
+          flex-direction: column;
+          z-index: 1;
+        }
+        
+        /* Tablet */
+        @media (min-width: 768px) {
+          .container {
+            max-width: 720px;
+            padding: 0 40px;
+          }
+        }
+        
+        /* Desktop */
+        @media (min-width: 1024px) {
+          .container {
+            max-width: 800px;
+            padding: 0 60px;
+          }
+        }
+        
         .section-padding { padding: 60px 0; }
+        
+        @media (min-width: 768px) {
+          .section-padding { padding: 80px 0; }
+        }
+        
         .border-y { border-top: 1px solid var(--c-black); border-bottom: 1px solid var(--c-black); }
         .border-t { border-top: 1px solid var(--c-black); }
         
@@ -168,24 +239,52 @@ const App = () => {
         .text-blue { color: var(--c-blue); }
         .text-yellow { color: var(--c-yellow); }
         
-        /* Components */
+        /* Components - Glassmorphism */
         .btn-entry {
           display: flex; justify-content: space-between; align-items: center;
           width: 100%; padding: 20px; margin-bottom: 12px;
-          border: 1px solid var(--c-black); background: white;
-          transition: transform 0.2s, box-shadow 0.2s;
+          border: 1px solid rgba(0, 0, 0, 0.3);
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(10px);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          min-height: 60px;
         }
         .btn-entry:active { transform: scale(0.98); }
-        .btn-entry:hover { box-shadow: 4px 4px 0 var(--c-yellow); }
+        .btn-entry:hover { 
+          box-shadow: 4px 4px 0 var(--c-yellow), 0 4px 16px rgba(0, 0, 0, 0.15);
+          transform: translateY(-2px);
+        }
+        
+        @media (min-width: 768px) {
+          .btn-entry {
+            padding: 24px;
+          }
+        }
         
         .btn-primary {
           display: block; width: 100%; text-align: center;
           background: var(--c-blue); color: white;
-          padding: 14px; border-radius: 40px; font-weight: bold;
+          padding: 16px; border-radius: 40px; font-weight: bold;
+          min-height: 50px;
+          box-shadow: 0 4px 12px rgba(88, 120, 240, 0.3);
         }
+        .btn-primary:hover {
+          background: #4a68d8;
+          box-shadow: 0 6px 20px rgba(88, 120, 240, 0.4);
+        }
+        
         .btn-small {
           display: block; width: 100%; text-align: center;
-          border: 1px solid var(--c-black); padding: 10px; font-size: 0.9rem;
+          border: 1px solid var(--c-black); 
+          background: rgba(255, 255, 255, 0.8);
+          padding: 12px; font-size: 0.9rem;
+          min-height: 44px;
+          backdrop-filter: blur(5px);
+        }
+        .btn-small:hover {
+          background: rgba(255, 255, 255, 1);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Timeline */
@@ -197,24 +296,95 @@ const App = () => {
         }
 
         /* Checkin Grid */
-        .checkin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .checkin-grid { 
+          display: grid; 
+          grid-template-columns: 1fr 1fr; 
+          gap: 12px; 
+          margin-top: 20px; 
+        }
+        
+        @media (min-width: 768px) {
+          .checkin-grid {
+            gap: 16px;
+          }
+        }
+        
         .state-btn {
-          padding: 20px 10px; border: 1px solid var(--c-line); background: white;
-          text-align: center; font-size: 0.95rem; transition: all 0.2s;
+          padding: 24px 12px; 
+          border: 1px solid var(--c-line); 
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+          text-align: center; 
+          font-size: 0.95rem; 
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          min-height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .state-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .state-btn.selected {
-          border-color: var(--c-blue); background: var(--c-blue); color: white;
+          border-color: var(--c-blue); 
+          background: var(--c-blue); 
+          color: white;
+          box-shadow: 0 4px 16px rgba(88, 120, 240, 0.4);
+        }
+        
+        @media (min-width: 768px) {
+          .state-btn {
+            padding: 28px 16px;
+            font-size: 1rem;
+          }
         }
 
         /* Result Card */
         .result-card {
-          background: white; border: 2px dashed var(--c-black); padding: 24px;
-          margin-top: 30px; animation: fadeIn 0.5s ease forwards; opacity: 0;
+          background: rgba(255, 255, 255, 0.95); 
+          backdrop-filter: blur(10px);
+          border: 2px dashed var(--c-black); 
+          padding: 24px;
+          margin-top: 30px; 
+          animation: fadeIn 0.5s ease forwards; 
+          opacity: 0;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .link-list li { border-bottom: 1px solid var(--c-line); padding: 15px 0; display: flex; justify-content: space-between; }
+        @media (min-width: 768px) {
+          .result-card {
+            padding: 32px;
+          }
+        }
+        
+        @keyframes fadeIn { 
+          from { opacity: 0; transform: translateY(20px); } 
+          to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        .link-list { 
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+          padding: 0 20px;
+          border-radius: 8px;
+        }
+        .link-list li { 
+          border-bottom: 1px solid var(--c-line); 
+          padding: 18px 0; 
+          display: flex; 
+          justify-content: space-between;
+          align-items: center;
+          min-height: 60px;
+        }
         .link-list li:last-child { border-bottom: none; }
+        
+        @media (min-width: 768px) {
+          .link-list li {
+            padding: 20px 0;
+          }
+        }
       `}</style>
 
       <div className="container">
@@ -222,27 +392,27 @@ const App = () => {
         <header style={{ paddingTop: '80px', paddingBottom: '40px' }}>
           <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem' }}>WELCOME TO MOON ISLAND</div>
           <h1 style={{ fontSize: '2.5rem', lineHeight: '1.1', marginBottom: '10px', fontWeight: 700 }}>
-            {CONFIG.STORE_NAME_EN}<br/>Island Landing
+            {CONFIG.STORE_NAME_EN}<br />Island Landing
           </h1>
           <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px' }}>{CONFIG.TAGLINE}</p>
 
           <a href="#checkin" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
-              <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>01 // INTERACT</span><br/>
+              <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>01 // INTERACT</span><br />
               <strong>我想登島互動 (Check-in)</strong>
             </div>
             <span>↓</span>
           </a>
           <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_pickup')}>
             <div>
-              <span className="font-mono" style={{ fontSize: '0.8rem' }}>02 // PICKUP</span><br/>
+              <span className="font-mono" style={{ fontSize: '0.8rem' }}>02 // PICKUP</span><br />
               <strong>我想帶走甜點 (預訂取貨)</strong>
             </div>
             <span>→</span>
           </a>
           <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_delivery')}>
             <div>
-              <span className="font-mono" style={{ fontSize: '0.8rem' }}>03 // DELIVERY</span><br/>
+              <span className="font-mono" style={{ fontSize: '0.8rem' }}>03 // DELIVERY</span><br />
               <strong>我想遠端靠岸 (冷凍宅配)</strong>
             </div>
             <span>↗</span>
@@ -281,7 +451,7 @@ const App = () => {
         <section className="section-padding" style={{ paddingBottom: '20px' }}>
           <h2 className="font-mono">INTERACTIVE ZONE</h2>
           <p style={{ fontSize: '1.1rem', marginTop: '10px' }}>
-            這不只是一次購買，而是一場狀態的確認。<br/>
+            這不只是一次購買，而是一場狀態的確認。<br />
             選一個關鍵字，交換一份<span style={{ boxShadow: `inset 0 -0.5em 0 ${CONFIG.BRAND_COLORS.moonYellow}` }}>甜點處方箋</span>。
           </p>
         </section>
@@ -309,10 +479,10 @@ const App = () => {
                   <span>DATE: {dateStr}</span>
                   <span>MOON PASS</span>
                 </div>
-                
+
                 <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>STATE:</div>
                 <h3 className="text-blue" style={{ fontSize: '1.4rem', marginBottom: '15px' }}>{STATE_DATA[selectedState].title}</h3>
-                
+
                 <p style={{ fontStyle: 'italic', borderLeft: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingLeft: '12px', marginBottom: '20px', color: '#444' }}>
                   {STATE_DATA[selectedState].advice}
                 </p>
@@ -345,18 +515,18 @@ const App = () => {
           <h2 className="font-mono" style={{ marginBottom: '20px' }}>ACQUIRE / TAKE HOME</h2>
           <div style={{ display: 'grid', gap: '12px' }}>
             <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry">
-               <div>
-                  <strong>到店預訂取貨</strong>
-                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Reserve & Pickup. 最快途徑。</div>
-               </div>
-               <span>→</span>
+              <div>
+                <strong>到店預訂取貨</strong>
+                <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Reserve & Pickup. 最快途徑。</div>
+              </div>
+              <span>→</span>
             </a>
             <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry">
-               <div>
-                  <strong>冷凍宅配到府</strong>
-                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Delivery. 把島嶼打包送給你。</div>
-               </div>
-               <span>↗</span>
+              <div>
+                <strong>冷凍宅配到府</strong>
+                <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Delivery. 把島嶼打包送給你。</div>
+              </div>
+              <span>↗</span>
             </a>
           </div>
         </section>
@@ -384,28 +554,28 @@ const App = () => {
         <section className="section-padding" style={{ background: CONFIG.BRAND_COLORS.emotionBlack, color: 'white', marginLeft: '-20px', marginRight: '-20px', paddingLeft: '20px', paddingRight: '20px', textAlign: 'center' }}>
           <h2 className="font-mono text-yellow" style={{ marginBottom: '10px' }}>KIWIMU LAB</h2>
           <p style={{ opacity: 0.8, marginBottom: '30px' }}>
-            KIWIMU 是月島的互動角色宇宙。<br/>
+            KIWIMU 是月島的互動角色宇宙。<br />
             這裡收藏了所有登島者的情緒檔案。
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-             <a href={CONFIG.LINKS.kiwimu_ig_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>參觀角色展間</a>
-             <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>進入 MBTI Lab</a>
+            <a href={CONFIG.LINKS.kiwimu_ig_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>參觀角色展間</a>
+            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>進入 MBTI Lab</a>
           </div>
         </section>
 
         {/* H. FOOTER */}
         <footer style={{ padding: '60px 0', textAlign: 'center', fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>
-           <div style={{ marginBottom: '20px', fontWeight: 'bold', color: 'black' }}>
-             <a href={CONFIG.LINKS.instagram_moonmoon_url} style={{ margin: '0 10px' }}>INSTAGRAM</a>
-             <a href={CONFIG.LINKS.line_url} style={{ margin: '0 10px' }}>LINE</a>
-           </div>
-           <p style={{ marginBottom: '5px' }}>{CONFIG.LINKS.address_text}</p>
-           <p className="font-mono">{CONFIG.LINKS.hours_text}</p>
-           
-           <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
-             <p style={{ fontSize: '1rem', color: '#999', marginBottom: '10px' }}>你路過，也算參展。</p>
-             <p className="font-mono" style={{ fontSize: '0.7rem', color: '#ccc' }}>© {CONFIG.STORE_NAME_EN}</p>
-           </div>
+          <div style={{ marginBottom: '20px', fontWeight: 'bold', color: 'black' }}>
+            <a href={CONFIG.LINKS.instagram_moonmoon_url} style={{ margin: '0 10px' }}>INSTAGRAM</a>
+            <a href={CONFIG.LINKS.line_url} style={{ margin: '0 10px' }}>LINE</a>
+          </div>
+          <p style={{ marginBottom: '5px' }}>{CONFIG.LINKS.address_text}</p>
+          <p className="font-mono">{CONFIG.LINKS.hours_text}</p>
+
+          <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
+            <p style={{ fontSize: '1rem', color: '#999', marginBottom: '10px' }}>你路過，也算參展。</p>
+            <p className="font-mono" style={{ fontSize: '0.7rem', color: '#ccc' }}>© {CONFIG.STORE_NAME_EN}</p>
+          </div>
         </footer>
       </div>
     </>
