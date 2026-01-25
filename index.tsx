@@ -899,7 +899,7 @@ const App = () => {
           )}
         </div>
 
-        {/* E. SOFT BUY */}
+        {/* E. SOFT BUY (MENU ENTRY) */}
         <section className="section-padding border-t">
           <h2 className="font-mono" style={{ marginBottom: '20px' }}>ARCHIVE / COLLECTION</h2>
 
@@ -926,11 +926,71 @@ const App = () => {
             <span style={{ fontSize: '1.5rem' }}>+</span>
           </button>
 
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <p style={{ marginBottom: '20px' }}>
               這不只是一次選擇，而是一場狀態的確認。<br />
               選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
             </p>
+          </div>
+
+          {/* NEW: CURATED CONTENT */}
+          <div style={{ marginTop: '80px' }}>
+            <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED EXHIBITION</h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+              {/* 1. Spotify Embed */}
+              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white' }}>
+                <iframe
+                  src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
+                  width="100%"
+                  height="352"
+                  frameBorder="0"
+                  allowFullScreen
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  loading="lazy"
+                  style={{ border: 'none' }}
+                ></iframe>
+              </div>
+
+              {/* 2. Downloadables Grid */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+                {/* Wallpaper */}
+                <a href={CONFIG.LINKS.wallpaper_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
+                  <div>
+                    <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>DOWNLOAD</span><br />
+                    <strong>WALLPAPER (桌布)</strong>
+                  </div>
+                  <span>↓</span>
+                </a>
+
+                {/* Theme */}
+                <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
+                  <div>
+                    <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>LINE STORE</span><br />
+                    <strong>OFFICIAL THEME (主題)</strong>
+                  </div>
+                  <span>↗</span>
+                </a>
+
+                {/* Coming Soon */}
+                <div style={{
+                  background: '#f0f0f0',
+                  borderRadius: '12px',
+                  padding: '24px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  minHeight: '80px',
+                  color: '#999',
+                  border: '1px dashed #ccc'
+                }}>
+                  <strong className="font-mono">PROJECT LOADING... (準備中)</strong>
+                </div>
+
+              </div>
+            </div>
           </div>
         </section>
 
@@ -939,15 +999,43 @@ const App = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
             <div>
               <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
-              <p>{CONFIG.LINKS.address_text}</p>
-              <p>{CONFIG.LINKS.hours_text}</p>
+              <p style={{ marginBottom: '10px' }}>
+                {/* Google Maps Link */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.LINKS.address_text)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ textDecoration: 'underline' }}
+                >
+                  {CONFIG.LINKS.address_text} ↗
+                </a>
+              </p>
+              <p>
+                {CONFIG.LINKS.hours_text}<br />
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
+              </p>
             </div>
             <div>
-              <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONNECT</h5>
+              <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONTACT</h5>
               <ul style={{ listStyle: 'none' }}>
-                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer">Instagram</a></li>
-                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer">LINE Official</a></li>
-                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer">Spotify Playlist</a></li>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Instagram</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>LINE Official</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Spotify Playlist</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
