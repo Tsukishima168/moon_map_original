@@ -717,7 +717,7 @@ const App = () => {
             <section style={{ marginBottom: '30px', textAlign: 'center' }}>
               <h2 className="font-mono" style={{ color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>INTERACTIVE ZONE</h2>
               <p style={{ fontSize: '1.1rem', marginTop: '10px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                這不只是一次購買，而是一場狀態的確認。<br />
+                這不只是一次選擇，而是一場狀態的確認。<br />
                 選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
               </p>
             </section>
@@ -786,7 +786,7 @@ const App = () => {
 
         {/* E. SOFT BUY */}
         <section className="section-padding border-t">
-          <h2 className="font-mono" style={{ marginBottom: '20px' }}>ACQUIRE / TAKE HOME</h2>
+          <h2 className="font-mono" style={{ marginBottom: '20px' }}>ARCHIVE / COLLECTION</h2>
 
           <button style={{
             width: '100%',
@@ -910,34 +910,7 @@ const App = () => {
                 </div>
 
                 <div className="modal-body">
-                  {/* Image Carousel */}
-                  <div style={{
-                    display: 'flex',
-                    gap: '10px',
-                    overflowX: 'auto',
-                    paddingBottom: '20px',
-                    marginBottom: '20px',
-                    scrollSnapType: 'x mandatory'
-                  }}>
-                    {[
-                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp',
-                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp',
-                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp',
-                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp',
-                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp'
-                    ].map((src, i) => (
-                      <div key={i} style={{
-                        minWidth: '260px',
-                        height: '350px',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        scrollSnapAlign: 'start',
-                        border: '1px solid #eee'
-                      }}>
-                        <img src={src} alt="Menu Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                    ))}
-                  </div>
+                  {/* Image Carousel Removed as requested */}
 
                   {menuCategories.map((cat) => {
                     const isCollapsed = collapsedCategories.has(cat.id);
