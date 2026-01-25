@@ -95,6 +95,10 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 // --- COMPONENTS ---
 
 const App = () => {
+  const [user, setUser] = useState<any>(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [email, setEmail] = useState('');
+  const [loginMessage, setLoginMessage] = useState('');
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [recommendation, setRecommendation] = useState<string>("");
@@ -176,6 +180,44 @@ const App = () => {
       }
       return next;
     });
+  };
+
+  // --- AUTH ---
+  useEffect(() => {
+    // 1. Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginMessage('Sending magic link...');
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    });
+
+    if (error) {
+      setLoginMessage('Error: ' + error.message);
+    } else {
+      setLoginMessage('Check your email for the login link!');
+      // Optional: Auto close modal after delay or keep it open to show success
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    alert('Logged out!');
   };
 
   useEffect(() => {
@@ -629,7 +671,19 @@ const App = () => {
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
           </div>
 
-          <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem' }}>WELCOME TO MOON ISLAND</div>
+          <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>WELCOME TO MOON ISLAND</span>
+            {user ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '0.7rem', color: CONFIG.BRAND_COLORS.grayText }}>{user.email?.split('@')[0]}</span>
+                <button onClick={handleLogout} style={{ borderBottom: '1px solid black', fontSize: '0.7rem' }}>LOGOUT</button>
+              </div>
+            ) : (
+              <button onClick={() => setShowLogin(true)} style={{ border: '1px solid black', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem' }}>
+                MEMBER LOGIN
+              </button>
+            )}
+          </div>
 
           {/* Logo Integration */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
@@ -998,6 +1052,48 @@ const App = () => {
             </div>
           )
         }
+        {/* LOGIN MODAL */}
+        {showLogin && (
+          <div className="modal-overlay" onClick={() => setShowLogin(false)}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0' }}>
+              <div className="modal-header">
+                <h3 className="font-mono">MEMBER LOGIN</h3>
+                <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+              </div>
+              <div className="modal-body" style={{ textAlign: 'center' }}>
+                <form onSubmit={handleLogin}>
+                  <p style={{ marginBottom: '20px', fontSize: '0.9rem', color: '#666' }}>
+                    輸入 Email，我們會寄送登入連結給您。<br />(免密碼，最安全)
+                  </p>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #ddd',
+                      marginBottom: '15px',
+                      fontSize: '1rem'
+                    }}
+                  />
+                  <button type="submit" className="btn-primary" disabled={!!loginMessage}>
+                    {loginMessage || 'SEND MAGIC LINK'}
+                  </button>
+                  {loginMessage && (
+                    <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
+                      {loginMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div >
     </>
   );
