@@ -96,6 +96,7 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 
 const App = () => {
   const [user, setUser] = useState<any>(null);
+  const [cart, setCart] = useState<{ name: string, spec: string, price: string, count: number }[]>([]);
   const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
@@ -180,6 +181,47 @@ const App = () => {
       }
       return next;
     });
+  };
+
+  // --- CART FUNCTIONS ---
+  const addToCart = (itemName: string, spec: string, price: string) => {
+    setCart(prev => {
+      const existing = prev.find(i => i.name === itemName && i.spec === spec);
+      if (existing) {
+        return prev.map(i => (i.name === itemName && i.spec === spec) ? { ...i, count: i.count + 1 } : i);
+      }
+      return [...prev, { name: itemName, spec, price, count: 1 }];
+    });
+    // Visual feedback could be added here
+  };
+
+  const removeFromCart = (itemName: string, spec: string) => {
+    setCart(prev => prev.filter(i => !(i.name === itemName && i.spec === spec)));
+  };
+
+  const clearCart = () => setCart([]);
+
+  const handleCheckout = () => {
+    if (cart.length === 0) return;
+
+    // Build the message
+    let msg = `Hi 月島，我想預訂 (來自網站)：\n\n`;
+    cart.forEach(item => {
+      msg += `● ${item.name} (${item.spec}) x ${item.count}\n`;
+    });
+
+    msg += `\n--------`;
+    if (user) {
+      msg += `\n會員: ${user.email}`;
+    }
+    msg += `\n備註: `;
+
+    // Encode for URL
+    const encodedMsg = encodeURIComponent(msg);
+    // LINE ID provided by user: 931cxefd -> @931cxefd
+    const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
+
+    window.open(lineUrl, '_blank');
   };
 
   // --- AUTH ---
@@ -1027,11 +1069,30 @@ const App = () => {
 
                                 {!cat.hidePrice && (
                                   <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {item.prices.map((p, pIdx) => (
-                                      <span key={pIdx} className="font-mono" style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(0,0,0,0.03)', padding: '2px 6px', borderRadius: '4px' }}>
-                                        {p.spec}: {p.price}
-                                      </span>
-                                    ))}
+                                    {item.prices.map((p, pIdx) => {
+                                      const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
+                                      return (
+                                        <button
+                                          key={pIdx}
+                                          className="font-mono"
+                                          onClick={(e) => {
+                                            e.stopPropagation(); // Prevent toggling item image
+                                            addToCart(item.name, p.spec, p.price);
+                                          }}
+                                          style={{
+                                            fontSize: '0.8rem',
+                                            color: inCart ? 'white' : '#666',
+                                            background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
+                                            padding: '4px 10px',
+                                            borderRadius: '4px',
+                                            border: '1px solid transparent',
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                          }}>
+                                          {p.spec}: {p.price} {inCart ? `(${inCart.count})` : '+'}
+                                        </button>
+                                      );
+                                    })}
                                   </div>
                                 )}
                               </div>
@@ -1054,8 +1115,9 @@ const App = () => {
         }
         {/* LOGIN MODAL */}
         {showLogin && (
-          <div className="modal-overlay" onClick={() => setShowLogin(false)}>
-            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0' }}>
+          <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
+              {/* ... (existing login modal content) ... */}
               <div className="modal-header">
                 <h3 className="font-mono">MEMBER LOGIN</h3>
                 <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
@@ -1090,6 +1152,46 @@ const App = () => {
                   )}
                 </form>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* FLOATING CART BAR */}
+        {cart.length > 0 && (
+          <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90%',
+            maxWidth: '500px',
+            background: CONFIG.BRAND_COLORS.moonYellow,
+            borderRadius: '50px',
+            padding: '15px 25px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 1500,
+            animation: 'fadeIn 0.3s'
+          }}>
+            <div style={{ fontWeight: 'bold' }}>
+              已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
+            </div>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline' }}>清空</button>
+              <button onClick={handleCheckout} style={{
+                background: 'black',
+                color: 'white',
+                padding: '8px 20px',
+                borderRadius: '30px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                傳送預訂 ➜
+              </button>
             </div>
           </div>
         )}
