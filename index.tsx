@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import { supabase } from './lib/supabase';
 
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
@@ -75,7 +76,7 @@ const track = (event: string, payload: any = {}) => {
 
 // --- DATA: MENU & RANDOMIZER ---
 
-import MENU_CATEGORIES from './menu.json';
+// Removed static import: import MENU_CATEGORIES from './menu.json';
 
 // Simplified lists for random recommender (flattened from above)
 const DESSERT_LIST = [
@@ -100,6 +101,56 @@ const App = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  // --- SUPABASE MENU DATA ---
+  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+  const [loadingMenu, setLoadingMenu] = useState(false);
+
+  useEffect(() => {
+    async function fetchMenu() {
+      try {
+        setLoadingMenu(true);
+        // 1. Fetch Categories
+        const { data: categories, error: catError } = await supabase
+          .from('menu_categories')
+          .select('*')
+          .order('sort_order');
+
+        if (catError) throw catError;
+
+        // 2. Fetch Items
+        const { data: items, error: itemError } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('is_available', true)
+          .order('sort_order');
+
+        if (itemError) throw itemError;
+
+        // 3. Combine
+        if (categories && items) {
+          const combined = categories.map(cat => ({
+            id: cat.id,
+            title: cat.title,
+            subtitle: cat.subtitle,
+            hidePrice: cat.id === 'drinks', // Hardcoded logic for drinks, can be moved to DB later
+            items: items.filter(item => item.category_id === cat.id).map(item => ({
+              name: item.name,
+              image: item.image,
+              prices: item.prices // Supabase returns JSONB as object automatically
+            }))
+          }));
+          setMenuCategories(combined);
+        }
+      } catch (error) {
+        console.error('Error fetching menu:', error);
+      } finally {
+        setLoadingMenu(false);
+      }
+    }
+
+    fetchMenu();
+  }, []);
 
   // Random Header Image
   useEffect(() => {
@@ -888,7 +939,7 @@ const App = () => {
                     ))}
                   </div>
 
-                  {MENU_CATEGORIES.map((cat) => {
+                  {menuCategories.map((cat) => {
                     const isCollapsed = collapsedCategories.has(cat.id);
                     return (
                       <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
