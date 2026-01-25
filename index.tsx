@@ -12,12 +12,12 @@ const CONFIG = {
     creamWhite: '#F8F8F8',
     emotionBlack: '#000000',
     moonYellow: '#D8E038',
-    islandBlue: '#5878F0',
+    islandBlue: '#2A9D8F', // Cyan-Green
     grayText: '#666666',
     grayLine: '#E0E0E0',
   },
   LINKS: {
-    preorder_pickup_url: "https://lin.ee/MndRHE2",
+    preorder_pickup_url: "https://ezpretty.cc/CoQyB?openExternalBrowser=1",
     delivery_url: "https://lin.ee/MndRHE2",
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu-mbti.vercel.app",
@@ -26,7 +26,7 @@ const CONFIG = {
     line_theme_url: "https://store.line.me/themeshop/product/moonmoon",
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
-    address_text: "台北市大安區月島路 101 號",
+    address_text: "台南市安南區本原街一段97巷168號",
     hours_text: "Wed - Sun / 13:00 - 19:00",
   }
 };
@@ -68,22 +68,167 @@ const STATE_DATA: Record<string, { title: string; advice: string; item: string; 
 // --- TRACKING STUB ---
 const track = (event: string, payload: any = {}) => {
   console.log(`[Track] ${event}`, payload);
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', event, payload);
+  }
 };
+
+// --- DATA: MENU & RANDOMIZER ---
+
+const MENU_CATEGORIES = [
+  {
+    id: 'tiramisu',
+    title: '記憶的層疊 / Tiramisu',
+    subtitle: 'Layers of Memory',
+    items: [
+      { name: '經典提拉米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp', prices: [{ spec: '200ml', price: '$160' }, { spec: '鐵盒', price: '$350' }] },
+      { name: '烤焦糖布丁摩卡米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '200ml', price: '$180' }, { spec: '鐵盒', price: '$499' }] },
+      { name: '小山園抹茶米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '200ml', price: '$180' }, { spec: '鐵盒', price: '$549' }] },
+      { name: '日本柚子蘋果乳酪米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', prices: [{ spec: '200ml', price: '$190' }, { spec: '鐵盒', price: '$549' }] },
+      { name: '莓果提拉米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', prices: [{ spec: '200ml', price: '$190' }, { spec: '鐵盒', price: '$549' }] },
+      { name: '奶酒提拉米蘇', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp', prices: [{ spec: '200ml', price: '$190' }, { spec: '鐵盒', price: '$549' }] },
+    ]
+  },
+  {
+    id: 'basque',
+    title: '島嶼的質地 / Basque',
+    subtitle: 'Texture of Island',
+    items: [
+      { name: '原味巴斯克', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '四吋', price: '$299' }, { spec: '六吋', price: '$899' }, { spec: '八吋', price: '$1,300' }] },
+      { name: '檸檬巴斯克', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', prices: [{ spec: '四吋', price: '$299' }, { spec: '六吋', price: '$899' }, { spec: '八吋', price: '$1,400' }] },
+      { name: '鹹蛋黃巴斯克', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', prices: [{ spec: '四吋', price: '$349' }, { spec: '六吋', price: '$999' }, { spec: '八吋', price: '$1,400' }] },
+    ]
+  },
+  {
+    id: 'chiffon',
+    title: '空氣的形狀 / Chiffon',
+    subtitle: 'Shape of Air',
+    items: [
+      { name: '莓果巧克力戚風蛋糕', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '四吋', price: '$590' }, { spec: '六吋', price: '$1,050' }, { spec: '八吋', price: '$1,800' }] },
+      { name: '烤焦糖布丁戚風蛋糕', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', prices: [{ spec: '四吋', price: '$550' }, { spec: '六吋', price: '$1,050' }, { spec: '八吋', price: '$1,650' }] },
+      { name: '伯爵綠葡萄戚風蛋糕', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '四吋', price: '$650' }, { spec: '六吋', price: '$1,150' }, { spec: '八吋', price: '$1,980' }] },
+      { name: '巧克力草莓莓果戚風蛋糕', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '四吋', price: '$690' }, { spec: '六吋', price: '$1,350' }, { spec: '八吋', price: '$2,250' }] },
+      { name: '十勝草莓莓果戚風蛋糕', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', prices: [{ spec: '四吋', price: '$690' }, { spec: '六吋', price: '$1,350' }, { spec: '八吋', price: '$2,250' }] },
+    ]
+  },
+  {
+    id: 'mille_crepe',
+    title: '時間的切片 / Mille Crepe',
+    subtitle: 'Slices of Time',
+    items: [
+      { name: '北海道十勝低糖原味千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '法芙娜巧克力布朗尼千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '特濃抹茶千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '伯爵茶千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '檸檬日本柚子千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '蜜香紅茶拿鐵千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '焙茶拿鐵千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', prices: [{ spec: '九吋', price: '$1,990' }] },
+      { name: '卡士達十勝草莓千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', prices: [{ spec: '九吋', price: '$2,500' }] },
+      { name: '十勝低糖水果森林千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '九吋', price: '$2,500' }] },
+      { name: '十勝低糖原味莓果草莓千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', prices: [{ spec: '九吋', price: '$2,500' }] },
+      { name: '巧克力莓果草莓千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', prices: [{ spec: '九吋', price: '$2,500' }] },
+      { name: '檸檬日本柚子草莓千層', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', prices: [{ spec: '九吋', price: '$2,500' }] },
+    ]
+  },
+  {
+    id: 'pudding',
+    title: '單點 / Others',
+    subtitle: 'Small Treats',
+    items: [
+      { name: '布丁', image: 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp', prices: [{ spec: '單個', price: '$120' }] },
+    ]
+  },
+  {
+    id: 'drinks',
+    title: '靜默的流動 / Drinks',
+    subtitle: 'Flow of Silence',
+    hidePrice: true,
+    items: [
+      { name: '美式咖啡', prices: [] },
+      { name: '經典拿鐵', prices: [] },
+      { name: '日本柚子美式', prices: [] },
+      { name: '薄荷茶', prices: [] },
+      { name: '焙茶拿鐵', prices: [] },
+      { name: '烤布丁拿鐵', prices: [] },
+      { name: '博士茶', prices: [] },
+      { name: '抹茶拿鐵', prices: [] },
+      { name: '花草茶', prices: [] },
+      { name: '西西里美式', prices: [] },
+      { name: '蕎麥茶', prices: [] },
+    ]
+  }
+];
+
+// Simplified lists for random recommender (flattened from above)
+const DESSERT_LIST = [
+  "經典提拉米蘇", "小山園抹茶米蘇", "日本柚子蘋果乳酪米蘇", "原味巴斯克", "檸檬巴斯克", "鹹蛋黃巴斯克",
+  "莓果巧克力戚風", "烤焦糖布丁戚風", "伯爵綠葡萄戚風", "北海道十勝低糖原味千層", "法芙娜巧克力布朗尼千層",
+  "特濃抹茶千層", "伯爵茶千層", "檸檬日本柚子千層", "卡士達十勝草莓千層", "布丁"
+];
+
+const DRINK_LIST = [
+  "美式咖啡", "經典拿鐵", "日本柚子美式", "薄荷茶", "焙茶拿鐵",
+  "烤布丁拿鐵", "博士茶", "抹茶拿鐵", "花草茶", "西西里美式", "蕎麥茶"
+];
+
+const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
 
 // --- COMPONENTS ---
 
 const App = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [recommendation, setRecommendation] = useState<string>("");
+  const [showMenu, setShowMenu] = useState(false);
+  const [headerImage, setHeaderImage] = useState('');
+  const [expandedItem, setExpandedItem] = useState<string | null>(null);
+
+  // Random Header Image
+  useEffect(() => {
+    const images = [
+      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp',
+      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-04_mfdlsz.webp',
+      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1768736617/mbti_%E5%B7%A5%E4%BD%9C%E5%8D%80%E5%9F%9F_1_zpt5jq.webp'
+    ];
+    setHeaderImage(images[Math.floor(Math.random() * images.length)]);
+  }, []);
+
+  // Collapsible state: Set containing IDs of collapsed categories.  
+  // Empty set = all expanded (default).
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+
+  const toggleCategory = (catId: string) => {
+    setCollapsedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     document.title = `${CONFIG.STORE_NAME_EN} | Island Landing`;
   }, []);
 
   const handleStateSelect = (stateKey: string) => {
+    // Toggle: if clicking the same state, close it
+    if (selectedState === stateKey) {
+      setShowResult(false);
+      setSelectedState(null);
+      return;
+    }
+
     setSelectedState(stateKey);
     setShowResult(false); // Reset animation
     track('select_state', { state: stateKey });
+
+    // Generate random recommendation
+    const randomDrink = getRandomItem(DRINK_LIST);
+    const randomDessert = getRandomItem(DESSERT_LIST);
+    setRecommendation(`${randomDrink} / ${randomDessert}`);
 
     // Tiny delay for visual feedback
     setTimeout(() => {
@@ -105,10 +250,10 @@ const App = () => {
         <rect x="0" y="0" width="400" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
         <text x="40" y="60" font-family="monospace" font-size="14" fill="#666">MOON MOON MISSION CARD</text>
         <text x="40" y="120" font-family="sans-serif" font-weight="bold" font-size="16" fill="#000">STATE:</text>
-        <text x="40" y="150" font-family="sans-serif" font-size="24" fill="${CONFIG.BRAND_COLORS.islandBlue}">${data.title}</text>
+        <text x="40" y="150" font-family="sans-serif" font-size="24" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
         <line x1="40" y1="180" x2="360" y2="180" stroke="#ddd" stroke-width="1"/>
         <text x="40" y="220" font-family="sans-serif" font-weight="bold" font-size="16" fill="#000">PRESCRIPTION:</text>
-        <text x="40" y="250" font-family="sans-serif" font-size="18" fill="#000">${data.item}</text>
+        <text x="40" y="250" font-family="sans-serif" font-size="18" fill="#000">${recommendation}</text>
         <rect x="40" y="300" width="320" height="120" fill="#eee"/>
         <text x="60" y="330" font-family="sans-serif" font-weight="bold" font-size="14" fill="#000">YOUR MISSION:</text>
          <foreignObject x="60" y="340" width="280" height="80">
@@ -301,19 +446,28 @@ const App = () => {
 
         /* Timeline */
         .timeline { 
-          padding-left: 20px; 
-          margin-left: 10px;
-          background: var(--glass-white-light);
-          backdrop-filter: blur(10px);
-          border-radius: 16px;
-          padding: 24px;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          box-shadow: var(--shadow-glass);
+          padding-left: 0; 
+          margin-left: 0;
+          background: transparent;
+          backdrop-filter: none;
+          border-radius: 0;
+          padding: 0;
+          border: none;
+          box-shadow: none;
         }
-        .timeline-item { position: relative; margin-bottom: 30px; padding-left: 20px; border-left: 1px solid var(--c-black); }
+        .timeline-item { position: relative; margin-bottom: 30px; border-left: none; padding-left: 0; }
         .timeline-item::before {
-          content: ''; position: absolute; left: -25px; top: 8px;
-          width: 9px; height: 9px; background: var(--c-black); border-radius: 50%;
+          content: '•'; position: absolute; left: -15px; top: 0px;
+          font-size: 1.5rem; line-height: 1; color: var(--c-black);
+          display: none; /* Removed dot style to align flush left as requested */
+        }
+        /* Custom bullet for flush alignment */
+        .timeline-item h4::before {
+          content: '●'; 
+          font-size: 0.6em; 
+          vertical-align: middle; 
+          margin-right: 10px;
+          display: inline-block;
         }
 
         /* Checkin Grid */
@@ -429,27 +583,88 @@ const App = () => {
             padding: 20px 0;
           }
         }
+
+        /* Menu Modal */
+        .modal-overlay {
+          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(0, 0, 0, 0.4);
+          backdrop-filter: blur(8px);
+          z-index: 1000;
+          display: flex; justify-content: center; align-items: center;
+          padding: 20px;
+          animation: fadeIn 0.3s ease;
+        }
+        .modal-card {
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(20px);
+          border-radius: 24px;
+          width: 100%; max-width: 600px;
+          max-height: 85vh;
+          overflow-y: auto;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+          position: relative;
+          display: flex; flex-direction: column;
+        }
+        .modal-header {
+          padding: 20px 24px;
+          border-bottom: 1px solid rgba(0,0,0,0.1);
+          display: flex; justify-content: space-between; align-items: center;
+          position: sticky; top: 0; background: rgba(255,255,255,0.95); z-index: 10;
+        }
+        .modal-body { padding: 24px; }
+        .menu-grid {
+          display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 30px;
+        }
+        @media (min-width: 640px) {
+          .menu-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .menu-item {
+          padding: 16px;
+          background: rgba(255,255,255,0.6);
+          border: 1px solid rgba(0,0,0,0.05);
+          border-radius: 12px;
+          transition: all 0.2s;
+        }
+        .menu-item:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .close-btn {
+          width: 32px; height: 32px;
+          border-radius: 50%;
+          background: rgba(0,0,0,0.05);
+          display: flex; justify-content: center; align-items: center;
+          font-size: 1.2rem;
+        }
+        .close-btn:hover { background: rgba(0,0,0,0.1); }
+        
+        .header-bird {
+          position: absolute; 
+          top: 20px; 
+          right: -20px; 
+          width: 180px;
+          animation: float 6s ease-in-out infinite; 
+          zIndex: -1;
+        }
+        @media (max-width: 768px) {
+          .header-bird {
+            top: 10px;
+            right: -50px; /* Move further right on mobile to avoid overlapping text */
+            width: 140px; /* Make smaller */
+            opacity: 0.9;
+          }
+        }
       `}</style>
 
       <div className="container">
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
-          <div style={{
-            position: 'absolute',
-            top: '20px',
-            right: '-20px',
-            width: '180px',
-            animation: 'float 6s ease-in-out infinite',
-            zIndex: -1
-          }}>
-            <img src="/assets/character-enter.webp" alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
+          <div className="header-bird">
+            <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
           </div>
 
           <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem' }}>WELCOME TO MOON ISLAND</div>
 
           {/* Logo Integration */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto' }} />
+            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
               Island Landing
             </h1>
@@ -508,81 +723,130 @@ const App = () => {
           </div>
         </section>
 
-        {/* C. PEAK EXPERIENCE */}
-        <section className="section-padding" style={{ paddingBottom: '20px' }}>
-          <h2 className="font-mono">INTERACTIVE ZONE</h2>
-          <p style={{ fontSize: '1.1rem', marginTop: '10px' }}>
-            這不只是一次購買，而是一場狀態的確認。<br />
-            選一個關鍵字，交換一份<span style={{ boxShadow: `inset 0 -0.5em 0 ${CONFIG.BRAND_COLORS.moonYellow}` }}>甜點處方箋</span>。
-          </p>
-        </section>
+        {/* C. PEAK EXPERIENCE & D. CHECK-IN (Combined with Background) */}
+        <div style={{
+          backgroundImage: 'url(https://res.cloudinary.com/dvizdsv4m/image/upload/v1769239698/Please_make_the_2k_202601241151_ios8rt.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          borderRadius: '24px',
+          padding: '40px 20px',
+          margin: '40px 0',
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Dark overlay to ensure text readability if needed, but user said "don't want transparency", likely meaning the image itself. 
+              We'll add a slight gradient for text protection without obscuring the image too much. */}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.3)',
+            zIndex: 0
+          }}></div>
 
-        {/* D. CHECK-IN */}
-        <section id="checkin" style={{ paddingBottom: '60px' }}>
-          <div className="border-t" style={{ paddingTop: '30px' }}>
-            <h3>今日登島狀態？</h3>
-            <div className="checkin-grid">
-              {Object.entries(STATE_DATA).map(([key, data], index) => (
-                <button
-                  key={key}
-                  className={`state-btn ${selectedState === key ? 'selected' : ''}`}
-                  style={index === 4 ? { gridColumn: 'span 2' } : {}}
-                  onClick={() => handleStateSelect(key)}
-                >
-                  {data.title.split('/')[0].trim()}
-                </button>
-              ))}
-            </div>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <section style={{ marginBottom: '30px', textAlign: 'center' }}>
+              <h2 className="font-mono" style={{ color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>INTERACTIVE ZONE</h2>
+              <p style={{ fontSize: '1.1rem', marginTop: '10px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
+                這不只是一次購買，而是一場狀態的確認。<br />
+                選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
+              </p>
+            </section>
 
-            {showResult && selectedState && (
-              <div className="result-card">
-                <div className="font-mono" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px', fontSize: '0.8rem' }}>
-                  <span>DATE: {dateStr}</span>
-                  <span>MOON PASS</span>
+            <section id="checkin">
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '30px' }}>
+                <h3 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)', marginBottom: '20px' }}>今日登島狀態？</h3>
+
+                <div className="checkin-grid">
+                  {Object.entries(STATE_DATA).map(([key, data], index) => (
+                    <button
+                      key={key}
+                      className={`state-btn ${selectedState === key ? 'selected' : ''}`}
+                      style={{
+                        ...(index === 4 ? { gridColumn: 'span 2' } : {}),
+                        background: 'rgba(255, 255, 255, 0.15)',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        color: 'white',
+                        backdropFilter: 'blur(4px)'
+                      }}
+                      onClick={() => handleStateSelect(key)}
+                    >
+                      {data.title.split('/')[0].trim()}
+                    </button>
+                  ))}
                 </div>
 
-                <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>STATE:</div>
-                <h3 className="text-blue" style={{ fontSize: '1.4rem', marginBottom: '15px' }}>{STATE_DATA[selectedState].title}</h3>
+                {showResult && selectedState && (
+                  <div className="result-card" style={{ background: 'rgba(255, 255, 255, 0.95)', color: CONFIG.BRAND_COLORS.emotionBlack }}>
+                    <div className="font-mono" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px', fontSize: '0.8rem' }}>
+                      <span>DATE: {dateStr}</span>
+                      <span>MOON PASS</span>
+                    </div>
 
-                <p style={{ fontStyle: 'italic', borderLeft: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingLeft: '12px', marginBottom: '20px', color: '#444' }}>
-                  {STATE_DATA[selectedState].advice}
-                </p>
+                    <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>STATE:</div>
+                    <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>{STATE_DATA[selectedState].title}</h3>
 
-                <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>RECOMMENDATION</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '20px' }}>{STATE_DATA[selectedState].item}</div>
+                    <p style={{ fontStyle: 'italic', borderLeft: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingLeft: '12px', marginBottom: '20px', color: '#444' }}>
+                      {STATE_DATA[selectedState].advice}
+                    </p>
 
-                <div style={{ background: CONFIG.BRAND_COLORS.creamWhite, padding: '15px', fontSize: '0.9rem', marginBottom: '20px' }}>
-                  <strong>今日任務：</strong> {STATE_DATA[selectedState].mission}
-                </div>
+                    <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>RECOMMENDATION</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '20px' }}>{recommendation}</div>
 
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  <a href={`${CONFIG.LINKS.mbti_lab_url}?source=guide&state=${selectedState}`} target="_blank" rel="noreferrer" className="btn-primary">
-                    開始 3 分鐘測驗
-                  </a>
-                  <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" className="btn-small">
-                    加入 LINE 領取任務
-                  </a>
-                  <button onClick={handleDownloadCard} className="btn-small font-mono">
-                    ↓ SAVE MISSION CARD
-                  </button>
-                </div>
+                    <div style={{ background: CONFIG.BRAND_COLORS.creamWhite, padding: '15px', fontSize: '0.9rem', marginBottom: '20px' }}>
+                      <strong>今日任務：</strong> {STATE_DATA[selectedState].mission}
+                    </div>
+
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      <a href={`https://moonmoon-dessert-passport.vercel.app/?source=guide&state=${selectedState}`} target="_blank" rel="noreferrer" className="btn-primary" onClick={() => track('click_quiz_start', { state: selectedState })}>
+                        開始 30 秒測驗
+                      </a>
+                      <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" className="btn-small" onClick={() => track('click_join_line_mission', { state: selectedState })}>
+                        加入 LINE 領取任務
+                      </a>
+                      <button onClick={handleDownloadCard} className="btn-small font-mono">
+                        ↓ SAVE MISSION CARD
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </section>
           </div>
-        </section>
+        </div>
 
         {/* E. SOFT BUY */}
         <section className="section-padding border-t">
           <h2 className="font-mono" style={{ marginBottom: '20px' }}>ACQUIRE / TAKE HOME</h2>
+
+          <button style={{
+            width: '100%',
+            background: 'black',
+            color: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            marginBottom: '20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            textAlign: 'left'
+          }} onClick={() => { setShowMenu(true); track('click_view_menu'); }}>
+            <div>
+              <strong style={{ fontSize: '1.2rem' }}>查看本季菜單</strong>
+              <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>MENU. 完整品項一覽。</div>
+            </div>
+            <span style={{ fontSize: '1.5rem' }}>↓</span>
+          </button>
+
           <div style={{ display: 'grid', gap: '12px' }}>
-            <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry">
+            <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_section_pickup')}>
               <div>
                 <strong>到店預訂取貨</strong>
                 <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Reserve & Pickup. 最快途徑。</div>
               </div>
               <span>→</span>
             </a>
-            <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry">
+            <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_section_delivery')}>
               <div>
                 <strong>冷凍宅配到府</strong>
                 <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Delivery. 把島嶼打包送給你。</div>
@@ -598,15 +862,27 @@ const App = () => {
           <ul className="link-list">
             <li>
               <span>本季手機桌布</span>
-              <a href={CONFIG.LINKS.wallpaper_url} target="_blank" rel="noreferrer" className="font-mono">DOWNLOAD ↓</a>
+              <a href={CONFIG.LINKS.wallpaper_url} target="_blank" rel="noreferrer" className="font-mono" onClick={() => track('click_download_wallpaper')}>DOWNLOAD ↓</a>
             </li>
-            <li>
-              <span>MoonMoon Radio (歌單)</span>
-              <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" className="font-mono">LISTEN ↗</a>
+            <li style={{ display: 'block' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <span>MoonMoon Radio (歌單)</span>
+              </div>
+              <iframe
+                data-testid="embed-iframe"
+                style={{ borderRadius: '12px' }}
+                src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
+                width="100%"
+                height="352"
+                frameBorder="0"
+                allowFullScreen
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                loading="lazy"
+              ></iframe>
             </li>
             <li>
               <span>本季 LINE 主題</span>
-              <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="font-mono">VIEW ↗</a>
+              <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="font-mono" onClick={() => track('click_view_line_theme')}>VIEW ↗</a>
             </li>
           </ul>
         </section>
@@ -623,16 +899,23 @@ const App = () => {
             這裡收藏了所有登島者的情緒檔案。
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-            <a href={CONFIG.LINKS.kiwimu_ig_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>參觀角色展間</a>
-            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }}>進入 MBTI Lab</a>
+            <a href={CONFIG.LINKS.kiwimu_ig_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }} onClick={() => track('click_visit_showroom')}>參觀角色展間</a>
+            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }} onClick={() => track('click_enter_mbti_lab')}>進入 MBTI Lab</a>
           </div>
         </section>
 
         {/* H. FOOTER */}
         <footer style={{ padding: '60px 0', textAlign: 'center', fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>
-          <div style={{ marginBottom: '20px', fontWeight: 'bold', color: 'black' }}>
-            <a href={CONFIG.LINKS.instagram_moonmoon_url} style={{ margin: '0 10px' }}>INSTAGRAM</a>
-            <a href={CONFIG.LINKS.line_url} style={{ margin: '0 10px' }}>LINE</a>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginBottom: '30px', alignItems: 'center' }}>
+            <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_instagram')}>
+              <img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
+            </a>
+            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_mbti')}>
+              <img src="https://img.icons8.com/ios-filled/50/000000/brain.png" alt="MBTI Lab" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
+            </a>
+            <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_line')}>
+              <img src="https://img.icons8.com/ios-filled/50/000000/line-me.png" alt="LINE" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
+            </a>
           </div>
           <p style={{ marginBottom: '5px' }}>{CONFIG.LINKS.address_text}</p>
           <p className="font-mono">{CONFIG.LINKS.hours_text}</p>
@@ -642,7 +925,138 @@ const App = () => {
             <p className="font-mono" style={{ fontSize: '0.7rem', color: '#ccc' }}>© {CONFIG.STORE_NAME_EN}</p>
           </div>
         </footer>
-      </div>
+
+
+        {/* MENU MODAL */}
+        {
+          showMenu && (
+            <div className="modal-overlay" onClick={() => setShowMenu(false)}>
+              <div className="modal-card" onClick={e => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div>
+                    <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
+                    <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
+                  </div>
+                  <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
+                </div>
+
+                <div className="modal-body">
+                  {/* Image Carousel */}
+                  <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    overflowX: 'auto',
+                    paddingBottom: '20px',
+                    marginBottom: '20px',
+                    scrollSnapType: 'x mandatory'
+                  }}>
+                    {[
+                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp',
+                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp',
+                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp',
+                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp',
+                      'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp'
+                    ].map((src, i) => (
+                      <div key={i} style={{
+                        minWidth: '260px',
+                        height: '350px',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        scrollSnapAlign: 'start',
+                        border: '1px solid #eee'
+                      }}>
+                        <img src={src} alt="Menu Item" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {MENU_CATEGORIES.map((cat) => {
+                    const isCollapsed = collapsedCategories.has(cat.id);
+                    return (
+                      <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                        <div
+                          onClick={() => toggleCategory(cat.id)}
+                          style={{
+                            marginBottom: '15px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start'
+                          }}
+                        >
+                          <div>
+                            <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
+                              {cat.title}
+                            </h4>
+                            <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
+                              {cat.subtitle}
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
+                            +
+                          </div>
+                        </div>
+
+                        {!isCollapsed && (
+                          <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
+                            {cat.items.map((item, idx) => (
+                              <div key={idx} className="menu-item" onClick={() => {
+                                if (cat.id !== 'drinks') {
+                                  setExpandedItem(expandedItem === item.name ? null : item.name);
+                                }
+                              }} style={{ cursor: cat.id !== 'drinks' ? 'pointer' : 'default' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', justifyContent: 'space-between' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <div style={{
+                                      width: '12px',
+                                      height: '12px',
+                                      background: cat.id === 'drinks' ? CONFIG.BRAND_COLORS.islandBlue : CONFIG.BRAND_COLORS.moonYellow,
+                                      borderRadius: '2px',
+                                      marginRight: '12px',
+                                      flexShrink: 0
+                                    }}></div>
+                                    <div style={{ fontWeight: 600, fontSize: '1rem' }}>{item.name}</div>
+                                  </div>
+                                  {cat.id !== 'drinks' && (
+                                    <span style={{ fontSize: '0.8rem', color: '#ccc' }}>{expandedItem === item.name ? '▲' : '▼'}</span>
+                                  )}
+                                </div>
+
+                                {/* Item Image Expansion */}
+                                {expandedItem === item.name && (item as any).image && (
+                                  <div style={{ marginBottom: '15px', borderRadius: '8px', overflow: 'hidden', animation: 'fadeIn 0.3s' }}>
+                                    <img src={(item as any).image} alt={item.name} style={{ width: '100%', height: 'auto', display: 'block' }} />
+                                  </div>
+                                )}
+
+                                {!cat.hidePrice && (
+                                  <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    {item.prices.map((p, pIdx) => (
+                                      <span key={pIdx} className="font-mono" style={{ fontSize: '0.8rem', color: '#666', background: 'rgba(0,0,0,0.03)', padding: '2px 6px', borderRadius: '4px' }}>
+                                        {p.spec}: {p.price}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                    <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" className="btn-primary" onClick={() => track('click_menu_reserve')}>
+                      前往 LINE 預訂
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        }
+      </div >
     </>
   );
 };
