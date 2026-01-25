@@ -310,12 +310,15 @@ const App = () => {
     track('generate_mission_card', { state: selectedState });
 
     const data = STATE_DATA[selectedState];
-    // Create a simple SVG blob for download (No external libs needed)
+    const width = 400;
+    const height = 600;
+
+    // 1. Create SVG String
     const svgContent = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+      <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <rect width="100%" height="100%" fill="${CONFIG.BRAND_COLORS.creamWhite}"/>
-        <rect x="20" y="20" width="360" height="560" fill="white" stroke="black" stroke-width="2" stroke-dasharray="5,5"/>
-        <rect x="0" y="0" width="400" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
+        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="5,5"/>
+        <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
         <text x="40" y="60" font-family="monospace" font-size="14" fill="#666">MOON MOON MISSION CARD</text>
         <text x="40" y="120" font-family="sans-serif" font-weight="bold" font-size="16" fill="#000">STATE:</text>
         <text x="40" y="150" font-family="sans-serif" font-size="24" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
@@ -333,16 +336,37 @@ const App = () => {
       </svg>
     `;
 
-    const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `MoonMission_${selectedState}.svg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // 2. Convert to PNG via Canvas
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
 
-    alert("任務卡已生成！\n(手機請截圖保存，電腦已自動下載 SVG)");
+    // Create a Blob URL from the SVG
+    const svgBlob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = () => {
+      if (ctx) {
+        ctx.fillStyle = CONFIG.BRAND_COLORS.creamWhite;
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0);
+
+        // Export as PNG
+        const pngUrl = canvas.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = `MoonMission_${selectedState}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+      }
+    };
+    img.src = url;
   };
 
   const today = new Date();
