@@ -206,16 +206,25 @@ const App = () => {
   };
 
   // --- CART FUNCTIONS ---
-  const addToCart = (itemName: string, spec: string, price: string) => {
+  // MODIFIED UX: Toggle behavior (Click once to add, click again to remove)
+  const toggleCartItem = (itemName: string, spec: string, price: string) => {
     setCart(prev => {
-      const existing = prev.find(i => i.name === itemName && i.spec === spec);
-      if (existing) {
-        return prev.map(i => (i.name === itemName && i.spec === spec) ? { ...i, count: i.count + 1 } : i);
+      const existingIndex = prev.findIndex(i => i.name === itemName && i.spec === spec);
+
+      if (existingIndex >= 0) {
+        // If exists, remove it (Toggle Off)
+        const newCart = [...prev];
+        newCart.splice(existingIndex, 1);
+        return newCart;
+      } else {
+        // If not exists, add it (Toggle On)
+        return [...prev, { name: itemName, spec, price, count: 1 }];
       }
-      return [...prev, { name: itemName, spec, price, count: 1 }];
     });
-    // Visual feedback could be added here
   };
+
+  // Renamed for clarity, though used as 'addToCart' in existing props
+  const addToCart = toggleCartItem;
 
   const removeFromCart = (itemName: string, spec: string) => {
     setCart(prev => prev.filter(i => !(i.name === itemName && i.spec === spec)));
@@ -1165,9 +1174,10 @@ const App = () => {
                                             borderRadius: '4px',
                                             border: '1px solid transparent',
                                             cursor: 'pointer',
-                                            transition: 'all 0.2s'
+                                            transition: 'all 0.2s',
+                                            fontWeight: inCart ? 'bold' : 'normal'
                                           }}>
-                                          {p.spec}: {p.price} {inCart ? `(${inCart.count})` : '+'}
+                                          {p.spec}: {p.price} {inCart ? '✓' : '+'}
                                         </button>
                                       );
                                     })}
