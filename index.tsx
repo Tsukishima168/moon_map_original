@@ -182,6 +182,13 @@ const App = () => {
     setHeaderImage(images[Math.floor(Math.random() * images.length)]);
   }, []);
 
+  // AUTO-OPEN MENU via HASH
+  useEffect(() => {
+    if (window.location.hash === '#menu') {
+      setShowMenu(true);
+    }
+  }, []);
+
   // Collapsible state: Set containing IDs of collapsed categories.  
   // Empty set = all expanded (default).
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
