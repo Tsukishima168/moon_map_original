@@ -123,10 +123,17 @@ const App = () => {
 
         if (catError) throw catError;
 
-        // 2. Fetch Items
+        // 2. Fetch Items (V2: Join with variants)
         const { data: items, error: itemError } = await supabase
           .from('menu_items')
-          .select('*')
+          .select(`
+            *,
+            menu_variants (
+              spec,
+              price,
+              sort_order
+            )
+          `)
           .eq('is_available', true)
           .order('sort_order');
 
@@ -138,12 +145,20 @@ const App = () => {
             id: cat.id,
             title: cat.title,
             subtitle: cat.subtitle,
-            hidePrice: cat.id === 'drinks', // Hardcoded logic for drinks, can be moved to DB later
-            items: items.filter(item => item.category_id === cat.id).map(item => ({
-              name: item.name,
-              image: item.image,
-              prices: item.prices // Supabase returns JSONB as object automatically
-            }))
+            hidePrice: cat.id === 'drinks',
+            items: items.filter(item => item.category_id === cat.id).map(item => {
+              // Sort variants by sort_order
+              const sortedVariants = item.menu_variants
+                ? item.menu_variants.sort((a: any, b: any) => a.sort_order - b.sort_order)
+                : (typeof item.prices === 'string' ? JSON.parse(item.prices) : item.prices);
+
+              return {
+                name: item.name,
+                image: item.image,
+                description: item.description, // New Description Field
+                prices: sortedVariants || []
+              };
+            })
           }));
           setMenuCategories(combined);
         }
@@ -798,86 +813,66 @@ const App = () => {
           margin: '40px 0',
           color: 'white',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          minHeight: '600px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between'
         }}>
-          {/* Dark overlay to ensure text readability if needed, but user said "don't want transparency", likely meaning the image itself. 
-              We'll add a slight gradient for text protection without obscuring the image too much. */}
+          {/* Overlay for readability */}
           <div style={{
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.3)',
-            zIndex: 0
+            zIndex: 1
           }}></div>
 
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <section style={{ marginBottom: '30px', textAlign: 'center' }}>
-              <h2 className="font-mono" style={{ color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>INTERACTIVE ZONE</h2>
-              <p style={{ fontSize: '1.1rem', marginTop: '10px', textShadow: '0 1px 2px rgba(0,0,0,0.5)' }}>
-                這不只是一次選擇，而是一場狀態的確認。<br />
-                選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
-              </p>
-            </section>
-
-            <section id="checkin">
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '30px' }}>
-                <h3 style={{ textShadow: '0 1px 2px rgba(0,0,0,0.5)', marginBottom: '20px' }}>今日登島狀態？</h3>
-
-                <div className="checkin-grid">
-                  {Object.entries(STATE_DATA).map(([key, data], index) => (
-                    <button
-                      key={key}
-                      className={`state-btn ${selectedState === key ? 'selected' : ''}`}
-                      style={{
-                        ...(index === 4 ? { gridColumn: 'span 2' } : {}),
-                        background: 'rgba(255, 255, 255, 0.15)',
-                        border: '1px solid rgba(255, 255, 255, 0.4)',
-                        color: 'white',
-                        backdropFilter: 'blur(4px)'
-                      }}
-                      onClick={() => handleStateSelect(key)}
-                    >
-                      {data.title.split('/')[0].trim()}
-                    </button>
-                  ))}
-                </div>
-
-                {showResult && selectedState && (
-                  <div className="result-card" style={{ background: 'rgba(255, 255, 255, 0.95)', color: CONFIG.BRAND_COLORS.emotionBlack }}>
-                    <div className="font-mono" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '15px', fontSize: '0.8rem' }}>
-                      <span>DATE: {dateStr}</span>
-                      <span>MOON PASS</span>
-                    </div>
-
-                    <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>STATE:</div>
-                    <h3 style={{ fontSize: '1.4rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>{STATE_DATA[selectedState].title}</h3>
-
-                    <p style={{ fontStyle: 'italic', borderLeft: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingLeft: '12px', marginBottom: '20px', color: '#444' }}>
-                      {STATE_DATA[selectedState].advice}
-                    </p>
-
-                    <div className="font-mono" style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.8rem' }}>RECOMMENDATION</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '20px' }}>{recommendation}</div>
-
-                    <div style={{ background: CONFIG.BRAND_COLORS.creamWhite, padding: '15px', fontSize: '0.9rem', marginBottom: '20px' }}>
-                      <strong>今日任務：</strong> {STATE_DATA[selectedState].mission}
-                    </div>
-
-                    <div style={{ display: 'grid', gap: '10px' }}>
-                      <a href={`https://moonmoon-dessert-passport.vercel.app/?source=guide&state=${selectedState}`} target="_blank" rel="noreferrer" className="btn-primary" onClick={() => track('click_quiz_start', { state: selectedState })}>
-                        開始 30 秒測驗
-                      </a>
-                      <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" className="btn-small" onClick={() => track('click_join_line_mission', { state: selectedState })}>
-                        加入 LINE 領取任務
-                      </a>
-                      <button onClick={handleDownloadCard} className="btn-small font-mono">
-                        ↓ SAVE MISSION CARD
-                      </button>
-                    </div>
-                  </div>
-                )}
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <h2 className="font-mono" style={{ color: 'white', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>PEAK EXPERIENCE</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <button
+                className={`state-btn ${selectedState === 'calm' ? 'selected' : ''}`}
+                onClick={() => handleStateSelect('calm')}
+              >
+                CALM<br />平靜
+              </button>
+              <div className="checkin-grid">
+                <button className={`state-btn ${selectedState === 'anxious' ? 'selected' : ''}`} onClick={() => handleStateSelect('anxious')}>
+                  ANXIOUS<br />焦慮
+                </button>
+                <button className={`state-btn ${selectedState === 'hopeful' ? 'selected' : ''}`} onClick={() => handleStateSelect('hopeful')}>
+                  HOPEFUL<br />希望
+                </button>
+                <button className={`state-btn ${selectedState === 'thinking' ? 'selected' : ''}`} onClick={() => handleStateSelect('thinking')}>
+                  THINKING<br />思考
+                </button>
+                <button className={`state-btn ${selectedState === 'create' ? 'selected' : ''}`} onClick={() => handleStateSelect('create')}>
+                  CREATIVE<br />創作
+                </button>
               </div>
-            </section>
+            </div>
           </div>
+
+          {showResult && selectedState && (
+            <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black' }}>
+              <div className="font-mono" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>MISSION CARD ISSUED</div>
+              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{STATE_DATA[selectedState].title}</h3>
+              <p style={{ fontSize: '0.95rem', marginBottom: '20px', fontStyle: 'italic' }}>
+                "{STATE_DATA[selectedState].advice}"
+              </p>
+              <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>PRESCRIPTION (處方):</strong>
+                <span style={{ fontSize: '1.1rem' }}>{recommendation}</span>
+              </div>
+              <div style={{ marginBottom: '20px' }}>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
+                <p>{STATE_DATA[selectedState].mission}</p>
+              </div>
+              <button className="btn-primary" onClick={handleDownloadCard}>
+                DOWNLOAD CARD (下載展籤)
+              </button>
+            </div>
+          )}
         </div>
 
         {/* E. SOFT BUY */}
@@ -886,185 +881,149 @@ const App = () => {
 
           <button style={{
             width: '100%',
-            background: 'black',
-            color: 'white',
-            padding: '24px',
+            padding: '30px',
+            border: '2px solid black',
             borderRadius: '12px',
-            marginBottom: '20px',
+            background: 'white',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            textAlign: 'left'
-          }} onClick={() => { setShowMenu(true); track('click_view_menu'); }}>
-            <div>
-              <strong style={{ fontSize: '1.2rem' }}>查看本季菜單</strong>
-              <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.7, marginTop: '5px' }}>MENU. 完整品項一覽。</div>
-            </div>
-            <span style={{ fontSize: '1.5rem' }}>↓</span>
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            marginBottom: '40px',
+            transition: 'all 0.3s'
+          }}
+            onClick={() => {
+              setShowMenu(true);
+              track('open_menu');
+            }}
+          >
+            <span>VIEW MENU & ARCHIVE</span>
+            <span style={{ fontSize: '1.5rem' }}>+</span>
           </button>
 
-          <div style={{ display: 'grid', gap: '12px' }}>
-            <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_section_pickup')}>
-              <div>
-                <strong>到店預訂取貨</strong>
-                <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Reserve & Pickup. 最快途徑。</div>
-              </div>
-              <span>→</span>
-            </a>
-            <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_section_delivery')}>
-              <div>
-                <strong>冷凍宅配到府</strong>
-                <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>Delivery. 把島嶼打包送給你。</div>
-              </div>
-              <span>↗</span>
-            </a>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ marginBottom: '20px' }}>
+              這不只是一次選擇，而是一場狀態的確認。<br />
+              選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
+            </p>
           </div>
         </section>
 
-        {/* F. WEAK LINKS */}
-        <section className="section-padding">
-          <h2 className="font-mono" style={{ marginBottom: '20px' }}>SOUVENIRS (FREE)</h2>
-          <ul className="link-list">
-            <li>
-              <span>本季手機桌布</span>
-              <a href={CONFIG.LINKS.wallpaper_url} target="_blank" rel="noreferrer" className="font-mono" onClick={() => track('click_download_wallpaper')}>DOWNLOAD ↓</a>
-            </li>
-            <li style={{ display: 'block' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                <span>MoonMoon Radio (歌單)</span>
-              </div>
-              <iframe
-                data-testid="embed-iframe"
-                style={{ borderRadius: '12px' }}
-                src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
-                width="100%"
-                height="352"
-                frameBorder="0"
-                allowFullScreen
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-              ></iframe>
-            </li>
-            <li>
-              <span>本季 LINE 主題</span>
-              <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="font-mono" onClick={() => track('click_view_line_theme')}>VIEW ↗</a>
-            </li>
-          </ul>
-        </section>
-
-        {/* G. KIWIMU */}
-        <section className="section-padding" style={{ background: CONFIG.BRAND_COLORS.emotionBlack, color: 'white', marginLeft: '-20px', marginRight: '-20px', paddingLeft: '20px', paddingRight: '20px', textAlign: 'center' }}>
-          {/* Kiwimu Logo */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-            <img src="/assets/logo-kiwimu.png" alt="KIWIMU LAB" style={{ maxWidth: '200px', height: 'auto', filter: 'invert(1)' }} />
+        {/* F. FOOTER */}
+        <footer style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+            <div>
+              <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
+              <p>{CONFIG.LINKS.address_text}</p>
+              <p>{CONFIG.LINKS.hours_text}</p>
+            </div>
+            <div>
+              <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONNECT</h5>
+              <ul style={{ listStyle: 'none' }}>
+                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer">Instagram</a></li>
+                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer">LINE Official</a></li>
+                <li style={{ marginBottom: '8px' }}><a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer">Spotify Playlist</a></li>
+              </ul>
+            </div>
           </div>
-
-          <p style={{ opacity: 0.8, marginBottom: '30px' }}>
-            KIWIMU 是月島的互動角色宇宙。<br />
-            這裡收藏了所有登島者的情緒檔案。
+          <p style={{ textAlign: 'center', color: '#999', fontSize: '0.8rem' }}>
+            © {new Date().getFullYear()} {CONFIG.STORE_NAME_EN}. All Rights Reserved.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
-            <a href={CONFIG.LINKS.kiwimu_ig_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }} onClick={() => track('click_visit_showroom')}>參觀角色展間</a>
-            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" style={{ borderBottom: '1px solid white', paddingBottom: '2px' }} onClick={() => track('click_enter_mbti_lab')}>進入 MBTI Lab</a>
-          </div>
-        </section>
-
-        {/* H. FOOTER */}
-        <footer style={{ padding: '60px 0', textAlign: 'center', fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', marginBottom: '30px', alignItems: 'center' }}>
-            <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_instagram')}>
-              <img src="https://img.icons8.com/ios-filled/50/000000/instagram-new.png" alt="Instagram" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
-            </a>
-            <a href={CONFIG.LINKS.mbti_lab_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_mbti')}>
-              <img src="https://img.icons8.com/ios-filled/50/000000/brain.png" alt="MBTI Lab" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
-            </a>
-            <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" onClick={() => track('click_footer_line')}>
-              <img src="https://img.icons8.com/ios-filled/50/000000/line-me.png" alt="LINE" style={{ width: '30px', height: '30px', opacity: 0.6 }} />
-            </a>
-          </div>
-          <p style={{ marginBottom: '5px' }}>{CONFIG.LINKS.address_text}</p>
-          <p className="font-mono">{CONFIG.LINKS.hours_text}</p>
-
-          <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #ddd' }}>
-            <p style={{ fontSize: '1rem', color: '#999', marginBottom: '10px' }}>你路過，也算參展。</p>
-            <p className="font-mono" style={{ fontSize: '0.7rem', color: '#ccc' }}>© {CONFIG.STORE_NAME_EN}</p>
-          </div>
         </footer>
 
+        {/* --- MODALS --- */}
 
         {/* MENU MODAL */}
-        {
-          showMenu && (
-            <div className="modal-overlay" onClick={() => setShowMenu(false)}>
-              <div className="modal-card" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                  <div>
-                    <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
-                    <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
-                  </div>
-                  <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
+        {showMenu && (
+          <div className="modal-overlay" onClick={() => setShowMenu(false)}>
+            <div className="modal-card" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
+                  <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
                 </div>
+                <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
+              </div>
 
-                <div className="modal-body">
-                  {/* Image Carousel Removed as requested */}
+              <div className="modal-body">
+                {/* Image Carousel Removed as requested */}
 
-                  {menuCategories.map((cat) => {
-                    const isCollapsed = collapsedCategories.has(cat.id);
-                    return (
-                      <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
-                        <div
-                          onClick={() => toggleCategory(cat.id)}
-                          style={{
-                            marginBottom: '15px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start'
-                          }}
-                        >
-                          <div>
-                            <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
-                              {cat.title}
-                            </h4>
-                            <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
-                              {cat.subtitle}
-                            </div>
-                          </div>
-                          <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
-                            +
+                {menuCategories.map((cat) => {
+                  const isCollapsed = collapsedCategories.has(cat.id);
+                  return (
+                    <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+                      <div
+                        onClick={() => toggleCategory(cat.id)}
+                        style={{
+                          marginBottom: '15px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start'
+                        }}
+                      >
+                        <div>
+                          <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
+                            {cat.title}
+                          </h4>
+                          <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
+                            {cat.subtitle}
                           </div>
                         </div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
+                          +
+                        </div>
+                      </div>
 
-                        {!isCollapsed && (
-                          <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
-                            {cat.items.map((item, idx) => (
-                              <div key={idx} className="menu-item" onClick={() => {
-                                if (cat.id !== 'drinks') {
-                                  setExpandedItem(expandedItem === item.name ? null : item.name);
-                                }
-                              }} style={{ cursor: cat.id !== 'drinks' ? 'pointer' : 'default' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', justifyContent: 'space-between' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div style={{
-                                      width: '12px',
-                                      height: '12px',
-                                      background: cat.id === 'drinks' ? CONFIG.BRAND_COLORS.islandBlue : CONFIG.BRAND_COLORS.moonYellow,
-                                      borderRadius: '2px',
-                                      marginRight: '12px',
-                                      flexShrink: 0
-                                    }}></div>
-                                    <div style={{ fontWeight: 600, fontSize: '1rem' }}>{item.name}</div>
-                                  </div>
-                                  {cat.id !== 'drinks' && (
-                                    <span style={{ fontSize: '0.8rem', color: '#ccc' }}>{expandedItem === item.name ? '▲' : '▼'}</span>
-                                  )}
+                      {!isCollapsed && (
+                        <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
+                          {cat.items.map((item, idx) => (
+                            <div key={idx} className="menu-item" onClick={() => {
+                              if (cat.id !== 'drinks') {
+                                setExpandedItem(expandedItem === item.name ? null : item.name);
+                              }
+                            }} style={{ cursor: cat.id !== 'drinks' ? 'pointer' : 'default' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', justifyContent: 'space-between' }}>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <div style={{
+                                    width: '12px',
+                                    height: '12px',
+                                    borderRadius: '50%',
+                                    background: item.prices.some(p => cart.find(c => c.name === item.name && c.spec === p.spec)) ? CONFIG.BRAND_COLORS.islandBlue : '#ddd',
+                                    marginRight: '10px'
+                                  }}></div>
                                 </div>
+                              </div>
 
-                                {/* Item Image Expansion */}
-                                {expandedItem === item.name && (item as any).image && (
-                                  <div style={{ marginBottom: '15px', borderRadius: '8px', overflow: 'hidden', animation: 'fadeIn 0.3s' }}>
-                                    <img src={(item as any).image} alt={item.name} style={{ width: '100%', height: 'auto', display: 'block' }} />
-                                  </div>
+                              {/* Click to expand image */}
+                              {expandedItem === item.name && cat.id !== 'drinks' && (
+                                <div style={{
+                                  width: '100%',
+                                  height: '200px',
+                                  borderRadius: '8px',
+                                  overflow: 'hidden',
+                                  marginBottom: '12px',
+                                  animation: 'fadeIn 0.3s'
+                                }}>
+                                  <img src={item.image || "placeholder.jpg"} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                </div>
+                              )}
+
+                              <div>
+                                <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{item.name}</h4>
+
+                                {/* New Description Field */}
+                                {item.description && (
+                                  <p style={{
+                                    fontSize: '0.85rem',
+                                    color: '#888',
+                                    marginBottom: '8px',
+                                    lineHeight: '1.4',
+                                    whiteSpace: 'pre-line'
+                                  }}>
+                                    {item.description}
+                                  </p>
                                 )}
 
                                 {!cat.hidePrice && (
@@ -1096,28 +1055,24 @@ const App = () => {
                                   </div>
                                 )}
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
-                  <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                    <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" className="btn-primary" onClick={() => track('click_menu_reserve')}>
-                      前往 LINE 預訂
-                    </a>
-                  </div>
-                </div>
+
               </div>
             </div>
-          )
+          </div>
+        )
         }
         {/* LOGIN MODAL */}
         {showLogin && (
           <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
-              {/* ... (existing login modal content) ... */}
               <div className="modal-header">
                 <h3 className="font-mono">MEMBER LOGIN</h3>
                 <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
@@ -1201,5 +1156,8 @@ const App = () => {
   );
 };
 
-const root = createRoot(document.getElementById('root')!);
-root.render(<App />);
+const rootElement = document.getElementById('root');
+if (rootElement) {
+  const root = createRoot(rootElement);
+  root.render(<App />);
+}
