@@ -106,6 +106,7 @@ const App = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [showStory, setShowStory] = useState(false); // Easter Egg Modal
 
   // --- SUPABASE MENU DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
@@ -764,7 +765,16 @@ const App = () => {
       <div className="container">
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
-          <div className="header-bird">
+          {/* Easter Egg Trigger: Click bird to open story */}
+          <div
+            className="header-bird"
+            onClick={() => {
+              track('click_easter_egg');
+              setShowStory(true);
+            }}
+            style={{ cursor: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewport=\'0 0 100 100\' style=\'fill:black;font-size:24px;\'><text y=\'50%\'>?</text></svg>") 16 0, pointer' }}
+            title="Kiwimu?"
+          >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
           </div>
 
@@ -1198,6 +1208,52 @@ const App = () => {
           </div>
         )
         }
+        {/* KIWIMU STORY MODAL (EASTER EGG) */}
+        {showStory && (
+          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(0,0,0,0.85)' }}>
+            <div className="result-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', animation: 'fadeIn 0.5s', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(20,20,20,0.9)', color: 'white' }}>
+              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px' }}>
+                  <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px' }}>WHO IS KIWIMU?</h3>
+                <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+              </div>
+
+              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px' }}>
+                <p style={{ marginBottom: '20px' }}>
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>鮮奶油</span>裡誕生的生物。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
+                </p>
+                <p>
+                  等你願意整理，它又會重新打發成形，變回可以前進的你。
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowStory(false)}
+                style={{
+                  marginTop: '40px',
+                  width: '100%',
+                  padding: '15px',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '30px',
+                  color: 'white',
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.1em'
+                }}
+              >
+                CLOSE DIARY
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* LOGIN MODAL */}
         {showLogin && (
           <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
