@@ -29,6 +29,7 @@ const CONFIG = {
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
     hours_text: "Wed - Sun / 13:00 - 19:00",
+    liff_id: "YOUR_LIFF_ID", // 請填入您的 LIFF ID
   }
 };
 
@@ -107,6 +108,8 @@ const App = () => {
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Easter Egg Modal
+  const [liffReady, setLiffReady] = useState(false);
+  const [isLiff, setIsLiff] = useState(false);
 
   // --- SUPABASE MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
@@ -184,6 +187,22 @@ const App = () => {
     setHeaderImage(images[Math.floor(Math.random() * images.length)]);
   }, []);
 
+  // LIFF Initialization
+  useEffect(() => {
+    const liff = (window as any).liff;
+    if (liff && CONFIG.LINKS.liff_id !== "YOUR_LIFF_ID") {
+      liff.init({ liffId: CONFIG.LINKS.liff_id })
+        .then(() => {
+          console.log('LIFF Initialized');
+          setLiffReady(true);
+          setIsLiff(liff.isInClient());
+        })
+        .catch((err: any) => {
+          console.error('LIFF Init failed', err);
+        });
+    }
+  }, []);
+
   // AUTO-OPEN MENU via HASH
   useEffect(() => {
     if (window.location.hash === '#menu') {
@@ -254,10 +273,26 @@ const App = () => {
 
     // Encode for URL
     const encodedMsg = encodeURIComponent(msg);
-    // LINE ID provided by user: 931cxefd -> @931cxefd
     const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
 
-    window.open(lineUrl, '_blank');
+    const liff = (window as any).liff;
+    if (liffReady && isLiff) {
+      // Use LIFF to send message directly if in LINE app
+      liff.sendMessages([{
+        type: 'text',
+        text: msg
+      }]).then(() => {
+        alert('預訂訊息已成功發送至月島！');
+        clearCart();
+        setShowMenu(false);
+      }).catch((err: any) => {
+        console.error('LIFF sendMessages failed, fallback to URL scheme', err);
+        window.open(lineUrl, '_blank');
+      });
+    } else {
+      // Fallback to URL scheme for external browsers
+      window.open(lineUrl, '_blank');
+    }
   };
 
   // --- AUTH ---
@@ -782,11 +817,11 @@ const App = () => {
         
         .header-bird {
           position: absolute; 
-          top: 20px; /* Moved up to avoid login button overlap (content starts at 80px) */
+          top: 10px; 
           right: -20px; 
           width: 180px;
           animation: float 6s ease-in-out infinite; 
-          zIndex: 0; 
+          z-index: 1; /* Lower than text/buttons */
           transition: transform 0.3s ease;
         }
         .header-bird.modal-open {
@@ -821,7 +856,15 @@ const App = () => {
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
           </div>
 
-          <div className="font-mono" style={{ marginBottom: '10px', fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="font-mono" style={{
+            marginBottom: '10px',
+            fontSize: '0.8rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 10 /* Higher than bird */
+          }}>
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -844,8 +887,20 @@ const App = () => {
                 <button onClick={handleLogout} style={{ borderBottom: '1px solid black', fontSize: '0.7rem' }}>LOGOUT</button>
               </div>
             ) : (
-              <button onClick={() => setShowLogin(true)} style={{ border: '1px solid black', padding: '4px 12px', borderRadius: '20px', fontSize: '0.7rem' }}>
-                MEMBER LOGIN
+              <button
+                onClick={() => setShowLogin(true)}
+                style={{
+                  border: '1px solid black',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  fontSize: '0.75rem',
+                  fontWeight: 'bold',
+                  background: CONFIG.BRAND_COLORS.moonYellow,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 0 black'
+                }}
+              >
+                領取島民狀態 STATUS
               </button>
             )}
           </div>
@@ -1334,10 +1389,17 @@ const App = () => {
           <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
               <div className="modal-header">
-                <h3 className="font-mono">MEMBER LOGIN</h3>
+                <h3 className="font-mono">登島手續：領取島民狀態</h3>
                 <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
               </div>
               <div className="modal-body" style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: '25px', padding: '0 10px' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                    <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
+                    登入後可同步您的 MBTI 測驗結果，<br />
+                    解鎖專屬甜點處方，並獲取島嶼導覽優先權。
+                  </p>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '30px' }}>
                   <button
                     onClick={() => handleOAuthLogin('line')}
