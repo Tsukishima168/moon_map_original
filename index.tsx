@@ -750,7 +750,12 @@ const App = () => {
           right: -20px; 
           width: 180px;
           animation: float 6s ease-in-out infinite; 
-          zIndex: 0; /* Ensure it doesn't block clicks if transparent parts overlap */
+          zIndex: 0; 
+          transition: transform 0.3s ease;
+        }
+        .header-bird.modal-open {
+          animation: none; /* Stop floating when modal is open to avoid jumping */
+          pointer-events: none;
         }
         @media (max-width: 768px) {
           .header-bird {
@@ -767,8 +772,10 @@ const App = () => {
         <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
           {/* Easter Egg Trigger: Click bird to open story */}
           <div
-            className="header-bird"
-            onClick={() => {
+            className={`header-bird ${showStory ? 'modal-open' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
               track('click_easter_egg');
               setShowStory(true);
             }}
@@ -1208,21 +1215,20 @@ const App = () => {
           </div>
         )
         }
-        {/* KIWIMU STORY MODAL (EASTER EGG) */}
         {showStory && (
           <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
-            {/* Use 'white glass' style as requested: bg-white/70, blur-20px */}
+            {/* Story Modal - Glassmorphism Style */}
             <div
               className="result-card"
               onClick={e => e.stopPropagation()}
               style={{
                 maxWidth: '400px',
-                animation: 'fadeIn 0.5s',
                 border: '1px solid rgba(255,255,255,0.8)',
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(20px) saturate(180%)',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
-                color: CONFIG.BRAND_COLORS.emotionBlack
+                color: CONFIG.BRAND_COLORS.emotionBlack,
+                marginTop: '0' // Align centered in modal-overlay
               }}
             >
               <div style={{ textAlign: 'center', marginBottom: '30px' }}>
