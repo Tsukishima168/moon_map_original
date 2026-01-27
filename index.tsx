@@ -746,11 +746,11 @@ const App = () => {
         
         .header-bird {
           position: absolute; 
-          top: 20px; 
+          top: 20px; /* Moved up to avoid login button overlap (content starts at 80px) */
           right: -20px; 
           width: 180px;
           animation: float 6s ease-in-out infinite; 
-          zIndex: -1;
+          zIndex: 0; /* Ensure it doesn't block clicks if transparent parts overlap */
         }
         @media (max-width: 768px) {
           .header-bird {
@@ -1210,19 +1210,32 @@ const App = () => {
         }
         {/* KIWIMU STORY MODAL (EASTER EGG) */}
         {showStory && (
-          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(0,0,0,0.85)' }}>
-            <div className="result-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', animation: 'fadeIn 0.5s', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(20,20,20,0.9)', color: 'white' }}>
+          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
+            {/* Use 'white glass' style as requested: bg-white/70, blur-20px */}
+            <div
+              className="result-card"
+              onClick={e => e.stopPropagation()}
+              style={{
+                maxWidth: '400px',
+                animation: 'fadeIn 0.5s',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(255,255,255,0.7)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
+                color: CONFIG.BRAND_COLORS.emotionBlack
+              }}
+            >
               <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px' }}>
+                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
-                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px' }}>WHO IS KIWIMU?</h3>
+                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
                 <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
               </div>
 
-              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px' }}>
+              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
                 <p style={{ marginBottom: '20px' }}>
-                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>鮮奶油</span>裡誕生的生物。
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
                 </p>
                 <p style={{ marginBottom: '20px' }}>
                   牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
@@ -1241,12 +1254,17 @@ const App = () => {
                   marginTop: '40px',
                   width: '100%',
                   padding: '15px',
-                  border: '1px solid rgba(255,255,255,0.3)',
+                  border: '1px solid rgba(0,0,0,0.1)',
                   borderRadius: '30px',
-                  color: 'white',
+                  background: 'rgba(255,255,255,0.5)',
+                  color: '#666',
                   fontSize: '0.8rem',
-                  letterSpacing: '0.1em'
+                  letterSpacing: '0.1em',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
                 }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'white'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
               >
                 CLOSE DIARY
               </button>
