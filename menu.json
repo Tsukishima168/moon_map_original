@@ -6,6 +6,7 @@
         "items": [
             {
                 "name": "經典提拉米蘇",
+                "description": "濃郁咖啡酒香與綿密馬斯卡彭乳酪的完美平衡，層層交織的義式經典。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
                 "prices": [
                     {
@@ -20,6 +21,7 @@
             },
             {
                 "name": "烤焦糖布丁摩卡米蘇",
+                "description": "焦糖脆片與摩卡咖啡的雙重奏鳴，帶來意想不到的層次驚喜。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -34,6 +36,7 @@
             },
             {
                 "name": "小山園抹茶米蘇",
+                "description": "嚴選日本小山園抹茶，苦甜交融，呈現和洋融合的細膩風味。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -48,6 +51,7 @@
             },
             {
                 "name": "日本柚子蘋果乳酪米蘇",
+                "description": "清新柚子香氣搭配蘋果果酸，輕盈爽口的夏日版提拉米蘇。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
@@ -62,6 +66,7 @@
             },
             {
                 "name": "莓果提拉米蘇",
+                "description": "新鮮莓果的酸甜完美中和咖啡的苦韻，視覺與味覺的雙重饗宴。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
@@ -76,6 +81,7 @@
             },
             {
                 "name": "奶酒提拉米蘇",
+                "description": "加入 Baileys 奶酒增添醇厚酒香，成熟大人味的溫柔甜蜜。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
                 "prices": [
                     {
@@ -97,6 +103,7 @@
         "items": [
             {
                 "name": "原味巴斯克",
+                "description": "外酥內軟的焦糖外殼，包裹著半熟乳酪的濃郁綿密，簡單卻深刻。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -115,6 +122,7 @@
             },
             {
                 "name": "檸檬巴斯克",
+                "description": "清爽檸檬香氣平衡乳酪濃郁，每一口都是夏日微風般的輕盈。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
@@ -133,6 +141,7 @@
             },
             {
                 "name": "鹹蛋黃巴斯克",
+                "description": "鹹香蛋黃與甜美乳酪的東西碰撞，獨特鹹甜滋味令人難忘。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
@@ -158,6 +167,7 @@
         "items": [
             {
                 "name": "莓果巧克力戚風蛋糕",
+                "description": "比利時巧克力與新鮮莓果的浪漫邂逅，輕盈卻充滿層次。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -176,6 +186,7 @@
             },
             {
                 "name": "烤焦糖布丁戚風蛋糕",
+                "description": "焦糖布丁與雲朵般蛋糕體的溫柔相遇，甜蜜中帶著微微焦香。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
@@ -194,6 +205,7 @@
             },
             {
                 "name": "伯爵綠葡萄戚風蛋糕",
+                "description": "伯爵茶的優雅茶香融入青葡萄的清新，品味英式午茶的浪漫。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -212,6 +224,7 @@
             },
             {
                 "name": "巧克力草莓莓果戚風蛋糕",
+                "description": "濃郁巧克力與甜美草莓的經典組合，每一層都是幸福的味道。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -230,6 +243,7 @@
             },
             {
                 "name": "十勝草莓莓果戚風蛋糕",
+                "description": "北海道十勝鮮奶油與季節草莓，呈現極致綿密的奢華口感。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
@@ -255,6 +269,7 @@
         "items": [
             {
                 "name": "北海道十勝低糖原味千層",
+                "description": "嚴選北海道十勝鮮奶油，低糖配方突顯乳香，品嚐最純粹的美好。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -265,6 +280,7 @@
             },
             {
                 "name": "法芙娜巧克力布朗尼千層",
+                "description": "法國法芙娜巧克力的醇厚，搭配布朗尼碎片，巧克力控的天堂。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -275,6 +291,7 @@
             },
             {
                 "name": "特濃抹茶千層",
+                "description": "濃郁抹茶層層堆疊，苦中帶甘，展現日式甜點的細膩哲學。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -285,6 +302,7 @@
             },
             {
                 "name": "伯爵茶千層",
+                "description": "伯爵茶的佛手柑香氣在每一層綻放，優雅而不甜膩。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -295,6 +313,7 @@
             },
             {
                 "name": "檸檬日本柚子千層",
+                "description": "雙柑橘的清新酸甜，為千層蛋糕注入陽光般的活力。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
@@ -305,6 +324,7 @@
             },
             {
                 "name": "蜜香紅茶拿鐵千層",
+                "description": "蜜香紅茶與鮮奶油的溫柔融合，如午後的一杯手調拿鐵。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -315,6 +335,7 @@
             },
             {
                 "name": "焙茶拿鐵千層",
+                "description": "日本焙茶的炭火焙香，帶來沉穩內斂的和風韻味。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
                 "prices": [
                     {
@@ -325,6 +346,7 @@
             },
             {
                 "name": "卡士達十勝草莓千層",
+                "description": "綿密卡士達醬與北海道鮮奶油的雙重奢華，點綴季節草莓。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
@@ -335,6 +357,7 @@
             },
             {
                 "name": "十勝低糖水果森林千層",
+                "description": "繽紛水果與低糖鮮奶油的清爽組合，如漫步森林般的自然甜美。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -345,6 +368,7 @@
             },
             {
                 "name": "十勝低糖原味莓果草莓千層",
+                "description": "原味千層搭配新鮮莓果，簡單卻完美的經典配方。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
@@ -355,6 +379,7 @@
             },
             {
                 "name": "巧克力莓果草莓千層",
+                "description": "巧克力的濃郁與莓果的酸甜，創造味蕾的多層次饗宴。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
                 "prices": [
                     {
@@ -365,6 +390,7 @@
             },
             {
                 "name": "檸檬日本柚子草莓千層",
+                "description": "三重果香的交織，酸甜平衡，清爽宜人的春日滋味。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
@@ -382,6 +408,7 @@
         "items": [
             {
                 "name": "布丁",
+                "description": "經典法式烤布丁，焦糖脆片與滑嫩蛋奶的完美對話，簡單卻雋永。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
                 "prices": [
                     {
@@ -400,46 +427,57 @@
         "items": [
             {
                 "name": "美式咖啡",
+                "description": "精選咖啡豆，呈現純粹的咖啡本味。",
                 "prices": []
             },
             {
                 "name": "經典拿鐵",
+                "description": "濃縮咖啡與綿密奶泡的經典比例，溫暖而熟悉的日常陪伴。",
                 "prices": []
             },
             {
                 "name": "日本柚子美式",
+                "description": "清新柚子香氣與咖啡的創新碰撞，清爽驚喜。",
                 "prices": []
             },
             {
                 "name": "薄荷茶",
+                "description": "清涼薄荷葉沖泡，舒緩身心的草本香氣。",
                 "prices": []
             },
             {
                 "name": "焙茶拿鐵",
+                "description": "日本焙茶的炭火香氣融入鮮奶，溫潤而不甜膩。",
                 "prices": []
             },
             {
                 "name": "烤布丁拿鐵",
+                "description": "焦糖布丁風味融入拿鐵，甜蜜創意飲品。",
                 "prices": []
             },
             {
                 "name": "博士茶",
+                "description": "南非國寶茶，無咖啡因的溫潤口感。",
                 "prices": []
             },
             {
                 "name": "抹茶拿鐵",
+                "description": "濃郁抹茶與鮮奶的完美調和，品味日式優雅。",
                 "prices": []
             },
             {
                 "name": "花草茶",
+                "description": "精選花草調配，每一口都是大自然的療癒芬芳。",
                 "prices": []
             },
             {
                 "name": "西西里美式",
+                "description": "西西里檸檬與咖啡的浪漫，酸甜交織的夏日暢飲。",
                 "prices": []
             },
             {
                 "name": "蕎麥茶",
+                "description": "日本蕎麥的香醇韻味，溫潤回甘。",
                 "prices": []
             }
         ]

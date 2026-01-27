@@ -112,6 +112,61 @@ const App = () => {
   const [liffReady, setLiffReady] = useState(false);
   const [isLiff, setIsLiff] = useState(false);
 
+  // --- CHECKOUT STATES ---
+  const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+  const [pickupDate, setPickupDate] = useState('');
+  const [orderNote, setOrderNote] = useState('');
+  // New "Smart Form" Fields
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+
+  // Helper: Calculate Total Price
+  const calculateTotal = () => {
+    return cart.reduce((total, item) => {
+      // Remove non-numeric chars (e.g. "nt$ 150" -> "150")
+      const priceVal = parseInt(item.price.replace(/[^\d]/g, ''), 10) || 0;
+      return total + (priceVal * item.count);
+    }, 0);
+  };
+
+  // --- GA4 & UTM TRACKING HELPERS ---
+  const getGAClientId = (): string | null => {
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      let clientId: string | null = null;
+      try {
+        (window as any).gtag('get', 'G-YOUR_MEASUREMENT_ID', 'client_id', (id: string) => {
+          clientId = id;
+        });
+      } catch (e) {
+        console.error('Failed to get GA Client ID:', e);
+      }
+      return clientId;
+    }
+    return null;
+  };
+
+  const getUTMParams = () => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      return {
+        utm_source: urlParams.get('utm_source') || null,
+        utm_medium: urlParams.get('utm_medium') || null,
+        utm_campaign: urlParams.get('utm_campaign') || null,
+        utm_content: urlParams.get('utm_content') || null,
+        utm_term: urlParams.get('utm_term') || null,
+        referrer: document.referrer || null
+      };
+    }
+    return {
+      utm_source: null,
+      utm_medium: null,
+      utm_campaign: null,
+      utm_content: null,
+      utm_term: null,
+      referrer: null
+    };
+  };
+
   // --- SUPABASE MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
@@ -256,38 +311,71 @@ const App = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    // Pre-fill Name if available
+    if (profile?.nickname) setCustomerName(profile.nickname);
+    else if (user?.email) setCustomerName(user.email.split('@')[0]);
 
-    // Build the message
-    let msg = `Hi 月島，我想預訂 (來自網站)：\n\n`;
+    setShowCheckoutConfirm(true);
+  };
+
+  const confirmAndSend = () => {
+    // 1. Validation
+    if (!customerName || customerName.length < 2) {
+      alert('請填寫完整姓名 (至少 2 個字)');
+      return;
+    }
+    const phoneRegex = /^09\d{8}$/;
+    if (!customerPhone || !phoneRegex.test(customerPhone)) {
+      alert('請填寫有效的手機號碼 (09開頭共10碼)');
+      return;
+    }
+    if (!pickupDate) {
+      alert('請選擇取貨日期');
+      return;
+    }
+
+    // 2. Generate Order ID (Simple Timestamp-Random)
+    const now = new Date();
+    const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+    const randPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const orderId = `ORD${datePart}${randPart}`; // e.g., ORD0127042
+
+    const totalAmount = calculateTotal();
+
+    // 3. Build the "Remittance Report" Message
+    let msg = `【月島甜點匯款回報】\n`;
+    msg += `訂單編號：${orderId}\n`;
+    msg += `訂購人：${customerName} (${customerPhone})\n`;
+    msg += `總金額：$${totalAmount}\n`;
+    msg += `取貨日期：${pickupDate}\n`;
+    msg += `轉帳後五碼：_________\n`; // Placeholder for user to fill
+
+    msg += `\n----------------\n`;
+    msg += `訂購內容：\n`;
     cart.forEach(item => {
-      msg += `● ${item.name} (${item.spec}) x ${item.count}\n`;
+      msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
     });
 
-    msg += `\n--------`;
-    if (user) {
-      msg += `\n會員: ${profile?.nickname || user.email}`;
-      if (profile?.mbti_type) {
-        msg += `\nMBTI: ${profile.mbti_type}`;
-      }
+    if (orderNote) {
+      msg += `備註：${orderNote}`;
     }
-    msg += `\n備註: `;
 
     // Encode for URL
     const encodedMsg = encodeURIComponent(msg);
+    // Use deep link to ensure it works on mobile
     const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
 
     const liff = (window as any).liff;
-    // STRATEGY CHANGE: To ensure "Friend Add", we use Deep Link even inside LIFF.
-    // liff.sendMessages() does NOT prompt to add friend.
-    // Deep Link (https://line.me/R/oaMessage/...) DOES prompt to add friend if not added.
 
     if (liffReady && isLiff) {
-      // Open Deep Link in current window (LIFF browser) to trigger Friend Add + Message
       window.location.href = lineUrl;
     } else {
-      // Fallback for external browsers
       window.open(lineUrl, '_blank');
     }
+
+    // Close modal after sending
+    setShowCheckoutConfirm(false);
+    clearCart();
   };
 
   // --- AUTH ---
@@ -812,23 +900,27 @@ const App = () => {
         
         .header-bird {
           position: absolute; 
-          top: 65px; /* Shifted down to clear the Login button/Status bar area */
-          right: -20px; 
-          width: 180px;
+          top: -10px; /* Moved to top */
+          right: -30px; 
+          width: 260px; /* Enlarged */
           animation: float 6s ease-in-out infinite; 
           z-index: 10; 
           transition: transform 0.3s ease;
+          pointer-events: none; /* Let clicks pass through unless on image */
+        }
+        .header-bird img {
+          pointer-events: auto; /* Enable clicks on the bird itself */
         }
         .header-bird.modal-open {
-          animation: none; /* Stop floating when modal is open to avoid jumping */
+          animation: none; 
+          opacity: 0.2; /* Fade out when modal open */
           pointer-events: none;
         }
         @media (max-width: 768px) {
           .header-bird {
-            top: 60px;
-            right: -50px; /* Move further right on mobile to avoid overlapping text */
-            width: 130px; /* Make slightly smaller */
-            opacity: 0.9;
+            top: 0px;
+            right: -40px; 
+            width: 200px; /* Larger on mobile too */
           }
         }
       `}</style>
@@ -926,12 +1018,12 @@ const App = () => {
 
           <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px' }}>{CONFIG.TAGLINE}</p>
 
-          <a href="#checkin" className="btn-entry" onClick={() => track('click_hero_checkin')}>
+          <a href="https://moonmoon-dessert-passport.vercel.app" target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
               <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>01 // INTERACT</span><br />
               <strong>我想登島互動 (Check-in)</strong>
             </div>
-            <span>↓</span>
+            <span>↗</span>
           </a>
           <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_pickup')}>
             <div>
@@ -1419,6 +1511,97 @@ const App = () => {
               >
                 CLOSE DIARY
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* CHECKOUT CONFIRMATION MODAL */}
+        {showCheckoutConfirm && (
+          <div className="modal-overlay" onClick={() => setShowCheckoutConfirm(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+                <h3 className="font-mono" style={{ margin: 0 }}>訂購確認 Check Order</h3>
+                <button className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ marginBottom: '20px', maxHeight: '30vh', overflowY: 'auto' }}>
+                  {cart.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{item.name}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>{item.spec}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div>x{item.count}</div>
+                        <div style={{ fontSize: '0.9rem' }}>{item.price}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '20px' }}>
+                  <span>TOTAL</span>
+                  <span>${calculateTotal()}</span>
+                </div>
+
+                <p style={{ background: '#f8f8f8', padding: '10px', fontSize: '0.85rem', color: '#555', borderRadius: '8px', marginBottom: '20px' }}>
+                  💡 請確認以下資訊正確，我們會用此資訊與您對帳。
+                </p>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>訂購人姓名 Name <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="text"
+                    placeholder="請輸入真實姓名"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>手機號碼 Phone <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="tel"
+                    placeholder="09xxxxxxxx"
+                    maxLength={10}
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="date"
+                    required
+                    min={new Date().toISOString().split('T')[0]}
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  />
+                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>*請選擇您要來店取貨的日期 (營業時間: 週三-週日 13:00-19:00)</p>
+                </div>
+
+                <div style={{ marginBottom: '30px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>備註 Note (選填)</label>
+                  <textarea
+                    value={orderNote}
+                    onChange={(e) => setOrderNote(e.target.value)}
+                    placeholder="例如：需要蠟燭、大概幾點到..."
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', minHeight: '80px' }}
+                  />
+                </div>
+
+                <button
+                  onClick={confirmAndSend}
+                  className="btn-primary"
+                  style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonYellow }}
+                >
+                  確認並傳送至 LINE ➔
+                </button>
+              </div>
             </div>
           </div>
         )}
