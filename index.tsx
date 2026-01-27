@@ -958,27 +958,27 @@ const App = () => {
         
         .header-bird {
           position: absolute; 
-          top: -10px; /* Moved to top */
-          right: -30px; 
-          width: 260px; /* Enlarged */
+          top: -80px; /* Move to very top */
+          right: 10px; 
+          width: 180px; /* Smaller to avoid overlap */
           animation: float 6s ease-in-out infinite; 
-          z-index: 10; 
+          z-index: 5; /* Below login area */
           transition: transform 0.3s ease;
-          pointer-events: none; /* Let clicks pass through unless on image */
+          pointer-events: none;
         }
         .header-bird img {
-          pointer-events: auto; /* Enable clicks on the bird itself */
+          pointer-events: auto;
         }
         .header-bird.modal-open {
           animation: none; 
-          opacity: 0.2; /* Fade out when modal open */
+          opacity: 0.2;
           pointer-events: none;
         }
         @media (max-width: 768px) {
           .header-bird {
-            top: 0px;
-            right: -40px; 
-            width: 200px; /* Larger on mobile too */
+            top: -60px;
+            right: 0px; 
+            width: 140px;
           }
         }
       `}</style>
