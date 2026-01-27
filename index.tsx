@@ -459,38 +459,23 @@ const App = () => {
       setShowCheckoutConfirm(false);
       clearCart();
 
-      // Redirect to LINE with error handling
+      // Redirect to LINE - 直接跳轉，不顯示 alert
       try {
-        if (liffReady && isLiff) {
-          // In LINE app, use location.href
-          window.location.href = lineUrl;
-        } else {
-          // In browser, try to open in new tab
-          const lineWindow = window.open(lineUrl, '_blank');
-          
-          // Check if popup was blocked
-          if (!lineWindow || lineWindow.closed || typeof lineWindow.closed === 'undefined') {
-            // Popup blocked, show fallback message
-            alert(`訂單已建立！訂單編號：${orderId}\n\n請複製以下訊息並手動傳送到 LINE：\n\n${msg}\n\n或點擊以下連結：\n${lineUrl}`);
-            // Also try to copy message to clipboard
-            if (navigator.clipboard) {
-              navigator.clipboard.writeText(msg).then(() => {
-                console.log('Message copied to clipboard');
-              });
-            }
-          } else {
-            // Successfully opened, show confirmation
-            setTimeout(() => {
-              alert(`訂單已建立！訂單編號：${orderId}\n\n已為您開啟 LINE 對話視窗，請確認訂單內容。`);
-            }, 500);
-          }
-        }
+        // 直接跳轉到 LINE，無論是否在 LINE app 內
+        // 如果在 LINE app 內，會直接打開對話
+        // 如果在瀏覽器內，會跳轉到 LINE 網頁版或提示下載 LINE app
+        window.location.href = lineUrl;
       } catch (error) {
         console.error('LINE redirect error:', error);
-        // Fallback: show message with manual copy option
-        alert(`訂單已建立！訂單編號：${orderId}\n\n無法自動開啟 LINE，請手動複製以下訊息：\n\n${msg}`);
+        // 如果跳轉失敗，才顯示簡短提示並複製訊息到剪貼簿
         if (navigator.clipboard) {
-          navigator.clipboard.writeText(msg);
+          navigator.clipboard.writeText(msg).then(() => {
+            alert(`訂單已建立！訂單編號：${orderId}\n\n已複製訂單訊息到剪貼簿，請開啟 LINE 並貼上傳送。`);
+          }).catch(() => {
+            alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
+          });
+        } else {
+          alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
         }
       }
 
