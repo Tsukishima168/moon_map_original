@@ -289,6 +289,17 @@ const App = () => {
     }
   };
 
+  const handleOAuthLogin = async (provider: 'line' | 'google') => {
+    setLoginMessage(`Redirecting to ${provider}...`);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: provider as any,
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
+    if (error) setLoginMessage('Error: ' + error.message);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     alert('Logged out!');
@@ -1287,10 +1298,59 @@ const App = () => {
                 <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
               </div>
               <div className="modal-body" style={{ textAlign: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '30px' }}>
+                  <button
+                    onClick={() => handleOAuthLogin('line')}
+                    style={{
+                      background: '#06C755',
+                      color: 'white',
+                      padding: '16px',
+                      borderRadius: '40px',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    使用 LINE 帳號登入
+                  </button>
+                  <button
+                    onClick={() => handleOAuthLogin('google')}
+                    style={{
+                      background: 'white',
+                      color: '#444',
+                      padding: '16px',
+                      borderRadius: '40px',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      border: '1px solid #ddd',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '10px'
+                    }}
+                  >
+                    使用 Google 帳號登入
+                  </button>
+                </div>
+
+                <div style={{ position: 'relative', marginBottom: '30px' }}>
+                  <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
+                  <span style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'white',
+                    padding: '0 10px',
+                    fontSize: '0.8rem',
+                    color: '#999'
+                  }}>或使用 Email 登入</span>
+                </div>
+
                 <form onSubmit={handleLogin}>
-                  <p style={{ marginBottom: '20px', fontSize: '0.9rem', color: '#666' }}>
-                    輸入 Email，我們會寄送登入連結給您。<br />(免密碼，最安全)
-                  </p>
                   <input
                     type="email"
                     placeholder="your@email.com"
@@ -1306,8 +1366,8 @@ const App = () => {
                       fontSize: '1rem'
                     }}
                   />
-                  <button type="submit" className="btn-primary" disabled={!!loginMessage}>
-                    {loginMessage || 'SEND MAGIC LINK'}
+                  <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
+                    {loginMessage || '寄送魔術連結'}
                   </button>
                   {loginMessage && (
                     <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
