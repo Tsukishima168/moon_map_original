@@ -418,15 +418,18 @@ const App = () => {
       const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
       const liff = (window as any).liff;
 
+      // Close modal and clear cart
+      setShowCheckoutConfirm(false);
+      clearCart();
+
+      // Redirect to LINE
       if (liffReady && isLiff) {
         window.location.href = lineUrl;
       } else {
         window.open(lineUrl, '_blank');
       }
 
-      setShowCheckoutConfirm(false);
-      clearCart();
-      alert(`✅ 訂單 ${orderId} 已建立！\n請在 LINE 傳送訊息並完成轉帳。`);
+
 
     } catch (error) {
       console.error('結帳錯誤:', error);
