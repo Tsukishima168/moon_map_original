@@ -817,11 +817,11 @@ const App = () => {
         
         .header-bird {
           position: absolute; 
-          top: 10px; 
+          top: 65px; /* Shifted down to clear the Login button/Status bar area */
           right: -20px; 
           width: 180px;
           animation: float 6s ease-in-out infinite; 
-          z-index: 1; /* Lower than text/buttons */
+          z-index: 10; 
           transition: transform 0.3s ease;
         }
         .header-bird.modal-open {
@@ -830,9 +830,9 @@ const App = () => {
         }
         @media (max-width: 768px) {
           .header-bird {
-            top: 10px;
+            top: 60px;
             right: -50px; /* Move further right on mobile to avoid overlapping text */
-            width: 140px; /* Make smaller */
+            width: 130px; /* Make slightly smaller */
             opacity: 0.9;
           }
         }
