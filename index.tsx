@@ -30,6 +30,7 @@ const CONFIG = {
     address_text: "台南市安南區本原街一段97巷168號",
     hours_text: "Wed - Sun / 13:00 - 19:00",
     liff_id: "2008848603-ANGQX0GN",
+    line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
 };
 
@@ -232,6 +233,8 @@ const App = () => {
             })
           }));
           setMenuCategories(combined);
+          // 預設收起所有分類
+          setCollapsedCategories(new Set(combined.map(cat => cat.id)));
         }
       } catch (error) {
         console.error('Error fetching menu:', error);
@@ -428,27 +431,27 @@ const App = () => {
         });
       }
 
-      // 6. Build LINE message with payment info
+      // 6. Build LINE message with payment info and QR code
       let msg = `【月島甜點訂單確認】\n`;
       msg += `訂單編號：${orderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
       msg += `總金額：$${totalAmount}\n`;
       msg += `取貨日期：${pickupDate}\n`;
-      msg += `\n💳 付款方式（擇一即可）：\n`;
-      msg += `\n1️⃣ LINE Pay 付款（推薦）\n`;
-      msg += `   請回覆「付款」取得 QR Code\n`;
-      msg += `   掃碼後確認金額並完成付款\n`;
-      msg += `\n2️⃣ 銀行轉帳\n`;
-      msg += `   LINE Bank (824) 連線商業銀行\n`;
-      msg += `   帳號：111007479473\n`;
-      msg += `   ⚠️ 備註欄請填：${orderId}\n`;
-      msg += `\n✅ 付款後請回傳「轉帳後五碼」\n`;
-      msg += `   （付款通知中的後五碼數字）\n`;
-      msg += `\n----------------\n訂購內容：\n`;
+      msg += `\n訂購內容：\n`;
       cart.forEach(item => {
         msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
       });
       if (orderNote) msg += `\n備註：${orderNote}`;
+      msg += `\n\n💳 付款方式（擇一即可）：\n`;
+      msg += `\n【推薦】LINE Pay Money 掃碼付款\n`;
+      msg += `請掃描以下 QR Code 付款：\n`;
+      msg += `${CONFIG.LINKS.line_pay_qr_code}\n`;
+      msg += `\n或使用銀行轉帳：\n`;
+      msg += `LINE Bank (824) 連線商業銀行\n`;
+      msg += `帳號：111007479473\n`;
+      msg += `⚠️ 備註欄請填：${orderId}\n`;
+      msg += `\n✅ 付款完成後請回傳「後五碼」\n`;
+      msg += `   （付款通知中的後五碼數字）`;
 
       // 7. Redirect to LINE
       const encodedMsg = encodeURIComponent(msg);
@@ -1506,75 +1509,17 @@ const App = () => {
                               <div>
                                 <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
 
-                                {/* 商品介紹 - 從 Supabase 抓取，點擊展開 */}
+                                {/* 商品介紹 - 從 Supabase 抓取，直接顯示完整內容 */}
                                 {item.description && (
-                                  <div style={{ marginBottom: '12px' }}>
-                                    {expandedDescription === item.name ? (
-                                      // 展開狀態：顯示完整介紹
-                                      <div>
-                                        <p style={{
-                                          fontSize: '0.85rem',
-                                          color: '#666',
-                                          lineHeight: '1.6',
-                                          whiteSpace: 'pre-line',
-                                          marginBottom: '8px'
-                                        }}>
-                                          {item.description}
-                                        </p>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setExpandedDescription(null);
-                                          }}
-                                          style={{
-                                            fontSize: '0.75rem',
-                                            color: CONFIG.BRAND_COLORS.islandBlue,
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            textDecoration: 'underline',
-                                            padding: 0
-                                          }}
-                                        >
-                                          收起介紹
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      // 收起狀態：顯示一行預覽
-                                      <div>
-                                        <p style={{
-                                          fontSize: '0.85rem',
-                                          color: '#888',
-                                          lineHeight: '1.4',
-                                          marginBottom: '4px',
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                          display: '-webkit-box',
-                                          WebkitLineClamp: 2,
-                                          WebkitBoxOrient: 'vertical'
-                                        }}>
-                                          {item.description}
-                                        </p>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setExpandedDescription(item.name);
-                                          }}
-                                          style={{
-                                            fontSize: '0.75rem',
-                                            color: CONFIG.BRAND_COLORS.islandBlue,
-                                            background: 'none',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            textDecoration: 'underline',
-                                            padding: 0
-                                          }}
-                                        >
-                                          展開完整介紹
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
+                                  <p style={{
+                                    fontSize: '0.85rem',
+                                    color: '#666',
+                                    lineHeight: '1.6',
+                                    marginBottom: '12px',
+                                    whiteSpace: 'pre-line'
+                                  }}>
+                                    {item.description}
+                                  </p>
                                 )}
 
                                 {/* 價格/操作區塊 */}
