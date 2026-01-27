@@ -1436,10 +1436,9 @@ const App = () => {
                         <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
                           {cat.items.map((item, idx) => (
                             <div key={idx} className="menu-item" onClick={() => {
-                              if (cat.id !== 'drinks') {
-                                setExpandedItem(expandedItem === item.name ? null : item.name);
-                              }
-                            }} style={{ cursor: cat.id !== 'drinks' ? 'pointer' : 'default' }}>
+                              // Always allow expanding for all items including drinks
+                              setExpandedItem(expandedItem === item.name ? null : item.name);
+                            }} style={{ cursor: 'pointer' }}>
                               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
                                   <div style={{
@@ -1452,8 +1451,8 @@ const App = () => {
                                 </div>
                               </div>
 
-                              {/* Click to expand image */}
-                              {expandedItem === item.name && cat.id !== 'drinks' && (
+                              {/* Click to expand image - Available for all */}
+                              {expandedItem === item.name && (
                                 <div style={{
                                   width: '100%',
                                   height: '200px',
@@ -1484,31 +1483,37 @@ const App = () => {
 
                                 {!cat.hidePrice && (
                                   <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {item.prices.map((p, pIdx) => {
-                                      const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
-                                      return (
-                                        <button
-                                          key={pIdx}
-                                          className="font-mono"
-                                          onClick={(e) => {
-                                            e.stopPropagation(); // Prevent toggling item image
-                                            addToCart(item.name, p.spec, p.price);
-                                          }}
-                                          style={{
-                                            fontSize: '0.8rem',
-                                            color: inCart ? 'white' : '#666',
-                                            background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
-                                            padding: '4px 10px',
-                                            borderRadius: '4px',
-                                            border: '1px solid transparent',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            fontWeight: inCart ? 'bold' : 'normal'
-                                          }}>
-                                          {p.spec}: {p.price} {inCart ? '✓' : '+'}
-                                        </button>
-                                      );
-                                    })}
+                                    {cat.id === 'drinks' ? (
+                                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>
+                                        僅供店內飲用 / In-store Only
+                                      </span>
+                                    ) : (
+                                      item.prices.map((p, pIdx) => {
+                                        const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
+                                        return (
+                                          <button
+                                            key={pIdx}
+                                            className="font-mono"
+                                            onClick={(e) => {
+                                              e.stopPropagation(); // Prevent toggling item image
+                                              addToCart(item.name, p.spec, p.price);
+                                            }}
+                                            style={{
+                                              fontSize: '0.8rem',
+                                              color: inCart ? 'white' : '#666',
+                                              background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
+                                              padding: '4px 10px',
+                                              borderRadius: '4px',
+                                              border: '1px solid transparent',
+                                              cursor: 'pointer',
+                                              transition: 'all 0.2s',
+                                              fontWeight: inCart ? 'bold' : 'normal'
+                                            }}>
+                                            {p.spec}: {p.price} {inCart ? '✓' : '+'}
+                                          </button>
+                                        );
+                                      })
+                                    )}
                                   </div>
                                 )}
                               </div>
