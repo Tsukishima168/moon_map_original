@@ -276,21 +276,15 @@ const App = () => {
     const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
 
     const liff = (window as any).liff;
+    // STRATEGY CHANGE: To ensure "Friend Add", we use Deep Link even inside LIFF.
+    // liff.sendMessages() does NOT prompt to add friend.
+    // Deep Link (https://line.me/R/oaMessage/...) DOES prompt to add friend if not added.
+
     if (liffReady && isLiff) {
-      // Use LIFF to send message directly if in LINE app
-      liff.sendMessages([{
-        type: 'text',
-        text: msg
-      }]).then(() => {
-        alert('預訂訊息已成功發送至月島！');
-        clearCart();
-        setShowMenu(false);
-      }).catch((err: any) => {
-        console.error('LIFF sendMessages failed, fallback to URL scheme', err);
-        window.open(lineUrl, '_blank');
-      });
+      // Open Deep Link in current window (LIFF browser) to trigger Friend Add + Message
+      window.location.href = lineUrl;
     } else {
-      // Fallback to URL scheme for external browsers
+      // Fallback for external browsers
       window.open(lineUrl, '_blank');
     }
   };
