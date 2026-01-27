@@ -107,6 +107,7 @@ const App = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  const [expandedDescription, setExpandedDescription] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Easter Egg Modal
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [liffReady, setLiffReady] = useState(false);
@@ -1476,58 +1477,113 @@ const App = () => {
                       {!isCollapsed && (
                         <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
                           {cat.items.map((item, idx) => (
-                            <div key={idx} className="menu-item" onClick={() => {
-                              // Always allow expanding for all items including drinks
-                              setExpandedItem(expandedItem === item.name ? null : item.name);
-                            }} style={{ cursor: 'pointer' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', justifyContent: 'space-between' }}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                  <div style={{
-                                    width: '12px',
-                                    height: '12px',
-                                    borderRadius: '50%',
-                                    background: item.prices.some(p => cart.find(c => c.name === item.name && c.spec === p.spec)) ? CONFIG.BRAND_COLORS.islandBlue : '#ddd',
-                                    marginRight: '10px'
-                                  }}></div>
-                                </div>
-                              </div>
-
-                              {/* Click to expand image - Available for all */}
-                              {expandedItem === item.name && (
+                            <div key={idx} className="menu-item">
+                              {/* 圖片區塊 - 飲料和所有商品都顯示 */}
+                              {item.image && (
                                 <div style={{
                                   width: '100%',
                                   height: '200px',
                                   borderRadius: '8px',
                                   overflow: 'hidden',
                                   marginBottom: '12px',
-                                  animation: 'fadeIn 0.3s'
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => {
+                                  // 點擊圖片可以放大查看
+                                  setExpandedItem(expandedItem === item.name ? null : item.name);
                                 }}>
-                                  <img src={item.image || "placeholder.jpg"} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                    onError={(e) => {
+                                      // 如果圖片載入失敗，隱藏圖片區塊
+                                      e.currentTarget.style.display = 'none';
+                                    }}
+                                  />
                                 </div>
                               )}
 
                               <div>
-                                <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem' }}>{item.name}</h4>
+                                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
 
-                                {/* New Description Field */}
+                                {/* 商品介紹 - 從 Supabase 抓取，點擊展開 */}
                                 {item.description && (
-                                  <p style={{
-                                    fontSize: '0.85rem',
-                                    color: '#888',
-                                    marginBottom: '8px',
-                                    lineHeight: '1.4',
-                                    whiteSpace: 'pre-line'
-                                  }}>
-                                    {item.description}
-                                  </p>
+                                  <div style={{ marginBottom: '12px' }}>
+                                    {expandedDescription === item.name ? (
+                                      // 展開狀態：顯示完整介紹
+                                      <div>
+                                        <p style={{
+                                          fontSize: '0.85rem',
+                                          color: '#666',
+                                          lineHeight: '1.6',
+                                          whiteSpace: 'pre-line',
+                                          marginBottom: '8px'
+                                        }}>
+                                          {item.description}
+                                        </p>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedDescription(null);
+                                          }}
+                                          style={{
+                                            fontSize: '0.75rem',
+                                            color: CONFIG.BRAND_COLORS.islandBlue,
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline',
+                                            padding: 0
+                                          }}
+                                        >
+                                          收起介紹
+                                        </button>
+                                      </div>
+                                    ) : (
+                                      // 收起狀態：顯示一行預覽
+                                      <div>
+                                        <p style={{
+                                          fontSize: '0.85rem',
+                                          color: '#888',
+                                          lineHeight: '1.4',
+                                          marginBottom: '4px',
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical'
+                                        }}>
+                                          {item.description}
+                                        </p>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedDescription(item.name);
+                                          }}
+                                          style={{
+                                            fontSize: '0.75rem',
+                                            color: CONFIG.BRAND_COLORS.islandBlue,
+                                            background: 'none',
+                                            border: 'none',
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline',
+                                            padding: 0
+                                          }}
+                                        >
+                                          展開完整介紹
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
                                 )}
 
-                                {/* Always show price section, but handle drinks differently */}
-                                <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {/* 價格/操作區塊 */}
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
                                   {cat.id === 'drinks' ? (
                                     <button
                                       onClick={(e) => {
-                                        e.stopPropagation(); // Prevent toggling item image
+                                        e.stopPropagation();
                                         alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
                                       }}
                                       style={{
@@ -1562,7 +1618,7 @@ const App = () => {
                                             key={pIdx}
                                             className="font-mono"
                                             onClick={(e) => {
-                                              e.stopPropagation(); // Prevent toggling item image
+                                              e.stopPropagation();
                                               addToCart(item.name, p.spec, p.price);
                                             }}
                                             style={{
