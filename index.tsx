@@ -107,7 +107,6 @@ const App = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const [expandedDescription, setExpandedDescription] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Easter Egg Modal
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [liffReady, setLiffReady] = useState(false);
@@ -285,7 +284,7 @@ const App = () => {
   }, []);
 
   // Collapsible state: Set containing IDs of collapsed categories.  
-  // Empty set = all expanded (default).
+  // Default: all collapsed (empty means show, so we initialize with all category IDs)
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   const toggleCategory = (catId: string) => {
