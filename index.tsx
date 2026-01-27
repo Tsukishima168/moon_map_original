@@ -108,6 +108,7 @@ const App = () => {
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Easter Egg Modal
+  const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [liffReady, setLiffReady] = useState(false);
   const [isLiff, setIsLiff] = useState(false);
 
@@ -862,11 +863,27 @@ const App = () => {
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.7rem', color: CONFIG.BRAND_COLORS.grayText }}>
+                <button
+                  onClick={() => setShowProfile(true)}
+                  style={{
+                    fontSize: '0.7rem',
+                    color: CONFIG.BRAND_COLORS.grayText,
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '4px 8px',
+                    borderRadius: '8px',
+                    transition: 'background 0.2s'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
+                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
+                >
                   {profile?.nickname || user.email?.split('@')[0]}
                   {profile?.mbti_type && (
                     <span style={{
-                      marginLeft: '10px',
                       padding: '2px 8px',
                       background: CONFIG.BRAND_COLORS.moonYellow,
                       borderRadius: '10px',
@@ -877,7 +894,7 @@ const App = () => {
                       {profile.mbti_type}
                     </span>
                   )}
-                </span>
+                </button>
                 <button onClick={handleLogout} style={{ borderBottom: '1px solid black', fontSize: '0.7rem' }}>LOGOUT</button>
               </div>
             ) : (
@@ -1492,6 +1509,117 @@ const App = () => {
             </div>
           </div>
         )}
+
+        {/* PROFILE MODAL */}
+        {showProfile && user && (
+          <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
+              <div className="modal-header">
+                <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
+                <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                {/* Basic Info */}
+                <div style={{ marginBottom: '30px', textAlign: 'center' }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 15px',
+                    fontSize: '2rem'
+                  }}>
+                    {profile?.nickname?.[0] || user.email?.[0].toUpperCase()}
+                  </div>
+                  <h2 style={{ fontSize: '1.3rem', marginBottom: '5px' }}>
+                    {profile?.nickname || user.email?.split('@')[0]}
+                  </h2>
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{user.email}</p>
+                  {profile?.mbti_type && (
+                    <div style={{
+                      display: 'inline-block',
+                      padding: '6px 16px',
+                      background: CONFIG.BRAND_COLORS.emotionBlack,
+                      color: 'white',
+                      borderRadius: '20px',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold'
+                    }}>
+                      MBTI: {profile.mbti_type}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sync Status */}
+                <div style={{
+                  background: '#f8f8f8',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '25px'
+                }}>
+                  <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
+                    資料同步狀態
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#22c55e', fontSize: '1.2rem' }}>✓</span>
+                      <span style={{ fontSize: '0.9rem' }}>
+                        {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#22c55e', fontSize: '1.2rem' }}>✓</span>
+                      <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  background: '#fffdf0',
+                  border: '1px solid #ffd93d',
+                  borderRadius: '8px',
+                  padding: '15px',
+                  marginBottom: '25px',
+                  fontSize: '0.85rem',
+                  lineHeight: '1.6'
+                }}>
+                  💡 <strong>跨站同步說明</strong><br />
+                  在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
+                  無論您在哪裡更新資料，其他網站都會自動同步。
+                </div>
+
+                {/* Cross-site Links */}
+                <div style={{ textAlign: 'center' }}>
+                  <a
+                    href={CONFIG.LINKS.mbti_lab_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-block',
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      padding: '12px 24px',
+                      borderRadius: '24px',
+                      fontWeight: 'bold',
+                      textDecoration: 'none',
+                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      transition: 'transform 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    前往 MBTI Lab 查看測驗歷史 →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* FLOATING CART BAR */}
         {cart.length > 0 && (
