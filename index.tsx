@@ -957,17 +957,21 @@ const App = () => {
         .close-btn:hover { background: rgba(0,0,0,0.1); }
         
         .header-bird {
-          position: absolute; 
-          top: -80px; /* Move to very top */
-          right: 10px; 
-          width: 180px; /* Smaller to avoid overlap */
+          position: fixed; /* Fixed to viewport */
+          top: 20px;
+          right: 20px; 
+          width: 80px; /* Mobile-friendly size */
           animation: float 6s ease-in-out infinite; 
-          z-index: 5; /* Below login area */
+          z-index: 100; /* Above content but below modals */
           transition: transform 0.3s ease;
           pointer-events: none;
         }
         .header-bird img {
           pointer-events: auto;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
+        }
+        .header-bird:hover {
+          transform: scale(1.1);
         }
         .header-bird.modal-open {
           animation: none; 
@@ -976,9 +980,9 @@ const App = () => {
         }
         @media (max-width: 768px) {
           .header-bird {
-            top: -60px;
-            right: 0px; 
-            width: 140px;
+            top: 15px;
+            right: 15px; 
+            width: 60px; /* Even smaller on mobile */
           }
         }
       `}</style>
