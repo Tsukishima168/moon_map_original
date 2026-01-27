@@ -29,7 +29,7 @@ const CONFIG = {
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
     hours_text: "Wed - Sun / 13:00 - 19:00",
-    liff_id: "YOUR_LIFF_ID", // 請填入您的 LIFF ID
+    liff_id: "2008848603-ANGQX0GN",
   }
 };
 
