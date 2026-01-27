@@ -119,6 +119,16 @@ const App = () => {
   // New "Smart Form" Fields
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  
+  // Store UTM params on page load (not on checkout)
+  const [storedUTMParams, setStoredUTMParams] = useState<{
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    utm_content: string | null;
+    utm_term: string | null;
+    referrer: string | null;
+  } | null>(null);
 
   // Helper: Calculate Total Price
   const calculateTotal = () => {
@@ -266,6 +276,13 @@ const App = () => {
     }
   }, []);
 
+  // Store UTM params on page load (before user navigates)
+  useEffect(() => {
+    const params = getUTMParams();
+    setStoredUTMParams(params);
+    console.log('Stored UTM params:', params);
+  }, []);
+
   // Collapsible state: Set containing IDs of collapsed categories.  
   // Empty set = all expanded (default).
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
@@ -342,7 +359,16 @@ const App = () => {
 
     const totalAmount = calculateTotal();
     const gaClientId = getGAClientId();
-    const utmParams = getUTMParams();
+    // Use stored UTM params (captured on page load) instead of reading at checkout
+    const utmParams = storedUTMParams || getUTMParams();
+
+    console.log('Order data being saved:', {
+      order_note: orderNote,
+      utm_source: utmParams.utm_source,
+      utm_campaign: utmParams.utm_campaign,
+      utm_medium: utmParams.utm_medium,
+      referrer: utmParams.referrer
+    });
 
     try {
       // 3. Save to Supabase
@@ -355,7 +381,7 @@ const App = () => {
           customer_email: user?.email || null,
           total_amount: totalAmount,
           pickup_date: pickupDate,
-          order_note: orderNote || null,
+          order_note: orderNote || null, // Explicitly save even if empty string
           user_id: user?.id || null,
           payment_status: 'pending',
           source: 'website',
@@ -363,7 +389,9 @@ const App = () => {
           referrer: utmParams.referrer,
           utm_source: utmParams.utm_source,
           utm_medium: utmParams.utm_medium,
-          utm_campaign: utmParams.utm_campaign
+          utm_campaign: utmParams.utm_campaign,
+          utm_content: utmParams.utm_content,
+          utm_term: utmParams.utm_term
         })
         .select()
         .single();
@@ -431,11 +459,39 @@ const App = () => {
       setShowCheckoutConfirm(false);
       clearCart();
 
-      // Redirect to LINE
-      if (liffReady && isLiff) {
-        window.location.href = lineUrl;
-      } else {
-        window.open(lineUrl, '_blank');
+      // Redirect to LINE with error handling
+      try {
+        if (liffReady && isLiff) {
+          // In LINE app, use location.href
+          window.location.href = lineUrl;
+        } else {
+          // In browser, try to open in new tab
+          const lineWindow = window.open(lineUrl, '_blank');
+          
+          // Check if popup was blocked
+          if (!lineWindow || lineWindow.closed || typeof lineWindow.closed === 'undefined') {
+            // Popup blocked, show fallback message
+            alert(`訂單已建立！訂單編號：${orderId}\n\n請複製以下訊息並手動傳送到 LINE：\n\n${msg}\n\n或點擊以下連結：\n${lineUrl}`);
+            // Also try to copy message to clipboard
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(msg).then(() => {
+                console.log('Message copied to clipboard');
+              });
+            }
+          } else {
+            // Successfully opened, show confirmation
+            setTimeout(() => {
+              alert(`訂單已建立！訂單編號：${orderId}\n\n已為您開啟 LINE 對話視窗，請確認訂單內容。`);
+            }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('LINE redirect error:', error);
+        // Fallback: show message with manual copy option
+        alert(`訂單已建立！訂單編號：${orderId}\n\n無法自動開啟 LINE，請手動複製以下訊息：\n\n${msg}`);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(msg);
+        }
       }
 
 
@@ -1481,13 +1537,39 @@ const App = () => {
                                   </p>
                                 )}
 
-                                {!cat.hidePrice && (
-                                  <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                    {cat.id === 'drinks' ? (
-                                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>
-                                        僅供店內飲用 / In-store Only
-                                      </span>
-                                    ) : (
+                                {/* Always show price section, but handle drinks differently */}
+                                <div style={{ paddingLeft: '24px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                  {cat.id === 'drinks' ? (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevent toggling item image
+                                        alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
+                                      }}
+                                      style={{
+                                        fontSize: '0.8rem',
+                                        color: '#999',
+                                        fontStyle: 'italic',
+                                        padding: '8px 12px',
+                                        background: 'rgba(0,0,0,0.03)',
+                                        border: '1px dashed #ccc',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        transition: 'all 0.2s'
+                                      }}
+                                      onMouseOver={(e) => {
+                                        e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
+                                        e.currentTarget.style.borderColor = '#999';
+                                      }}
+                                      onMouseOut={(e) => {
+                                        e.currentTarget.style.background = 'rgba(0,0,0,0.03)';
+                                        e.currentTarget.style.borderColor = '#ccc';
+                                      }}
+                                    >
+                                      僅供店內飲用 / In-store Only
+                                      <span style={{ marginLeft: '4px', fontSize: '0.7rem' }}>ℹ️</span>
+                                    </button>
+                                  ) : (
+                                    item.prices && item.prices.length > 0 ? (
                                       item.prices.map((p, pIdx) => {
                                         const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
                                         return (
@@ -1513,9 +1595,13 @@ const App = () => {
                                           </button>
                                         );
                                       })
-                                    )}
-                                  </div>
-                                )}
+                                    ) : (
+                                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>
+                                        暫無規格
+                                      </span>
+                                    )
+                                  )}
+                                </div>
                               </div>
                             </div>
                           ))}
