@@ -108,9 +108,10 @@ const App = () => {
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Easter Egg Modal
 
-  // --- SUPABASE MENU DATA ---
+  // --- SUPABASE MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
+  const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
 
   useEffect(() => {
     async function fetchMenu() {
@@ -244,7 +245,10 @@ const App = () => {
 
     msg += `\n--------`;
     if (user) {
-      msg += `\n會員: ${user.email}`;
+      msg += `\n會員: ${profile?.nickname || user.email}`;
+      if (profile?.mbti_type) {
+        msg += `\nMBTI: ${profile.mbti_type}`;
+      }
     }
     msg += `\n備註: `;
 
@@ -258,14 +262,35 @@ const App = () => {
 
   // --- AUTH ---
   useEffect(() => {
+    const fetchProfile = async (userId: string) => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('nickname, mbti_type')
+          .eq('id', userId)
+          .single();
+        if (!error && data) {
+          setProfile(data);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      }
+    };
+
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
     });
 
     // 2. Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -800,7 +825,22 @@ const App = () => {
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '0.7rem', color: CONFIG.BRAND_COLORS.grayText }}>{user.email?.split('@')[0]}</span>
+                <span style={{ fontSize: '0.7rem', color: CONFIG.BRAND_COLORS.grayText }}>
+                  {profile?.nickname || user.email?.split('@')[0]}
+                  {profile?.mbti_type && (
+                    <span style={{
+                      marginLeft: '10px',
+                      padding: '2px 8px',
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      borderRadius: '10px',
+                      color: 'black',
+                      fontSize: '0.65rem',
+                      fontWeight: 'bold'
+                    }}>
+                      {profile.mbti_type}
+                    </span>
+                  )}
+                </span>
                 <button onClick={handleLogout} style={{ borderBottom: '1px solid black', fontSize: '0.7rem' }}>LOGOUT</button>
               </div>
             ) : (
