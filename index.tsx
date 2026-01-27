@@ -1039,30 +1039,58 @@ const App = () => {
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
-        <section className="section-padding border-t">
-          <h2 className="font-mono" style={{ marginBottom: '20px' }}>ARCHIVE / COLLECTION</h2>
+        <section className="section-padding border-t" style={{ background: '#fcfcfc' }}>
+          <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ARCHIVE / COLLECTION</h2>
 
           <button style={{
             width: '100%',
-            padding: '30px',
-            border: '2px solid black',
-            borderRadius: '12px',
-            background: 'white',
+            padding: '40px 30px',
+            border: 'none',
+            borderRadius: '16px',
+            background: CONFIG.BRAND_COLORS.emotionBlack,
+            color: 'white',
             display: 'flex',
-            justifyContent: 'space-between',
+            flexDirection: 'column',
+            justifyContent: 'center',
             alignItems: 'center',
-            fontSize: '1.2rem',
-            fontWeight: 'bold',
-            marginBottom: '40px',
-            transition: 'all 0.3s'
+            gap: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            position: 'relative',
+            overflow: 'hidden'
           }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.background = '#1a1a1a';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.background = CONFIG.BRAND_COLORS.emotionBlack;
+            }}
             onClick={() => {
               setShowMenu(true);
               track('open_menu');
             }}
           >
-            <span>VIEW MENU & ARCHIVE</span>
-            <span style={{ fontSize: '1.5rem' }}>+</span>
+            <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.6, letterSpacing: '0.2em' }}>EXPLORE THE FLAVORS</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
+              ISLAND MENU
+              <span style={{ color: CONFIG.BRAND_COLORS.moonYellow, marginLeft: '10px' }}>↗</span>
+            </div>
+            <p style={{ fontSize: '0.9rem', opacity: 0.7, maxWidth: '300px', fontWeight: 400, margin: '0 0 10px 0' }}>
+              探索本季甜點處方與過往收藏項目
+            </p>
+            <div style={{
+              background: CONFIG.BRAND_COLORS.moonYellow,
+              color: 'black',
+              padding: '8px 20px',
+              borderRadius: '20px',
+              fontSize: '0.8rem',
+              fontWeight: 'bold'
+            }}>
+              OPEN COLLECTION
+            </div>
           </button>
 
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
