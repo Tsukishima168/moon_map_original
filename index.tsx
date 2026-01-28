@@ -1428,6 +1428,29 @@ const App = () => {
                 ))}
               </div>
               
+              {/* MBTI 測驗引流 - 移到更上方 */}
+              <a 
+                href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-small"
+                onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
+                style={{ 
+                  marginBottom: '20px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  textAlign: 'center',
+                  display: 'block',
+                  padding: '14px 20px',
+                  fontSize: '0.95rem',
+                  fontWeight: 'bold',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                }}
+              >
+                🧪 想更了解自己？探索你的 MBTI 甜點人格 →
+              </a>
+              
               {/* 任務 */}
               <div style={{ marginBottom: '20px' }}>
                 <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
@@ -1453,25 +1476,6 @@ const App = () => {
               <button className="btn-primary" onClick={handleDownloadCard}>
                 📥 下載展籤 DOWNLOAD CARD
               </button>
-              
-              {/* MBTI 測驗引流 */}
-              <a 
-                href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-small"
-                onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
-                style={{ 
-                  marginTop: '15px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  textAlign: 'center',
-                  display: 'block'
-                }}
-              >
-                🧪 想更了解自己？探索你的 MBTI 甜點人格
-              </a>
             </div>
           )}
         </div>
