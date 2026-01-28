@@ -121,6 +121,31 @@ const App = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   
+  // 計算最小可選日期（兩天後）
+  const getMinPickupDate = () => {
+    const today = new Date();
+    today.setDate(today.getDate() + 2); // 兩天後
+    return today.toISOString().split('T')[0];
+  };
+  
+  // 檢查日期是否為週一（公休日）
+  const isMonday = (dateString: string) => {
+    if (!dateString) return false;
+    const date = new Date(dateString + 'T00:00:00');
+    return date.getDay() === 1; // 1 = 週一
+  };
+  
+  // 處理日期變更，如果選到週一則提示並清空
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = e.target.value;
+    if (isMonday(selectedDate)) {
+      alert('⚠️ 抱歉，週一為公休日，請選擇其他日期\n營業時間：週二-週日 13:00-19:00');
+      setPickupDate('');
+    } else {
+      setPickupDate(selectedDate);
+    }
+  };
+  
   // Store UTM params on page load (not on checkout)
   const [storedUTMParams, setStoredUTMParams] = useState<{
     utm_source: string | null;
@@ -351,6 +376,17 @@ const App = () => {
     }
     if (!pickupDate) {
       alert('請選擇取貨日期');
+      return;
+    }
+    
+    // 驗證取貨日期（兩天後 + 不是週一）
+    const minDate = getMinPickupDate();
+    if (pickupDate < minDate) {
+      alert('⚠️ 取貨日期至少需要兩天前預訂');
+      return;
+    }
+    if (isMonday(pickupDate)) {
+      alert('⚠️ 週一為公休日，請選擇其他日期');
       return;
     }
 
@@ -1722,12 +1758,16 @@ const App = () => {
                   <input
                     type="date"
                     required
-                    min={new Date().toISOString().split('T')[0]}
+                    min={getMinPickupDate()}
                     value={pickupDate}
-                    onChange={(e) => setPickupDate(e.target.value)}
+                    onChange={handleDateChange}
                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
                   />
-                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>*請選擇您要來店取貨的日期 (營業時間: 週三-週日 13:00-19:00)</p>
+                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
+                    *請選擇您要來店取貨的日期<br/>
+                    ⚠️ 最快取貨日期：兩天後 | 週一公休<br/>
+                    營業時間：週二-週日 13:00-19:00
+                  </p>
                 </div>
 
                 <div style={{ marginBottom: '30px' }}>
