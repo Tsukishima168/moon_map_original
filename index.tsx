@@ -708,7 +708,11 @@ const App = () => {
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = () => {
-      if (ctx) {
+      try {
+        if (!ctx) {
+          throw new Error('Canvas context not available');
+        }
+
         ctx.fillStyle = CONFIG.BRAND_COLORS.creamWhite;
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0);
@@ -716,16 +720,97 @@ const App = () => {
         // Export as PNG
         const pngUrl = canvas.toDataURL('image/png');
 
-        const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = `MoonMission_${selectedState}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // 檢測是否為手機
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+          // 手機：開啟新視窗顯示圖片，讓用戶長按保存
+          const newWindow = window.open('', '_blank');
+          if (newWindow) {
+            newWindow.document.write(`
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>任務卡 - 長按保存</title>
+                <style>
+                  body { 
+                    margin: 0; 
+                    padding: 20px; 
+                    background: #f5f5f5; 
+                    text-align: center;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+                  }
+                  h2 { color: #333; margin: 20px 0; font-size: 20px; }
+                  img { 
+                    max-width: 100%; 
+                    height: auto; 
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                    border-radius: 8px;
+                    margin: 20px 0;
+                  }
+                  .tip {
+                    background: ${CONFIG.BRAND_COLORS.moonYellow};
+                    padding: 15px;
+                    border-radius: 8px;
+                    margin: 20px 0;
+                    font-size: 16px;
+                    line-height: 1.6;
+                  }
+                  .close-btn {
+                    background: #333;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    margin-top: 20px;
+                    cursor: pointer;
+                  }
+                </style>
+              </head>
+              <body>
+                <h2>📱 你的任務卡已生成！</h2>
+                <div class="tip">
+                  <strong>💡 保存方式：</strong><br/>
+                  長按下方圖片 → 選擇「儲存影像」或「下載圖片」
+                </div>
+                <img src="${pngUrl}" alt="Mission Card" />
+                <button class="close-btn" onclick="window.close()">關閉此頁面</button>
+              </body>
+              </html>
+            `);
+            newWindow.document.close();
+          } else {
+            // 如果彈窗被阻擋，使用替代方案
+            alert('📱 任務卡已生成！\n\n請允許彈出視窗，或者直接截圖保存此畫面。\n\n小提示：在瀏覽器設定中允許彈出視窗，下次就能直接顯示圖片了。');
+          }
+        } else {
+          // 電腦：直接下載
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `月島任務卡_${data.title.split('/')[0].trim()}_${Date.now()}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          alert('✅ 任務卡已下載到電腦！\n\n請查看下載資料夾。');
+        }
 
         URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Canvas rendering error:', error);
+        URL.revokeObjectURL(url);
+        alert('❌ 圖片生成失敗\n\n請稍後再試，或直接截圖保存。');
       }
     };
+
+    img.onerror = (error) => {
+      console.error('Image loading error:', error);
+      URL.revokeObjectURL(url);
+      alert('❌ 圖片載入失敗\n\n請檢查網路連線或稍後再試。');
+    };
+
     img.src = url;
   };
 
