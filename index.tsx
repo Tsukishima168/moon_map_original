@@ -431,7 +431,7 @@ const App = () => {
         });
       }
 
-      // 6. Build LINE message with payment info and QR code
+      // 6. Build LINE message with payment info
       let msg = `【月島甜點訂單確認】\n`;
       msg += `訂單編號：${orderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
@@ -442,16 +442,12 @@ const App = () => {
         msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
       });
       if (orderNote) msg += `\n備註：${orderNote}`;
-      msg += `\n\n💳 付款方式（擇一即可）：\n`;
-      msg += `\n【推薦】LINE Pay Money 掃碼付款\n`;
-      msg += `請掃描以下 QR Code 付款：\n`;
-      msg += `${CONFIG.LINKS.line_pay_qr_code}\n`;
-      msg += `\n或使用銀行轉帳：\n`;
+      msg += `\n\n💳 付款方式：\n`;
       msg += `LINE Bank (824) 連線商業銀行\n`;
       msg += `帳號：111007479473\n`;
-      msg += `⚠️ 備註欄請填：${orderId}\n`;
+      msg += `⚠️ 備註欄請填寫：${orderId}\n`;
       msg += `\n✅ 付款完成後請回傳「後五碼」\n`;
-      msg += `   （付款通知中的後五碼數字）`;
+      msg += `   （轉帳通知中的後五碼數字）`;
 
       // 7. Redirect to LINE
       const encodedMsg = encodeURIComponent(msg);
