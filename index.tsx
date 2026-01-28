@@ -170,7 +170,7 @@ const App = () => {
     if (typeof window !== 'undefined' && (window as any).gtag) {
       let clientId: string | null = null;
       try {
-        (window as any).gtag('get', 'G-YOUR_MEASUREMENT_ID', 'client_id', (id: string) => {
+        (window as any).gtag('get', 'G-TMRJ21C1GK', 'client_id', (id: string) => {
           clientId = id;
         });
       } catch (e) {
@@ -337,9 +337,35 @@ const App = () => {
         // If exists, remove it (Toggle Off)
         const newCart = [...prev];
         newCart.splice(existingIndex, 1);
+        
+        // GA4: Track remove from cart
+        track('remove_from_cart', {
+          currency: 'TWD',
+          value: parseInt(price.replace(/[^\d]/g, ''), 10),
+          items: [{
+            item_name: itemName,
+            item_variant: spec,
+            price: parseInt(price.replace(/[^\d]/g, ''), 10),
+            quantity: 1
+          }]
+        });
+        
         return newCart;
       } else {
         // If not exists, add it (Toggle On)
+        
+        // GA4: Track add to cart
+        track('add_to_cart', {
+          currency: 'TWD',
+          value: parseInt(price.replace(/[^\d]/g, ''), 10),
+          items: [{
+            item_name: itemName,
+            item_variant: spec,
+            price: parseInt(price.replace(/[^\d]/g, ''), 10),
+            quantity: 1
+          }]
+        });
+        
         return [...prev, { name: itemName, spec, price, count: 1 }];
       }
     });
@@ -356,9 +382,26 @@ const App = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    
     // Pre-fill Name if available
     if (profile?.nickname) setCustomerName(profile.nickname);
     else if (user?.email) setCustomerName(user.email.split('@')[0]);
+
+    // GA4: Track begin checkout
+    const totalAmount = cart.reduce((sum, item) => {
+      return sum + parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count;
+    }, 0);
+    
+    track('begin_checkout', {
+      currency: 'TWD',
+      value: totalAmount,
+      items: cart.map(item => ({
+        item_name: item.name,
+        item_variant: item.spec,
+        price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
+        quantity: item.count
+      }))
+    });
 
     setShowCheckoutConfirm(true);
   };
@@ -1323,7 +1366,9 @@ const App = () => {
             }}
             onClick={() => {
               setShowMenu(true);
-              track('open_menu');
+              track('view_item_list', {
+                item_list_name: 'main_menu'
+              });
             }}
           >
             <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.6, letterSpacing: '0.2em' }}>EXPLORE THE FLAVORS</div>

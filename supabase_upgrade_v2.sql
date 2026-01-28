@@ -28,6 +28,7 @@ alter table menu_variants enable row level security;
 create policy "Public can view variants" 
   on menu_variants for select using (true);
 
+
 -- 4. 智慧搬家 (Data Migration)
 -- 把原本擠在 JSON 裡的價格拆出來，並且自動填入產品名稱
 do $$
