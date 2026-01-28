@@ -1476,9 +1476,8 @@ const App = () => {
                         <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
                           {cat.items.map((item, idx) => (
                             <div key={idx} className="menu-item">
-                              {/* 圖片區塊 - 飲料和所有商品都顯示 */}
-                              {/* 如果飲料沒有圖片，使用預設圖片 */}
-                              {(item.image || cat.id === 'drinks') && (
+                              {/* 圖片區塊 - 只有當商品有圖片時才顯示 */}
+                              {item.image && (
                                 <div style={{
                                   width: '100%',
                                   height: '200px',
@@ -1492,7 +1491,7 @@ const App = () => {
                                   setExpandedItem(expandedItem === item.name ? null : item.name);
                                 }}>
                                   <img 
-                                    src={item.image || 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp'} 
+                                    src={item.image} 
                                     alt={item.name} 
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                                     onError={(e) => {
