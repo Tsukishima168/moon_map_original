@@ -35,36 +35,41 @@ const CONFIG = {
 };
 
 // --- DATA: 狀態與任務 ---
-const STATE_DATA: Record<string, { title: string; advice: string; item: string; mission: string }> = {
+const STATE_DATA: Record<string, { 
+  title: string; 
+  advice: string; 
+  mission: string;
+  recommendedItems: string[];
+}> = {
   calm: {
     title: "需要平靜 / CALM",
     advice: "世界太吵的時候，允許自己關上門。靜默不是空無一物，而是為了聽見自己。",
-    item: "海鹽奶蓋鐵觀音 / 經典原味司康",
-    mission: "找個角落坐下，直到喝完這杯茶前，不看手機。"
+    mission: "找個角落坐下，直到喝完這杯茶前，不看手機。",
+    recommendedItems: ["烤布丁(附焦糖液)", "經典提拉米蘇", "經典原味巴斯克"]
   },
   anxious: {
     title: "有點焦慮 / ANXIOUS",
     advice: "焦慮是海浪，會來也會走。你不需要現在就解決所有問題。",
-    item: "熱可可舒芙蕾 / 焦糖布丁",
-    mission: "深呼吸三次，拍一張天空的照片傳給自己。"
+    mission: "深呼吸三次，拍一張天空的照片傳給自己。",
+    recommendedItems: ["烤布丁(附焦糖液)", "烤布丁提拉米蘇", "蜜香紅茶巴斯克"]
   },
   hopeful: {
     title: "充滿希望 / HOPEFUL",
     advice: "保持這份光亮，並試著把它分享給下一個遇見的人。",
-    item: "檸檬糖霜磅蛋糕 / 氣泡咖啡",
-    mission: "將這份甜點分享給朋友，或記錄下現在的想法。"
+    mission: "將這份甜點分享給朋友，或記錄下現在的想法。",
+    recommendedItems: ["日本柚子米蘇", "經典提拉米蘇鐵盒(600ml)", "經典十勝低糖千層"]
   },
   thinking: {
     title: "在思考中 / THINKING",
     advice: "答案通常不在想破頭的瞬間出現，而是在放空的時候浮現。",
-    item: "手沖單品 (淺焙) / 抹茶千層",
-    mission: "在紙巾或筆記本上寫下目前卡住你的一個關鍵字。"
+    mission: "在紙巾或筆記本上寫下目前卡住你的一個關鍵字。",
+    recommendedItems: ["抹茶提拉米蘇", "抹茶提拉米蘇鐵盒(600ml)", "經典原味巴斯克"]
   },
   create: {
     title: "想要創作 / CREATIVE",
     advice: "靈感是調皮的精靈。別抓它，用甜點誘捕它。",
-    item: "季節限定水果塔 / 冰滴咖啡",
-    mission: "用 5 分鐘隨意塗鴉，不需要畫得像任何東西。"
+    mission: "用 5 分鐘隨意塗鴉，不需要畫得像任何東西。",
+    recommendedItems: ["奶酒提拉米蘇", "經典十勝低糖千層", "日本柚子米蘇"]
   }
 };
 
@@ -653,10 +658,8 @@ const App = () => {
     setShowResult(false); // Reset animation
     track('select_state', { state: stateKey });
 
-    // Generate random recommendation
-    const randomDrink = getRandomItem(DRINK_LIST);
-    const randomDessert = getRandomItem(DESSERT_LIST);
-    setRecommendation(`${randomDrink} / ${randomDessert}`);
+    // 不再使用隨機推薦，改為使用 STATE_DATA 中的固定推薦商品列表
+    setRecommendation(''); // 不需要推薦字串，使用商品列表
 
     // Tiny delay for visual feedback
     setTimeout(() => {
@@ -673,26 +676,36 @@ const App = () => {
     const width = 400;
     const height = 600;
 
-    // 1. Create SVG String
+    // 1. Create SVG String with recommended products
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <rect width="100%" height="100%" fill="${CONFIG.BRAND_COLORS.creamWhite}"/>
         <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="5,5"/>
         <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
-        <text x="40" y="60" font-family="monospace" font-size="14" fill="#666">MOON MOON MISSION CARD</text>
-        <text x="40" y="120" font-family="sans-serif" font-weight="bold" font-size="16" fill="#000">STATE:</text>
-        <text x="40" y="150" font-family="sans-serif" font-size="24" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
-        <line x1="40" y1="180" x2="360" y2="180" stroke="#ddd" stroke-width="1"/>
-        <text x="40" y="220" font-family="sans-serif" font-weight="bold" font-size="16" fill="#000">PRESCRIPTION:</text>
-        <text x="40" y="250" font-family="sans-serif" font-size="18" fill="#000">${recommendation}</text>
-        <rect x="40" y="300" width="320" height="120" fill="#eee"/>
-        <text x="60" y="330" font-family="sans-serif" font-weight="bold" font-size="14" fill="#000">YOUR MISSION:</text>
-         <foreignObject x="60" y="340" width="280" height="80">
-            <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:sans-serif; font-size:16px; color:#333; line-height: 1.4;">
-                ${data.mission}
-            </div>
-        </foreignObject>
-        <text x="40" y="550" font-family="monospace" font-size="12" fill="#999">VALID FOR 24 HOURS</text>
+        <text x="40" y="60" font-family="Arial, sans-serif" font-size="14" fill="#666">MOON MOON MISSION CARD</text>
+        <text x="40" y="100" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">STATE:</text>
+        <text x="40" y="130" font-family="Arial, sans-serif" font-size="20" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
+        
+        <line x1="40" y1="150" x2="360" y2="150" stroke="#ddd" stroke-width="1"/>
+        
+        <text x="40" y="180" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
+        <text x="40" y="205" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[0]}</text>
+        <text x="40" y="230" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[1]}</text>
+        <text x="40" y="255" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[2]}</text>
+        
+        <line x1="40" y1="280" x2="360" y2="280" stroke="#ddd" stroke-width="1"/>
+        
+        <rect x="40" y="295" width="320" height="100" fill="#f9f9f9" stroke="#ddd" stroke-width="1"/>
+        <text x="60" y="320" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#000">YOUR MISSION:</text>
+        <text x="60" y="345" font-family="Arial, sans-serif" font-size="12" fill="#333">${data.mission.substring(0, 40)}</text>
+        <text x="60" y="370" font-family="Arial, sans-serif" font-size="12" fill="#333">${data.mission.substring(40)}</text>
+        
+        <rect x="40" y="420" width="320" height="100" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2"/>
+        <text x="60" y="450" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">🎁 兌換券 COUPON</text>
+        <text x="60" y="475" font-family="Arial, sans-serif" font-size="13" fill="#000">完成任務來店出示此卡</text>
+        <text x="60" y="498" font-family="Arial, sans-serif" font-size="13" fill="#000">即可兌換「烤布丁一個」</text>
+        
+        <text x="40" y="560" font-family="monospace" font-size="11" fill="#999">VALID FOR 24 HOURS | moon-island.vercel.app</text>
       </svg>
     `;
 
@@ -1404,17 +1417,61 @@ const App = () => {
               <p style={{ fontSize: '0.95rem', marginBottom: '20px', fontStyle: 'italic' }}>
                 "{STATE_DATA[selectedState].advice}"
               </p>
+              
+              {/* 為你推薦 */}
               <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>PRESCRIPTION (處方):</strong>
-                <span style={{ fontSize: '1.1rem' }}>{recommendation}</span>
+                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
+                {STATE_DATA[selectedState].recommendedItems.map((item, idx) => (
+                  <div key={idx} style={{ marginBottom: '8px', paddingLeft: '10px', fontSize: '0.95rem' }}>
+                    • {item}
+                  </div>
+                ))}
               </div>
+              
+              {/* 任務 */}
               <div style={{ marginBottom: '20px' }}>
                 <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
                 <p>{STATE_DATA[selectedState].mission}</p>
               </div>
+              
+              {/* 兌換券提示 */}
+              <div style={{ 
+                background: CONFIG.BRAND_COLORS.moonYellow, 
+                padding: '15px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                border: '2px solid #000'
+              }}>
+                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '1rem' }}>🎁 兌換券 COUPON</strong>
+                <p style={{ margin: '0', fontSize: '0.9rem', lineHeight: '1.6' }}>
+                  完成任務來店出示此卡<br/>
+                  即可兌換<strong>「烤布丁一個」</strong>
+                </p>
+              </div>
+              
+              {/* 下載按鈕 */}
               <button className="btn-primary" onClick={handleDownloadCard}>
-                DOWNLOAD CARD (下載展籤)
+                📥 下載展籤 DOWNLOAD CARD
               </button>
+              
+              {/* MBTI 測驗引流 */}
+              <a 
+                href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-small"
+                onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
+                style={{ 
+                  marginTop: '15px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  textAlign: 'center',
+                  display: 'block'
+                }}
+              >
+                🧪 想更了解自己？探索你的 MBTI 甜點人格
+              </a>
             </div>
           )}
         </div>
