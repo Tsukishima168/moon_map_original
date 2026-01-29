@@ -73,6 +73,90 @@ const STATE_DATA: Record<string, {
   }
 };
 
+// --- MBTI PERSONALIZED RECOMMENDATIONS ---
+const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedItems: string[]; reason: string }> = {
+  INTJ: {
+    personality: "建築師",
+    recommendedItems: ["抹茶提拉米蘇", "經典原味巴斯克", "經典十勝低糖千層"],
+    reason: "你追求完美與深度，這些甜點層次豐富卻不過分張揚。"
+  },
+  INTP: {
+    personality: "邏輯學家",
+    recommendedItems: ["日本柚子米蘇", "烤布丁提拉米蘇", "蜜香紅茶巴斯克"],
+    reason: "你喜歡探索新組合，這些創新口味會激發你的好奇心。"
+  },
+  ENTJ: {
+    personality: "指揮官",
+    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇", "經典提拉米蘇"],
+    reason: "你喜歡經典且有影響力的選擇，這些甜點強勁而直接。"
+  },
+  ENTP: {
+    personality: "辯論家",
+    recommendedItems: ["日本柚子米蘇", "奶酒提拉米蘇", "抹茶提拉米蘇鐵盒(600ml)"],
+    reason: "你熱愛挑戰常規，這些創新口味符合你的冒險精神。"
+  },
+  INFJ: {
+    personality: "提倡者",
+    recommendedItems: ["抹茶提拉米蘇", "蜜香紅茶巴斯克", "烤布丁(附焦糖液)"],
+    reason: "你重視內在與意義，這些甜點含蓄而深刻。"
+  },
+  INFP: {
+    personality: "調停者",
+    recommendedItems: ["烤布丁(附焦糖液)", "日本柚子米蘇", "蜜香紅茶巴斯克"],
+    reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
+  },
+  ENFJ: {
+    personality: "主人公",
+    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇", "經典原味巴斯克"],
+    reason: "你熱愛分享與連結，這些甜點適合與人共享。"
+  },
+  ENFP: {
+    personality: "競選者",
+    recommendedItems: ["日本柚子米蘇", "經典十勝低糖千層", "奶酒提拉米蘇"],
+    reason: "你的自由精神需要同樣有趣的甜點來搭配。"
+  },
+  ISTJ: {
+    personality: "物流師",
+    recommendedItems: ["經典提拉米蘇", "經典原味巴斯克", "烤布丁(附焦糖液)"],
+    reason: "你信賴經典，這些傳統甜點經得起時間考驗。"
+  },
+  ISFJ: {
+    personality: "守衛者",
+    recommendedItems: ["烤布丁(附焦糖液)", "蜜香紅茶巴斯克", "經典提拉米蘇"],
+    reason: "你的細心值得同樣用心製作的甜點。"
+  },
+  ESTJ: {
+    personality: "總經理",
+    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典提拉米蘇", "經典原味巴斯克"],
+    reason: "你重視效率與品質，這些經典款值得信賴。"
+  },
+  ESFJ: {
+    personality: "執政官",
+    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典原味巴斯克", "烤布丁提拉米蘇"],
+    reason: "你善於照顧他人，這些甜點適合與朋友分享。"
+  },
+  ISTP: {
+    personality: "鑑賞家",
+    recommendedItems: ["奶酒提拉米蘇", "日本柚子米蘇", "經典十勝低糖千層"],
+    reason: "你喜歡探索新事物，這些口味會帶來驚喜。"
+  },
+  ISFP: {
+    personality: "探險家",
+    recommendedItems: ["抹茶提拉米蘇", "日本柚子米蘇", "蜜香紅茶巴斯克"],
+    reason: "你的藝術靈魂需要同樣美麗的甜點。"
+  },
+  ESTP: {
+    personality: "企業家",
+    recommendedItems: ["奶酒提拉米蘇", "經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇"],
+    reason: "你的能量需要同樣強勁的甜點來匹配。"
+  },
+  ESFP: {
+    personality: "表演者",
+    recommendedItems: ["日本柚子米蘇", "經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇"],
+    reason: "你的熱情需要同樣歡樂的甜點來慶祝。"
+  }
+};
+
 // --- TRACKING STUB ---
 const track = (event: string, payload: any = {}) => {
   console.log(`[Track] ${event}`, payload);
@@ -144,7 +228,7 @@ const App = () => {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     if (isMonday(selectedDate)) {
-      alert('⚠️ 抱歉，週一為公休日，請選擇其他日期\n營業時間：週二-週日 13:00-19:00');
+      alert('抱歉，週一為公休日，請選擇其他日期。\n營業時間：週二-週日 13:00-19:00');
       setPickupDate('');
     } else {
       setPickupDate(selectedDate);
@@ -430,11 +514,11 @@ const App = () => {
     // 驗證取貨日期（兩天後 + 不是週一）
     const minDate = getMinPickupDate();
     if (pickupDate < minDate) {
-      alert('⚠️ 取貨日期至少需要兩天前預訂');
+      alert('取貨日期至少需要兩天前預訂');
       return;
     }
     if (isMonday(pickupDate)) {
-      alert('⚠️ 週一為公休日，請選擇其他日期');
+      alert('週一為公休日，請選擇其他日期');
       return;
     }
 
@@ -526,11 +610,11 @@ const App = () => {
         msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
       });
       if (orderNote) msg += `\n備註：${orderNote}`;
-      msg += `\n\n💳 付款方式：\n`;
+      msg += `\n\n付款方式：\n`;
       msg += `LINE Bank (824) 連線商業銀行\n`;
       msg += `帳號：111007479473\n`;
-      msg += `⚠️ 備註欄請填寫：${orderId}\n`;
-      msg += `\n✅ 付款完成後請回傳「後五碼」\n`;
+      msg += `備註欄請填寫：${orderId}\n`;
+      msg += `\n付款完成後請回傳「後五碼」\n`;
       msg += `   （轉帳通知中的後五碼數字）`;
 
       // 7. Redirect to LINE
@@ -665,6 +749,12 @@ const App = () => {
     setTimeout(() => {
       setShowResult(true);
       track('view_mission_card', { state: stateKey });
+      const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
+      track('view_recommendations', {
+        recommendation_type: mbtiData ? 'mbti' : 'mood',
+        mbti_type: profile?.mbti_type || null,
+        mood_state: stateKey
+      });
     }, 100);
   };
 
@@ -673,6 +763,9 @@ const App = () => {
     track('generate_mission_card', { state: selectedState });
 
     const data = STATE_DATA[selectedState];
+    const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
+    const recommendedItemsForCard = mbtiData ? mbtiData.recommendedItems : data.recommendedItems;
+
     const width = 400;
     const height = 600;
 
@@ -689,9 +782,9 @@ const App = () => {
         <line x1="40" y1="150" x2="360" y2="150" stroke="#ddd" stroke-width="1"/>
         
         <text x="40" y="180" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
-        <text x="40" y="205" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[0]}</text>
-        <text x="40" y="230" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[1]}</text>
-        <text x="40" y="255" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${data.recommendedItems[2]}</text>
+        <text x="40" y="205" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[0]}</text>
+        <text x="40" y="230" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[1]}</text>
+        <text x="40" y="255" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[2]}</text>
         
         <line x1="40" y1="280" x2="360" y2="280" stroke="#ddd" stroke-width="1"/>
         
@@ -701,7 +794,7 @@ const App = () => {
         <text x="60" y="370" font-family="Arial, sans-serif" font-size="12" fill="#333">${data.mission.substring(40)}</text>
         
         <rect x="40" y="420" width="320" height="100" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2"/>
-        <text x="60" y="450" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">🎁 兌換券 COUPON</text>
+        <text x="60" y="450" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">兌換券 COUPON</text>
         <text x="60" y="475" font-family="Arial, sans-serif" font-size="13" fill="#000">完成任務來店出示此卡</text>
         <text x="60" y="498" font-family="Arial, sans-serif" font-size="13" fill="#000">即可兌換「烤布丁一個」</text>
         
@@ -783,9 +876,9 @@ const App = () => {
                 </style>
               </head>
               <body>
-                <h2>📱 你的任務卡已生成！</h2>
+                <h2>你的任務卡已生成</h2>
                 <div class="tip">
-                  <strong>💡 保存方式：</strong><br/>
+                  <strong>保存方式：</strong><br/>
                   長按下方圖片 → 選擇「儲存影像」或「下載圖片」
                 </div>
                 <img src="${pngUrl}" alt="Mission Card" />
@@ -796,7 +889,7 @@ const App = () => {
             newWindow.document.close();
           } else {
             // 如果彈窗被阻擋，使用替代方案
-            alert('📱 任務卡已生成！\n\n請允許彈出視窗，或者直接截圖保存此畫面。\n\n小提示：在瀏覽器設定中允許彈出視窗，下次就能直接顯示圖片了。');
+            alert('任務卡已生成。\n\n請允許彈出視窗，或直接截圖保存此畫面。\n\n小提示：在瀏覽器設定中允許彈出視窗，下次就能直接顯示圖片。');
           }
         } else {
           // 電腦：直接下載
@@ -807,21 +900,21 @@ const App = () => {
           link.click();
           document.body.removeChild(link);
           
-          alert('✅ 任務卡已下載到電腦！\n\n請查看下載資料夾。');
+          alert('任務卡已下載到電腦。\n\n請查看下載資料夾。');
         }
 
         URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Canvas rendering error:', error);
         URL.revokeObjectURL(url);
-        alert('❌ 圖片生成失敗\n\n請稍後再試，或直接截圖保存。');
+        alert('圖片生成失敗。請稍後再試，或直接截圖保存。');
       }
     };
 
     img.onerror = (error) => {
       console.error('Image loading error:', error);
       URL.revokeObjectURL(url);
-      alert('❌ 圖片載入失敗\n\n請檢查網路連線或稍後再試。');
+      alert('圖片載入失敗。請檢查網路連線或稍後再試。');
     };
 
     img.src = url;
@@ -963,22 +1056,17 @@ const App = () => {
         
         .btn-primary {
           display: block; width: 100%; text-align: center;
-          background: linear-gradient(135deg, var(--c-blue) 0%, #6a88f5 100%);
+          background: var(--c-blue);
           color: white;
           padding: 16px; border-radius: 40px; font-weight: bold;
           min-height: 50px;
-          box-shadow: 0 8px 24px rgba(88, 120, 240, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           position: relative; overflow: hidden;
+          transition: background 0.2s, box-shadow 0.2s;
         }
-        .btn-primary::before {
-          content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-          background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
-          transform: scale(0); transition: transform 0.6s;
-        }
-        .btn-primary:hover::before { transform: scale(1); }
         .btn-primary:hover {
-          background: #4a68d8;
-          box-shadow: var(--shadow-glow-blue), 0 12px 32px rgba(88, 120, 240, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          background: #238f82;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
         .btn-small {
@@ -1036,8 +1124,8 @@ const App = () => {
         
         .state-btn {
           padding: 24px 12px; 
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.5));
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          background: rgba(255, 255, 255, 0.85);
           backdrop-filter: blur(12px) saturate(150%);
           box-shadow: var(--shadow-glass);
           text-align: center; 
@@ -1050,21 +1138,15 @@ const App = () => {
           position: relative;
           overflow: hidden;
         }
-        .state-btn::before {
-          content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-          transition: left 0.5s;
-        }
-        .state-btn:hover::before { left: 100%; }
         .state-btn:hover {
           transform: translateY(-2px);
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .state-btn.selected {
-          background: linear-gradient(135deg, rgba(88, 120, 240, 0.8), rgba(88, 120, 240, 0.6));
-          border-color: rgba(255, 255, 255, 0.5);
-          color: white;
-          box-shadow: var(--shadow-glow-blue), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+          background: var(--c-yellow);
+          border-color: rgba(0, 0, 0, 0.2);
+          color: var(--c-black);
+          box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
         }
         
         @media (min-width: 768px) {
@@ -1079,17 +1161,17 @@ const App = () => {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
           backdrop-filter: blur(20px) saturate(180%);
           border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(88, 120, 240, 0.1);
+          box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(216, 224, 56, 0.15);
           border-radius: 20px;
           padding: 24px;
-          margin-top: 30px; 
-          animation: fadeIn 0.5s ease forwards; 
+          margin-top: 30px;
+          animation: fadeIn 0.5s ease forwards;
           opacity: 0;
           position: relative;
           overflow: hidden;
         }
         .result-card::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
           background: linear-gradient(90deg, transparent, var(--c-blue), var(--c-yellow), transparent);
         }
         
@@ -1186,14 +1268,14 @@ const App = () => {
         .close-btn:hover { background: rgba(0,0,0,0.1); }
         
         .header-bird {
-          position: fixed; /* Fixed to viewport */
+          position: fixed;
           top: 20px;
-          right: 20px; 
-          width: 80px; /* Mobile-friendly size */
-          animation: float 6s ease-in-out infinite; 
-          z-index: 100; /* Above content but below modals */
+          right: 20px;
+          width: 80px;
+          animation: float 6s ease-in-out infinite;
+          z-index: 100;
           transition: transform 0.3s ease;
-          pointer-events: none;
+          cursor: pointer;
         }
         .header-bird img {
           pointer-events: auto;
@@ -1203,15 +1285,15 @@ const App = () => {
           transform: scale(1.1);
         }
         .header-bird.modal-open {
-          animation: none; 
+          animation: none;
           opacity: 0.2;
           pointer-events: none;
         }
         @media (max-width: 768px) {
           .header-bird {
             top: 15px;
-            right: 15px; 
-            width: 60px; /* Even smaller on mobile */
+            right: 15px;
+            width: 60px;
           }
         }
       `}</style>
@@ -1219,7 +1301,6 @@ const App = () => {
       <div className="container">
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
-          {/* Easter Egg Trigger: Click bird to open story */}
           <div
             className={`header-bird ${showStory ? 'modal-open' : ''}`}
             onClick={(e) => {
@@ -1228,12 +1309,11 @@ const App = () => {
               track('click_easter_egg');
               setShowStory(true);
             }}
-            style={{ cursor: 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewport=\'0 0 100 100\' style=\'fill:black;font-size:24px;\'><text y=\'50%\'>?</text></svg>") 16 0, pointer' }}
+            style={{ cursor: 'pointer' }}
             title="Kiwimu?"
           >
-            <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Moon Island Character" style={{ width: '100%', height: 'auto' }} />
+            <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" style={{ width: '100%', height: 'auto' }} />
           </div>
-
           <div className="font-mono" style={{
             marginBottom: '10px',
             fontSize: '0.8rem',
@@ -1241,7 +1321,7 @@ const App = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             position: 'relative',
-            zIndex: 10 /* Higher than bird */
+            zIndex: 10
           }}>
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
@@ -1410,7 +1490,10 @@ const App = () => {
             </div>
           </div>
 
-          {showResult && selectedState && (
+          {showResult && selectedState && (() => {
+            const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
+            const recommendedItems = mbtiData ? mbtiData.recommendedItems : STATE_DATA[selectedState].recommendedItems;
+            return (
             <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black' }}>
               <div className="font-mono" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>MISSION CARD ISSUED</div>
               <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{STATE_DATA[selectedState].title}</h3>
@@ -1418,17 +1501,39 @@ const App = () => {
                 "{STATE_DATA[selectedState].advice}"
               </p>
               
-              {/* 為你推薦 */}
+              {/* 個人化推薦：MBTI 或心情 */}
               <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
-                {STATE_DATA[selectedState].recommendedItems.map((item, idx) => (
+                {mbtiData ? (
+                  <>
+                    <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
+                      專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
+                    </strong>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
+                      {mbtiData.reason}
+                    </p>
+                  </>
+                ) : (
+                  <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
+                )}
+                {recommendedItems.map((item, idx) => (
                   <div key={idx} style={{ marginBottom: '8px', paddingLeft: '10px', fontSize: '0.95rem' }}>
                     • {item}
                   </div>
                 ))}
+                {!mbtiData && (
+                  <a 
+                    href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=recommendation&utm_campaign=personalized"
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
+                    style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.emotionBlack, marginTop: '10px', display: 'block', fontWeight: 'bold', borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}
+                  >
+                    完成 MBTI 測驗，獲得更精準推薦
+                  </a>
+                )}
               </div>
               
-              {/* MBTI 測驗引流 - 移到更上方 */}
+              {/* MBTI 測驗引流 */}
               <a 
                 href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
                 target="_blank"
@@ -1437,18 +1542,18 @@ const App = () => {
                 onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
                 style={{ 
                   marginBottom: '20px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
+                  background: CONFIG.BRAND_COLORS.moonYellow,
+                  color: CONFIG.BRAND_COLORS.emotionBlack,
+                  border: '2px solid #000',
                   textAlign: 'center',
                   display: 'block',
                   padding: '14px 20px',
                   fontSize: '0.95rem',
                   fontWeight: 'bold',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                  boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
                 }}
               >
-                🧪 想更了解自己？探索你的 MBTI 甜點人格 →
+                想更了解自己？探索你的 MBTI 甜點人格
               </a>
               
               {/* 任務 */}
@@ -1465,7 +1570,7 @@ const App = () => {
                 marginBottom: '20px',
                 border: '2px solid #000'
               }}>
-                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '1rem' }}>🎁 兌換券 COUPON</strong>
+                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '1rem' }}>兌換券 COUPON</strong>
                 <p style={{ margin: '0', fontSize: '0.9rem', lineHeight: '1.6' }}>
                   完成任務來店出示此卡<br/>
                   即可兌換<strong>「烤布丁一個」</strong>
@@ -1474,10 +1579,11 @@ const App = () => {
               
               {/* 下載按鈕 */}
               <button className="btn-primary" onClick={handleDownloadCard}>
-                📥 下載展籤 DOWNLOAD CARD
+                下載展籤 DOWNLOAD CARD
               </button>
             </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
@@ -1774,7 +1880,6 @@ const App = () => {
                                       }}
                                     >
                                       僅供店內飲用 / In-store Only
-                                      <span style={{ marginLeft: '4px', fontSize: '0.7rem' }}>ℹ️</span>
                                     </button>
                                   ) : (
                                     item.prices && item.prices.length > 0 ? (
@@ -1799,7 +1904,7 @@ const App = () => {
                                               transition: 'all 0.2s',
                                               fontWeight: inCart ? 'bold' : 'normal'
                                             }}>
-                                            {p.spec}: {p.price} {inCart ? '✓' : '+'}
+                                            {p.spec}: {p.price} {inCart ? '(已選)' : ''}
                                           </button>
                                         );
                                       })
@@ -1918,7 +2023,7 @@ const App = () => {
                 </div>
 
                 <p style={{ background: '#f8f8f8', padding: '10px', fontSize: '0.85rem', color: '#555', borderRadius: '8px', marginBottom: '20px' }}>
-                  💡 請確認以下資訊正確，我們會用此資訊與您對帳。
+                  請確認以下資訊正確，我們會用此資訊與您對帳。
                 </p>
 
                 <div style={{ marginBottom: '15px' }}>
@@ -1956,7 +2061,7 @@ const App = () => {
                   />
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br/>
-                    ⚠️ 最快取貨日期：兩天後 | 週一公休<br/>
+                    最快取貨日期：兩天後 | 週一公休<br/>
                     營業時間：週二-週日 13:00-19:00
                   </p>
                 </div>
@@ -2125,13 +2230,11 @@ const App = () => {
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#22c55e', fontSize: '1.2rem' }}>✓</span>
                       <span style={{ fontSize: '0.9rem' }}>
                         {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#22c55e', fontSize: '1.2rem' }}>✓</span>
                       <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
                     </div>
                   </div>
@@ -2147,7 +2250,7 @@ const App = () => {
                   fontSize: '0.85rem',
                   lineHeight: '1.6'
                 }}>
-                  💡 <strong>跨站同步說明</strong><br />
+                  <strong>跨站同步說明</strong><br />
                   在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
                   無論您在哪裡更新資料，其他網站都會自動同步。
                 </div>
@@ -2160,13 +2263,14 @@ const App = () => {
                     rel="noreferrer"
                     style={{
                       display: 'inline-block',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      color: CONFIG.BRAND_COLORS.emotionBlack,
                       padding: '12px 24px',
                       borderRadius: '24px',
                       fontWeight: 'bold',
                       textDecoration: 'none',
-                      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                      border: '2px solid #000',
+                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
                       transition: 'transform 0.2s'
                     }}
                     onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
@@ -2190,7 +2294,8 @@ const App = () => {
             transform: 'translateX(-50%)',
             width: '90%',
             maxWidth: '500px',
-            background: CONFIG.BRAND_COLORS.moonYellow,
+            background: CONFIG.BRAND_COLORS.emotionBlack,
+            color: 'white',
             borderRadius: '50px',
             padding: '15px 25px',
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
@@ -2204,10 +2309,10 @@ const App = () => {
               已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline' }}>清空</button>
+              <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>
               <button onClick={handleCheckout} style={{
-                background: 'black',
-                color: 'white',
+                background: 'white',
+                color: CONFIG.BRAND_COLORS.emotionBlack,
                 padding: '8px 20px',
                 borderRadius: '30px',
                 fontWeight: 'bold',
@@ -2215,7 +2320,7 @@ const App = () => {
                 alignItems: 'center',
                 gap: '5px'
               }}>
-                傳送預訂 ➜
+                傳送預訂
               </button>
             </div>
           </div>
