@@ -2139,8 +2139,8 @@ const App = () => {
               </div>
             </div>
           </div>
-        )
-        }
+        )}
+
         {/* Easter Egg Modal - NEW */}
         {showEasterEgg && currentEasterEgg !== null && (
           <div
