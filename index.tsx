@@ -197,8 +197,86 @@ const App = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
-  const [showStory, setShowStory] = useState(false); // Easter Egg Modal
+  const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
+
+  // Easter Egg System
+  const [showEasterEgg, setShowEasterEgg] = useState(false);
+  const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
+  const [foundEggs, setFoundEggs] = useState<number[]>([]);
+
+  // Load found eggs from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('moonmoon_found_eggs');
+    if (saved) {
+      try {
+        setFoundEggs(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse found eggs:', e);
+      }
+    }
+  }, []);
+
+  // Save found eggs to localStorage
+  const markEggAsFound = (eggId: number) => {
+    if (!foundEggs.includes(eggId)) {
+      const newFound = [...foundEggs, eggId];
+      setFoundEggs(newFound);
+      localStorage.setItem('moonmoon_found_eggs', JSON.stringify(newFound));
+    }
+  };
+
+  // Easter Egg Data
+  const EASTER_EGGS = [
+    {
+      id: 1,
+      title: 'Kiwimu 的出生地',
+      content: `Kiwimu 在北海道的一個小甜點工坊誕生。\n\n那天，鮮奶油被打發到最蓬鬆的狀態，突然有了自己的意識。\n\n「咦？我是誰？」\n這是 Kiwimu 說出的第一句話。\n\n從此，這隻奇異鳥開始了自己的冒險。`
+    },
+    {
+      id: 2,
+      title: 'Kiwimu 的朋友們',
+      content: `Kiwimu 其實還有其他好朋友喔！\n\n🍮 布丁精靈 Purin\n🧁 馬卡龍先生 Macaron\n🍰 提拉米蘇女士 Tira\n🍪 餅乾小子 Cookie\n\n他們目前都在世界各地旅行，\n也許下一季就會來月島相聚。\n\n你最期待遇見誰呢？`
+    },
+    {
+      id: 3,
+      title: '為什麼叫 Kiwimu？',
+      content: `Kiwimu 的名字來自「Kiwi（奇異鳥）+ Mumu（模糊）」。\n\n因為他總是溫柔地模糊掉那些\n你不想面對的銳利邊角。\n\n像鮮奶油一樣，\n柔軟地包覆住你的情緒。`
+    },
+    {
+      id: 4,
+      title: 'Kiwimu 的秘密喜好',
+      content: `Kiwimu 最喜歡的季節是冬天。\n\n不是因為寒冷，\n而是因為冬天的人們，\n都需要更多的溫暖和甜點。\n\n「這樣我就有更多工作可以做了！」\nKiwimu 如此說道。`
+    },
+    {
+      id: 5,
+      title: '島主的創作筆記 #01',
+      content: `「每一個來到月島的人，\n都帶著不同的情緒和故事。\n\n我希望這裡不只是甜點店，\n而是一個可以停下來的空間。\n\n不必急著成為誰，\n也不必急著回答什麼。」\n\n— 月島島主`
+    },
+    {
+      id: 6,
+      title: '秘密配方碎片',
+      content: `Kiwimu 的秘密配方 #01：\n\n「如果你覺得今天很累，\n就在甜點裡多加一點點鹽。\n\n甜味會因為鹽的對比，\n變得更加明顯。\n\n生活也是。」`
+    },
+    {
+      id: 7,
+      title: '月島的都市傳說',
+      content: `據說，在每個滿月的夜晚，\n月島會短暫地浮出海面。\n\n那時候，Kiwimu 會帶著所有的甜點，\n在島上舉辦一場秘密派對。\n\n只有真正需要療癒的人，\n才能找到通往島嶼的路。\n\n你找到了嗎？`
+    },
+    {
+      id: 8,
+      title: '即將到來...',
+      content: `Season 02 預告：\n\n「當島嶼不再靜默，\n海浪開始說話...」\n\nKiwimu 的好友們即將登場，\n每個人都會帶來新的故事。\n\n敬請期待 2026 Q2 🌊`
+    }
+  ];
+
+  // Open Easter Egg
+  const openEasterEgg = (eggId: number) => {
+    setCurrentEasterEgg(eggId);
+    setShowEasterEgg(true);
+    markEggAsFound(eggId);
+    track('easter_egg_found', { egg_id: eggId });
+  };
   const [liffReady, setLiffReady] = useState(false);
   const [isLiff, setIsLiff] = useState(false);
 
@@ -1400,7 +1478,27 @@ const App = () => {
             </h1>
           </div>
 
-          <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px' }}>{CONFIG.TAGLINE}</p>
+          <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px', position: 'relative' }}>
+            {CONFIG.TAGLINE}
+            {/* Easter Egg #5 - 島主筆記 */}
+            <img
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              alt=""
+              onClick={() => openEasterEgg(5)}
+              style={{
+                display: 'inline-block',
+                marginLeft: '8px',
+                width: '18px',
+                height: '18px',
+                opacity: 0.25,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                verticalAlign: 'middle'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3) rotate(10deg)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+            />
+          </p>
 
           <a href="https://moonmoon-dessert-passport.vercel.app" target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
@@ -1430,12 +1528,12 @@ const App = () => {
             <span>♫</span>
           </button>
           <button className="btn-entry" onClick={() => {
-            track('click_hero_easter_egg');
-            setShowStory(true);
+            track('click_hero_easter_egg_progress');
+            alert(`🥚 彩蛋收集進度\n\n已發現: ${foundEggs.length}/8\n\n提示：仔細觀察頁面中那些\n看似不起眼的小圖標...\n\n他們藏著 Kiwimu 的秘密 ✨`);
           }}>
             <div>
               <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>04 // DISCOVER</span><br />
-              <strong>找尋彩蛋 (探索島嶼秘密)</strong>
+              <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
             </div>
             <span>✨</span>
           </button>
@@ -1446,7 +1544,7 @@ const App = () => {
           <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
 
           {/* Season Story */}
-          <div style={{ marginBottom: '40px', padding: '30px', background: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee' }}>
+          <div style={{ marginBottom: '40px', padding: '30px', background: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee', position: 'relative' }}>
             <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>Season 01: The Silence of Island</h3>
             <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: '#555' }}>
               <p style={{ marginBottom: '15px' }}>
@@ -1462,31 +1560,28 @@ const App = () => {
                 每一份甜點都是一張「心情處方箋」，陪你確認當下的狀態，找到屬於你的療癒節奏。
               </p>
             </div>
-          </div>
-
-          {/* Kiwimu & Moon Moon Story */}
-          <div style={{ marginBottom: '30px' }}>
-            <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span>WHO IS KIWIMU?</span>
-              <span style={{ fontSize: '0.7rem', color: '#888' }}>/ 關於奇異鳥</span>
-            </h3>
-            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <div style={{ width: '80px', height: '80px', flexShrink: 0, background: 'white', borderRadius: '50%', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Kiwimu" />
-              </div>
-              <div style={{ flex: 1, minWidth: '200px', fontSize: '0.9rem', lineHeight: '1.8', color: '#666' }}>
-                <p style={{ marginBottom: '12px' }}>
-                  Kiwimu 是從<strong style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>鮮奶油</strong>裡誕生的生物。牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
-                </p>
-                <p>
-                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；等你願意整理，它又會重新打發成形，變回可以前進的你。
-                </p>
-              </div>
-            </div>
+            {/* Easter Egg #1 - 北海道誕生 */}
+            <img
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+              alt=""
+              onClick={() => openEasterEgg(1)}
+              style={{
+                position: 'absolute',
+                bottom: '12px',
+                right: '12px',
+                width: '22px',
+                height: '22px',
+                opacity: 0.2,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.15)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.opacity = '0.2'; e.currentTarget.style.transform = 'scale(1)'; }}
+            />
           </div>
 
           {/* Moon Moon Story */}
-          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>
+          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonYellow}`, position: 'relative' }}>
             <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '15px' }}>MOON MOON 月島甜點店</h3>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666', marginBottom: '12px' }}>
               月島不只是一間甜點店，更是一個<strong>情緒展覽空間</strong>。
@@ -1495,6 +1590,24 @@ const App = () => {
               我們相信，每一口甜點都是一個故事，每一次品嚐都是一場與自己的對話。<br />
               <em style={{ fontSize: '0.85rem', color: '#999' }}>「每一季一個主題。你路過，也算參展。」</em>
             </p>
+            {/* Easter Egg #3 - 為什麼叫 Kiwimu */}
+            <img
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              alt=""
+              onClick={() => openEasterEgg(3)}
+              style={{
+                position: 'absolute',
+                bottom: '15px',
+                right: '15px',
+                width: '20px',
+                height: '20px',
+                opacity: 0.25,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+            />
           </div>
         </section>
 
@@ -1675,8 +1788,28 @@ const App = () => {
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
-        <section id="menu-section" className="section-padding border-t" style={{ background: '#fcfcfc', scrollMarginTop: '20px' }}>
+        <section id="menu-section" className="section-padding border-t" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
           <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ARCHIVE / COLLECTION</h2>
+
+          {/* Easter Egg #6 - 秘密配方 */}
+          <img
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+            alt=""
+            onClick={() => openEasterEgg(6)}
+            style={{
+              position: 'absolute',
+              left: '20px',
+              top: '20px',
+              width: '24px',
+              height: '24px',
+              opacity: 0.2,
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              zIndex: 10
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'scale(1.25) rotate(-10deg)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.opacity = '0.2'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+          />
 
           <button style={{
             width: '100%',
@@ -1744,7 +1877,26 @@ const App = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
               {/* 1. Spotify Embed */}
-              <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px' }}>
+              <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px', position: 'relative' }}>
+                {/* Easter Egg #2 - 神秘好友 */}
+                <img
+                  src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+                  alt=""
+                  onClick={() => openEasterEgg(2)}
+                  style={{
+                    position: 'absolute',
+                    right: '8px',
+                    top: '8px',
+                    width: '22px',
+                    height: '22px',
+                    opacity: 0.25,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    zIndex: 10
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+                />
                 <iframe
                   src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
                   width="100%"
@@ -2018,67 +2170,175 @@ const App = () => {
           </div>
         )
         }
-        {showStory && (
-          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
-            {/* Story Modal - Glassmorphism Style */}
+        {/* Easter Egg Modal - NEW */}
+        {showEasterEgg && currentEasterEgg !== null && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowEasterEgg(false)}
+            style={{ zIndex: 3500, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}
+          >
             <div
               className="result-card"
               onClick={e => e.stopPropagation()}
               style={{
-                maxWidth: '400px',
-                border: '1px solid rgba(255,255,255,0.8)',
-                background: 'rgba(255,255,255,0.7)',
-                backdropFilter: 'blur(20px) saturate(180%)',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
-                color: CONFIG.BRAND_COLORS.emotionBlack,
-                marginTop: '0' // Align centered in modal-overlay
+                maxWidth: '420px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(30px) saturate(200%)',
+                border: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
+                borderRadius: '20px',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.6)',
+                padding: '35px 30px',
+                color: CONFIG.BRAND_COLORS.emotionBlack
               }}
             >
-              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                </div>
-                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
-                <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+              <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                <div style={{
+                  fontSize: '3rem',
+                  marginBottom: '15px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }}>🥚</div>
+                <h3 style={{
+                  fontSize: '1.3rem',
+                  color: CONFIG.BRAND_COLORS.emotionBlack,
+                  marginBottom: '8px',
+                  fontWeight: 700
+                }}>
+                  {EASTER_EGGS[currentEasterEgg - 1]?.title}
+                </h3>
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: '#888',
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.05em'
+                }}>
+                  EASTER EGG #{currentEasterEgg}/8
+                </p>
               </div>
 
-              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
-                <p style={{ marginBottom: '20px' }}>
-                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
-                </p>
-                <p style={{ marginBottom: '20px' }}>
-                  牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
-                </p>
-                <p style={{ marginBottom: '20px' }}>
-                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
-                </p>
-                <p>
-                  等你願意整理，它又會重新打發成形，變回可以前進的你。
-                </p>
+              <div style={{
+                lineHeight: '1.9',
+                fontSize: '0.95rem',
+                color: '#333',
+                whiteSpace: 'pre-line',
+                marginBottom: '25px',
+                padding: '20px',
+                background: 'rgba(248, 248, 248, 0.6)',
+                borderRadius: '12px',
+                border: '1px solid rgba(0,0,0,0.05)'
+              }}>
+                {EASTER_EGGS[currentEasterEgg - 1]?.content}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '15px 20px',
+                background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.moonYellow}20, ${CONFIG.BRAND_COLORS.islandBlue}10)`,
+                borderRadius: '10px',
+                marginBottom: '20px'
+              }}>
+                <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                  收集進度
+                </span>
+                <strong style={{ fontSize: '1.1rem', color: CONFIG.BRAND_COLORS.emotionBlack }}>
+                  {foundEggs.length} / 8
+                </strong>
               </div>
 
               <button
-                onClick={() => setShowStory(false)}
+                onClick={() => setShowEasterEgg(false)}
                 style={{
-                  marginTop: '40px',
                   width: '100%',
-                  padding: '15px',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  borderRadius: '30px',
-                  background: 'rgba(255,255,255,0.5)',
-                  color: '#666',
-                  fontSize: '0.8rem',
-                  letterSpacing: '0.1em',
+                  padding: '14px',
+                  background: CONFIG.BRAND_COLORS.emotionBlack,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                 }}
-                onMouseOver={(e) => e.currentTarget.style.background = 'white'}
-                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#333';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = CONFIG.BRAND_COLORS.emotionBlack;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
               >
-                CLOSE DIARY
+                繼續探索 ✨
               </button>
             </div>
           </div>
+        )}
+
+        {/* OLD Story Modal - Keep for header bird */}
+        <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
+          {/* Story Modal - Glassmorphism Style */}
+          <div
+            className="result-card"
+            onClick={e => e.stopPropagation()}
+            style={{
+              maxWidth: '400px',
+              border: '1px solid rgba(255,255,255,0.8)',
+              background: 'rgba(255,255,255,0.7)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
+              color: CONFIG.BRAND_COLORS.emotionBlack,
+              marginTop: '0' // Align centered in modal-overlay
+            }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+              <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              </div>
+              <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
+              <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+            </div>
+
+            <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
+              <p style={{ marginBottom: '20px' }}>
+                Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
+              </p>
+              <p style={{ marginBottom: '20px' }}>
+                牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
+              </p>
+              <p style={{ marginBottom: '20px' }}>
+                當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
+              </p>
+              <p>
+                等你願意整理，它又會重新打發成形，變回可以前進的你。
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowStory(false)}
+              style={{
+                marginTop: '40px',
+                width: '100%',
+                padding: '15px',
+                border: '1px solid rgba(0,0,0,0.1)',
+                borderRadius: '30px',
+                background: 'rgba(255,255,255,0.5)',
+                color: '#666',
+                fontSize: '0.8rem',
+                letterSpacing: '0.1em',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.background = 'white'}
+              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
+            >
+              CLOSE DIARY
+            </button>
+          </div>
+        </div>
         )}
 
         {/* CHECKOUT CONFIRMATION MODAL */}
