@@ -8,7 +8,7 @@ const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "每一季一個主題。你路過，也算參展。",
-  CURRENT_SEASON: "Season 04: The Silence of Island (島嶼靜默)",
+  CURRENT_SEASON: "Season 01: The Silence of Island (島嶼靜默)",
   BRAND_COLORS: {
     creamWhite: '#F8F8F8',
     emotionBlack: '#000000',
@@ -35,9 +35,9 @@ const CONFIG = {
 };
 
 // --- DATA: 狀態與任務 ---
-const STATE_DATA: Record<string, { 
-  title: string; 
-  advice: string; 
+const STATE_DATA: Record<string, {
+  title: string;
+  advice: string;
   mission: string;
   recommendedItems: string[];
 }> = {
@@ -209,21 +209,21 @@ const App = () => {
   // New "Smart Form" Fields
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  
+
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
     const today = new Date();
     today.setDate(today.getDate() + 2); // 兩天後
     return today.toISOString().split('T')[0];
   };
-  
+
   // 檢查日期是否為週一（公休日）
   const isMonday = (dateString: string) => {
     if (!dateString) return false;
     const date = new Date(dateString + 'T00:00:00');
     return date.getDay() === 1; // 1 = 週一
   };
-  
+
   // 處理日期變更，如果選到週一則提示並清空
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
@@ -234,7 +234,7 @@ const App = () => {
       setPickupDate(selectedDate);
     }
   };
-  
+
   // Store UTM params on page load (not on checkout)
   const [storedUTMParams, setStoredUTMParams] = useState<{
     utm_source: string | null;
@@ -426,7 +426,7 @@ const App = () => {
         // If exists, remove it (Toggle Off)
         const newCart = [...prev];
         newCart.splice(existingIndex, 1);
-        
+
         // GA4: Track remove from cart
         track('remove_from_cart', {
           currency: 'TWD',
@@ -438,11 +438,11 @@ const App = () => {
             quantity: 1
           }]
         });
-        
+
         return newCart;
       } else {
         // If not exists, add it (Toggle On)
-        
+
         // GA4: Track add to cart
         track('add_to_cart', {
           currency: 'TWD',
@@ -454,7 +454,7 @@ const App = () => {
             quantity: 1
           }]
         });
-        
+
         return [...prev, { name: itemName, spec, price, count: 1 }];
       }
     });
@@ -471,7 +471,7 @@ const App = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
-    
+
     // Pre-fill Name if available
     if (profile?.nickname) setCustomerName(profile.nickname);
     else if (user?.email) setCustomerName(user.email.split('@')[0]);
@@ -480,7 +480,7 @@ const App = () => {
     const totalAmount = cart.reduce((sum, item) => {
       return sum + parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count;
     }, 0);
-    
+
     track('begin_checkout', {
       currency: 'TWD',
       value: totalAmount,
@@ -510,7 +510,7 @@ const App = () => {
       alert('請選擇取貨日期');
       return;
     }
-    
+
     // 驗證取貨日期（兩天後 + 不是週一）
     const minDate = getMinPickupDate();
     if (pickupDate < minDate) {
@@ -899,7 +899,7 @@ const App = () => {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          
+
           alert('任務卡已下載到電腦。\n\n請查看下載資料夾。');
         }
 
@@ -1300,7 +1300,20 @@ const App = () => {
 
       <div className="container">
         {/* A. HERO */}
-        <header style={{ paddingTop: '80px', paddingBottom: '40px', position: 'relative' }}>
+        <header style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
+          {/* CURRENT EXHIBITION BANNER - Moved to Top */}
+          <div style={{
+            marginBottom: '30px',
+            padding: '20px',
+            background: CONFIG.BRAND_COLORS.moonYellow,
+            border: '2px solid black',
+            fontSize: '0.9rem',
+            boxShadow: '4px 4px 0 rgba(0,0,0,0.1)'
+          }}>
+            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q1</span>
+            <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
+          </div>
+
           <div
             className={`header-bird ${showStory ? 'modal-open' : ''}`}
             onClick={(e) => {
@@ -1396,47 +1409,92 @@ const App = () => {
             </div>
             <span>↗</span>
           </a>
-          <a href={CONFIG.LINKS.preorder_pickup_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_pickup')}>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_pickup');
+            document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }}>
             <div>
               <span className="font-mono" style={{ fontSize: '0.8rem' }}>02 // PICKUP</span><br />
               <strong>我想帶走甜點 (預訂取貨)</strong>
             </div>
-            <span>→</span>
-          </a>
-          <a href={CONFIG.LINKS.delivery_url} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_delivery')}>
+            <span>↓</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_music');
+            document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '0.8rem' }}>03 // DELIVERY</span><br />
-              <strong>我想遠端靠岸 (冷凍宅配)</strong>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>03 // MUSIC</span><br />
+              <strong>聽這一季音樂 (島嶼靜默)</strong>
             </div>
-            <span>↗</span>
-          </a>
-
-          <div style={{ marginTop: '20px', padding: '15px', background: CONFIG.BRAND_COLORS.moonYellow, border: '1px solid black', fontSize: '0.9rem' }}>
-            <span className="font-mono" style={{ display: 'block', marginBottom: '5px' }}>CURRENT EXHIBITION</span>
-            <strong>{CONFIG.CURRENT_SEASON}</strong>
-          </div>
+            <span>♫</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_easter_egg');
+            setShowStory(true);
+          }}>
+            <div>
+              <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>04 // DISCOVER</span><br />
+              <strong>找尋彩蛋 (探索島嶼秘密)</strong>
+            </div>
+            <span>✨</span>
+          </button>
         </header>
 
-        {/* B. MAP */}
+        {/* B. EXHIBITION STORY */}
         <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
-          <h2 className="font-mono" style={{ marginBottom: '20px' }}>VISITOR GUIDE MAP</h2>
-          <div className="timeline">
-            <div className="timeline-item">
-              <h4>路過 / Drift in</h4>
-              <p style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>無意間的相遇，是登島的開始。</p>
+          <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
+
+          {/* Season Story */}
+          <div style={{ marginBottom: '40px', padding: '30px', background: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee' }}>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>Season 01: The Silence of Island</h3>
+            <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: '#555' }}>
+              <p style={{ marginBottom: '15px' }}>
+                這一季，<strong>島嶼靜默</strong>。
+              </p>
+              <p style={{ marginBottom: '15px' }}>
+                不是無聲，而是在喧囂之外，為你保留了一個可以停下來的空間。
+              </p>
+              <p style={{ marginBottom: '15px' }}>
+                在這裡，你可以不必急著成為誰、不必急著回答什麼。只需要<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>感受此刻的自己</span>。
+              </p>
+              <p>
+                每一份甜點都是一張「心情處方箋」，陪你確認當下的狀態，找到屬於你的療癒節奏。
+              </p>
             </div>
-            <div className="timeline-item">
-              <h4>停留 / Observe</h4>
-              <p style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>觀察本季主題，找到與你的共鳴。</p>
+          </div>
+
+          {/* Kiwimu & Moon Moon Story */}
+          <div style={{ marginBottom: '30px' }}>
+            <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span>WHO IS KIWIMU?</span>
+              <span style={{ fontSize: '0.7rem', color: '#888' }}>/ 關於奇異鳥</span>
+            </h3>
+            <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+              <div style={{ width: '80px', height: '80px', flexShrink: 0, background: 'white', borderRadius: '50%', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Kiwimu" />
+              </div>
+              <div style={{ flex: 1, minWidth: '200px', fontSize: '0.9rem', lineHeight: '1.8', color: '#666' }}>
+                <p style={{ marginBottom: '12px' }}>
+                  Kiwimu 是從<strong style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>鮮奶油</strong>裡誕生的生物。牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
+                </p>
+                <p>
+                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；等你願意整理，它又會重新打發成形，變回可以前進的你。
+                </p>
+              </div>
             </div>
-            <div className="timeline-item">
-              <h4 className="text-blue">Check-in / Status</h4>
-              <p style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>領取你的狀態展籤與甜點處方。</p>
-            </div>
-            <div className="timeline-item">
-              <h4>兌換 / Exchange</h4>
-              <p style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>帶著任務卡回店，或遠端品嚐。</p>
-            </div>
+          </div>
+
+          {/* Moon Moon Story */}
+          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>
+            <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '15px' }}>MOON MOON 月島甜點店</h3>
+            <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666', marginBottom: '12px' }}>
+              月島不只是一間甜點店，更是一個<strong>情緒展覽空間</strong>。
+            </p>
+            <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666' }}>
+              我們相信，每一口甜點都是一個故事，每一次品嚐都是一場與自己的對話。<br />
+              <em style={{ fontSize: '0.85rem', color: '#999' }}>「每一季一個主題。你路過，也算參展。」</em>
+            </p>
           </div>
         </section>
 
@@ -1494,100 +1552,130 @@ const App = () => {
             const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
             const recommendedItems = mbtiData ? mbtiData.recommendedItems : STATE_DATA[selectedState].recommendedItems;
             return (
-            <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black' }}>
-              <div className="font-mono" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>MISSION CARD ISSUED</div>
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{STATE_DATA[selectedState].title}</h3>
-              <p style={{ fontSize: '0.95rem', marginBottom: '20px', fontStyle: 'italic' }}>
-                "{STATE_DATA[selectedState].advice}"
-              </p>
-              
-              {/* 個人化推薦：MBTI 或心情 */}
-              <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                {mbtiData ? (
-                  <>
-                    <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
-                      專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
-                    </strong>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
-                      {mbtiData.reason}
-                    </p>
-                  </>
-                ) : (
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
-                )}
-                {recommendedItems.map((item, idx) => (
-                  <div key={idx} style={{ marginBottom: '8px', paddingLeft: '10px', fontSize: '0.95rem' }}>
-                    • {item}
-                  </div>
-                ))}
-                {!mbtiData && (
-                  <a 
-                    href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=recommendation&utm_campaign=personalized"
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
-                    style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.emotionBlack, marginTop: '10px', display: 'block', fontWeight: 'bold', borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}
-                  >
-                    完成 MBTI 測驗，獲得更精準推薦
-                  </a>
-                )}
-              </div>
-              
-              {/* MBTI 測驗引流 */}
-              <a 
-                href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
-                target="_blank"
-                rel="noreferrer"
-                className="btn-small"
-                onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
-                style={{ 
-                  marginBottom: '20px',
-                  background: CONFIG.BRAND_COLORS.moonYellow,
-                  color: CONFIG.BRAND_COLORS.emotionBlack,
-                  border: '2px solid #000',
-                  textAlign: 'center',
-                  display: 'block',
-                  padding: '14px 20px',
-                  fontSize: '0.95rem',
-                  fontWeight: 'bold',
-                  boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
-                }}
-              >
-                想更了解自己？探索你的 MBTI 甜點人格
-              </a>
-              
-              {/* 任務 */}
-              <div style={{ marginBottom: '20px' }}>
-                <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
-                <p>{STATE_DATA[selectedState].mission}</p>
-              </div>
-              
-              {/* 兌換券提示 */}
-              <div style={{ 
-                background: CONFIG.BRAND_COLORS.moonYellow, 
-                padding: '15px', 
-                borderRadius: '8px', 
-                marginBottom: '20px',
-                border: '2px solid #000'
-              }}>
-                <strong style={{ display: 'block', marginBottom: '8px', fontSize: '1rem' }}>兌換券 COUPON</strong>
-                <p style={{ margin: '0', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                  完成任務來店出示此卡<br/>
-                  即可兌換<strong>「烤布丁一個」</strong>
+              <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black' }}>
+                <div className="font-mono" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>MISSION CARD ISSUED</div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{STATE_DATA[selectedState].title}</h3>
+                <p style={{ fontSize: '0.95rem', marginBottom: '20px', fontStyle: 'italic' }}>
+                  "{STATE_DATA[selectedState].advice}"
                 </p>
+
+                {/* 個人化推薦：MBTI 或心情 */}
+                <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
+                  {mbtiData ? (
+                    <>
+                      <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
+                        專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
+                      </strong>
+                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
+                        {mbtiData.reason}
+                      </p>
+                    </>
+                  ) : (
+                    <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
+                  )}
+                  {recommendedItems.map((item, idx) => (
+                    <div key={idx} style={{ marginBottom: '8px', paddingLeft: '10px', fontSize: '0.95rem' }}>
+                      • {item}
+                    </div>
+                  ))}
+                  {!mbtiData && (
+                    <a
+                      href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=recommendation&utm_campaign=personalized"
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
+                      style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.emotionBlack, marginTop: '10px', display: 'block', fontWeight: 'bold', borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}
+                    >
+                      完成 MBTI 測驗，獲得更精準推薦
+                    </a>
+                  )}
+                </div>
+
+                {/* MBTI 測驗引流 */}
+                <a
+                  href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn-small"
+                  onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
+                  style={{
+                    marginBottom: '20px',
+                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    color: CONFIG.BRAND_COLORS.emotionBlack,
+                    border: '2px solid #000',
+                    textAlign: 'center',
+                    display: 'block',
+                    padding: '14px 20px',
+                    fontSize: '0.95rem',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
+                  }}
+                >
+                  想更了解自己？探索你的 MBTI 甜點人格
+                </a>
+
+                {/* 任務 */}
+                <div style={{ marginBottom: '20px' }}>
+                  <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
+                  <p>{STATE_DATA[selectedState].mission}</p>
+                </div>
+
+                {/* Easter Egg Image - Clickable */}
+                <div
+                  onClick={() => {
+                    track('click_index_easter_egg', { source: 'mission_card' });
+                    setShowStory(true);
+                  }}
+                  style={{
+                    marginBottom: '20px',
+                    cursor: 'pointer',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    border: '2px solid #000',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    transition: 'all 0.3s ease',
+                    position: 'relative'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                  }}
+                >
+                  <img
+                    src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png"
+                    alt="Discover Kiwimu Story"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    right: '10px',
+                    background: 'rgba(0,0,0,0.7)',
+                    color: 'white',
+                    padding: '5px 12px',
+                    borderRadius: '20px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold'
+                  }}>
+                    點擊發現彩蛋 ✨
+                  </div>
+                </div>
+
+                {/* 下載按鈕 */}
+                <button className="btn-primary" onClick={handleDownloadCard}>
+                  下載展籤 DOWNLOAD CARD
+                </button>
               </div>
-              
-              {/* 下載按鈕 */}
-              <button className="btn-primary" onClick={handleDownloadCard}>
-                下載展籤 DOWNLOAD CARD
-              </button>
-            </div>
             );
           })()}
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
-        <section className="section-padding border-t" style={{ background: '#fcfcfc' }}>
+        <section id="menu-section" className="section-padding border-t" style={{ background: '#fcfcfc', scrollMarginTop: '20px' }}>
           <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ARCHIVE / COLLECTION</h2>
 
           <button style={{
@@ -1656,7 +1744,7 @@ const App = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
               {/* 1. Spotify Embed */}
-              <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white' }}>
+              <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px' }}>
                 <iframe
                   src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
                   width="100%"
@@ -1819,14 +1907,14 @@ const App = () => {
                                   marginBottom: '12px',
                                   cursor: 'pointer'
                                 }}
-                                onClick={() => {
-                                  // 點擊圖片可以放大查看
-                                  setExpandedItem(expandedItem === item.name ? null : item.name);
-                                }}>
-                                  <img 
-                                    src={item.image} 
-                                    alt={item.name} 
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                                  onClick={() => {
+                                    // 點擊圖片可以放大查看
+                                    setExpandedItem(expandedItem === item.name ? null : item.name);
+                                  }}>
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     onError={(e) => {
                                       // 如果圖片載入失敗，隱藏圖片區塊
                                       e.currentTarget.parentElement.style.display = 'none';
@@ -2060,8 +2148,8 @@ const App = () => {
                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
                   />
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
-                    *請選擇您要來店取貨的日期<br/>
-                    最快取貨日期：兩天後 | 週一公休<br/>
+                    *請選擇您要來店取貨的日期<br />
+                    最快取貨日期：兩天後 | 週一公休<br />
                     營業時間：週二-週日 13:00-19:00
                   </p>
                 </div>
