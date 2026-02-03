@@ -1728,55 +1728,26 @@ const App = () => {
                 </a>
 
                 {/* 任務 */}
-                <div style={{ marginBottom: '20px' }}>
-                  <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>YOUR MISSION (任務):</strong>
-                  <p>{STATE_DATA[selectedState].mission}</p>
+                <div style={{ marginBottom: '24px' }}>
+                  <strong style={{
+                    display: 'block',
+                    fontSize: '0.75rem',
+                    color: '#999',
+                    marginBottom: '10px',
+                    letterSpacing: '0.08em',
+                    fontFamily: 'monospace',
+                    textTransform: 'uppercase',
+                    fontWeight: 600
+                  }}>YOUR MISSION</strong>
+                  <p style={{
+                    fontSize: '0.95rem',
+                    lineHeight: '1.65',
+                    color: '#333',
+                    margin: 0
+                  }}>{STATE_DATA[selectedState].mission}</p>
                 </div>
 
-                {/* Easter Egg Image - Clickable */}
-                <div
-                  onClick={() => {
-                    track('click_index_easter_egg', { source: 'mission_card' });
-                    setShowStory(true);
-                  }}
-                  style={{
-                    marginBottom: '20px',
-                    cursor: 'pointer',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    border: '2px solid #000',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    transition: 'all 0.3s ease',
-                    position: 'relative'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.02)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-                  }}
-                >
-                  <img
-                    src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1769920082/index-image_ubxhwo.png"
-                    alt="Discover Kiwimu Story"
-                    style={{ width: '100%', height: 'auto', display: 'block' }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    right: '10px',
-                    background: 'rgba(0,0,0,0.7)',
-                    color: 'white',
-                    padding: '5px 12px',
-                    borderRadius: '20px',
-                    fontSize: '0.75rem',
-                    fontWeight: 'bold'
-                  }}>
-                    點擊發現彩蛋 ✨
-                  </div>
-                </div>
+
 
                 {/* 下載按鈕 */}
                 <button className="btn-primary" onClick={handleDownloadCard}>
