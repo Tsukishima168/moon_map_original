@@ -2249,67 +2249,69 @@ const App = () => {
           </div>
         )}
 
+
         {/* OLD Story Modal - Keep for header bird */}
-        <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
-          {/* Story Modal - Glassmorphism Style */}
-          <div
-            className="result-card"
-            onClick={e => e.stopPropagation()}
-            style={{
-              maxWidth: '400px',
-              border: '1px solid rgba(255,255,255,0.8)',
-              background: 'rgba(255,255,255,0.7)',
-              backdropFilter: 'blur(20px) saturate(180%)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
-              color: CONFIG.BRAND_COLORS.emotionBlack,
-              marginTop: '0' // Align centered in modal-overlay
-            }}
-          >
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-              <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
-              <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
-            </div>
-
-            <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
-              <p style={{ marginBottom: '20px' }}>
-                Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
-              </p>
-              <p style={{ marginBottom: '20px' }}>
-                牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
-              </p>
-              <p style={{ marginBottom: '20px' }}>
-                當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
-              </p>
-              <p>
-                等你願意整理，它又會重新打發成形，變回可以前進的你。
-              </p>
-            </div>
-
-            <button
-              onClick={() => setShowStory(false)}
+        {showStory && (
+          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
+            {/* Story Modal - Glassmorphism Style */}
+            <div
+              className="result-card"
+              onClick={e => e.stopPropagation()}
               style={{
-                marginTop: '40px',
-                width: '100%',
-                padding: '15px',
-                border: '1px solid rgba(0,0,0,0.1)',
-                borderRadius: '30px',
-                background: 'rgba(255,255,255,0.5)',
-                color: '#666',
-                fontSize: '0.8rem',
-                letterSpacing: '0.1em',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
+                maxWidth: '400px',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(255,255,255,0.7)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
+                color: CONFIG.BRAND_COLORS.emotionBlack,
+                marginTop: '0' // Align centered in modal-overlay
               }}
-              onMouseOver={(e) => e.currentTarget.style.background = 'white'}
-              onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
             >
-              CLOSE DIARY
-            </button>
+              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
+                <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+              </div>
+
+              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
+                <p style={{ marginBottom: '20px' }}>
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
+                </p>
+                <p>
+                  等你願意整理，它又會重新打發成形，變回可以前進的你。
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowStory(false)}
+                style={{
+                  marginTop: '40px',
+                  width: '100%',
+                  padding: '15px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '30px',
+                  background: 'rgba(255,255,255,0.5)',
+                  color: '#666',
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.1em',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'white'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
+              >
+                CLOSE DIARY
+              </button>
+            </div>
           </div>
-        </div>
         )}
 
         {/* CHECKOUT CONFIRMATION MODAL */}
