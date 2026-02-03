@@ -1532,7 +1532,7 @@ const App = () => {
             alert(`🥚 彩蛋收集進度\n\n已發現: ${foundEggs.length}/8\n\n提示：仔細觀察頁面中那些\n看似不起眼的小圖標...\n\n他們藏著 Kiwimu 的秘密 ✨`);
           }}>
             <div>
-              <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>04 // DISCOVER</span><br />
+              <span className="font-mono" style={{ fontSize: '0.8rem' }}>04 // DISCOVER</span><br />
               <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
             </div>
             <span>✨</span>
