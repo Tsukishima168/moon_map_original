@@ -230,43 +230,61 @@ const App = () => {
   const EASTER_EGGS = [
     {
       id: 1,
-      title: 'Kiwimu 的出生地',
-      content: `Kiwimu 在北海道的一個小甜點工坊誕生。\n\n那天，鮮奶油被打發到最蓬鬆的狀態，突然有了自己的意識。\n\n「咦？我是誰？」\n這是 Kiwimu 說出的第一句話。\n\n從此，這隻奇異鳥開始了自己的冒險。`
+      title: '意外的第 101 下',
+      content: `Kiwimu 的誕生純屬意外。
+
+甜點師本來只想打發 100 下，結果手滑多打了一下。
+
+那一瞬間，鮮奶油突然覺得「我不當食材了！」，於是長出了腳，跳出了鋼盆。`
     },
     {
       id: 2,
-      title: 'Kiwimu 的朋友們',
-      content: `Kiwimu 其實還有其他好朋友喔！\n\n🍮 布丁精靈 Purin\n🧁 馬卡龍先生 Macaron\n🍰 提拉米蘇女士 Tira\n🍪 餅乾小子 Cookie\n\n他們目前都在世界各地旅行，\n也許下一季就會來月島相聚。\n\n你最期待遇見誰呢？`
+      title: '名字的真相',
+      content: `很多人問為什麼叫 Moon Moon。
+
+其實那不是月亮，而是你嘴巴塞滿蛋糕時，
+想說「好吃」卻發不清楚的聲音：
+「Mmm... Moon... Moon...」`
     },
     {
       id: 3,
-      title: '為什麼叫 Kiwimu？',
-      content: `Kiwimu 的名字來自「Kiwi（奇異鳥）+ Mumu（模糊）」。\n\n因為他總是溫柔地模糊掉那些\n你不想面對的銳利邊角。\n\n像鮮奶油一樣，\n柔軟地包覆住你的情緒。`
+      title: '關於身材',
+      content: `「我這不是胖，是蓬鬆。」
+「我是由 90% 的空氣組成的，所以嚴格來說，我比你還輕。」`
     },
     {
       id: 4,
-      title: 'Kiwimu 的秘密喜好',
-      content: `Kiwimu 最喜歡的季節是冬天。\n\n不是因為寒冷，\n而是因為冬天的人們，\n都需要更多的溫暖和甜點。\n\n「這樣我就有更多工作可以做了！」\nKiwimu 如此說道。`
+      title: '關於夏天',
+      content: `「麻煩冷氣再開強一點。」
+「那個靠近窗邊的客人，你的熱情讓我有點融化了。物理上的那種。」`
     },
     {
       id: 5,
-      title: '島主的創作筆記 #01',
-      content: `「每一個來到月島的人，\n都帶著不同的情緒和故事。\n\n我希望這裡不只是甜點店，\n而是一個可以停下來的空間。\n\n不必急著成為誰，\n也不必急著回答什麼。」\n\n— 月島島主`
+      title: '特殊海域',
+      content: `月島周圍的海水不是鹹的。
+據說是伯爵茶口味的。
+下次漲潮的時候，你可以偷偷沾一點試試看。`
     },
     {
       id: 6,
-      title: '秘密配方碎片',
-      content: `Kiwimu 的秘密配方 #01：\n\n「如果你覺得今天很累，\n就在甜點裡多加一點點鹽。\n\n甜味會因為鹽的對比，\n變得更加明顯。\n\n生活也是。」`
+      title: '入島限制',
+      content: `這座島有載重限制。
+不是體重的重量，是心事的重量。
+如果你心事太重，島會稍微下沉個 5 公分，直到你吃完甜點為止。`
     },
     {
       id: 7,
-      title: '月島的都市傳說',
-      content: `據說，在每個滿月的夜晚，\n月島會短暫地浮出海面。\n\n那時候，Kiwimu 會帶著所有的甜點，\n在島上舉辦一場秘密派對。\n\n只有真正需要療癒的人，\n才能找到通往島嶼的路。\n\n你找到了嗎？`
+      title: '險些被吃掉',
+      content: `上週有個客人點了鬆餅。
+Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
+幸好在叉子落下的前一秒，他嚇醒飛走了，但屁股還是少了一角。`
     },
     {
       id: 8,
-      title: '即將到來...',
-      content: `Season 02 預告：\n\n「當島嶼不再靜默，\n海浪開始說話...」\n\nKiwimu 的好友們即將登場，\n每個人都會帶來新的故事。\n\n敬請期待 2026 Q2 🌊`
+      title: '落枕危機',
+      content: `Kiwimu 昨天睡姿不良。
+導致那一區的鮮奶油變硬了（結塊）。
+他現在頭轉不回來，走路只能一直往左邊偏。`
     }
   ];
 
@@ -1367,7 +1385,15 @@ const App = () => {
           opacity: 0.2;
           pointer-events: none;
         }
-        @media (max-width: 768px) {
+                .easter-egg-icon {
+          opacity: 0.22;
+          transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .easter-egg-icon.found {
+          opacity: 1 !important;
+          filter: drop-shadow(0 0 8px rgba(216, 224, 56, 0.9));
+        }
+@media (max-width: 768px) {
           .header-bird {
             top: 15px;
             right: 15px;
@@ -1377,6 +1403,39 @@ const App = () => {
       `}</style>
 
       <div className="container">
+        <div
+          onClick={() => {
+            track('click_easter_egg_progress_badge');
+            alert(`🥚 彩蛋收集進度
+
+已發現: ${foundEggs.length}/8
+
+提示：仔細觀察頁面中那些
+看似不起眼的小圖標...
+
+他們藏著 Kiwimu 的秘密 ✨`);
+          }}
+          style={{
+            position: 'fixed',
+            top: '16px',
+            left: '16px',
+            zIndex: 2000,
+            background: CONFIG.BRAND_COLORS.moonYellow,
+            color: '#000',
+            border: '2px solid #000',
+            borderRadius: '999px',
+            padding: '6px 12px',
+            fontSize: '0.7rem',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+            boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+            cursor: 'pointer'
+          }}
+          title="彩蛋收集進度"
+        >
+          🥚 {foundEggs.length}/8
+        </div>
+
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
           {/* CURRENT EXHIBITION BANNER - Moved to Top */}
@@ -1393,12 +1452,12 @@ const App = () => {
           </div>
 
           <div
-            className={`header-bird ${showStory ? 'modal-open' : ''}`}
+            className={`header-bird ${showEasterEgg ? 'modal-open' : ''}`}
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
               track('click_easter_egg');
-              setShowStory(true);
+              openEasterEgg(4);
             }}
             style={{ cursor: 'pointer' }}
             title="Kiwimu?"
@@ -1484,6 +1543,7 @@ const App = () => {
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
               alt=""
+              className={`easter-egg-icon ${foundEggs.includes(5) ? 'found' : ''}`}
               onClick={() => openEasterEgg(5)}
               style={{
                 display: 'inline-block',
@@ -1564,6 +1624,7 @@ const App = () => {
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
               alt=""
+              className={`easter-egg-icon ${foundEggs.includes(1) ? 'found' : ''}`}
               onClick={() => openEasterEgg(1)}
               style={{
                 position: 'absolute',
@@ -1594,6 +1655,7 @@ const App = () => {
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
               alt=""
+              className={`easter-egg-icon ${foundEggs.includes(3) ? 'found' : ''}`}
               onClick={() => openEasterEgg(3)}
               style={{
                 position: 'absolute',
@@ -1756,6 +1818,27 @@ const App = () => {
               </div>
             );
           })()}
+          {/* Easter Egg #7 - 險些被吃掉 */}
+          <img
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+            alt=""
+            className={`easter-egg-icon ${foundEggs.includes(7) ? 'found' : ''}`}
+            onClick={() => openEasterEgg(7)}
+            style={{
+              position: 'absolute',
+              bottom: '18px',
+              right: '18px',
+              width: '22px',
+              height: '22px',
+              opacity: 0.25,
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              zIndex: 3
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2) rotate(8deg)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+          />
+
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
@@ -1766,7 +1849,8 @@ const App = () => {
           <img
             src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
             alt=""
-            onClick={() => openEasterEgg(6)}
+            className={`easter-egg-icon ${foundEggs.includes(6) ? 'found' : ''}`}
+              onClick={() => openEasterEgg(6)}
             style={{
               position: 'absolute',
               left: '20px',
@@ -1853,7 +1937,8 @@ const App = () => {
                 <img
                   src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
                   alt=""
-                  onClick={() => openEasterEgg(2)}
+                  className={`easter-egg-icon ${foundEggs.includes(2) ? 'found' : ''}`}
+              onClick={() => openEasterEgg(2)}
                   style={{
                     position: 'absolute',
                     right: '8px',
@@ -1912,9 +1997,28 @@ const App = () => {
                   height: '100%',
                   minHeight: '80px',
                   color: '#999',
-                  border: '1px dashed #ccc'
+                  border: '1px dashed #ccc',
+                  position: 'relative'
                 }}>
                   <strong className="font-mono">PROJECT LOADING... (準備中)</strong>
+                <img
+                  src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+                  alt=""
+                  className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
+                  onClick={() => openEasterEgg(8)}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    bottom: '10px',
+                    width: '20px',
+                    height: '20px',
+                    opacity: 0.25,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2)'; }}
+                  onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+                />
                 </div>
 
               </div>
