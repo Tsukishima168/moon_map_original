@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { supabase } from './lib/supabase';
+import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
@@ -24,6 +25,7 @@ const CONFIG = {
     mbti_lab_url: "https://kiwimu-mbti.vercel.app",
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
     wallpaper_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
+    easter_egg_reward_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
     line_theme_url: "https://store.line.me/themeshop/product/moonmoon",
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
@@ -33,6 +35,18 @@ const CONFIG = {
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
 };
+
+// --- SUPABASE STORAGE (圖床，與 Dessert-Booking 共用 menu-images bucket) ---
+const supabaseUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL;
+const MENU_IMAGES_BASE = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/menu-images` : '';
+
+/** 解析菜單圖片 URL：支援完整 URL 或檔名/路徑，自動接上 Supabase Storage */
+function getMenuImageUrl(img: string | null | undefined): string | null {
+  if (!img) return null;
+  if (img.startsWith('http')) return img;
+  const path = img.replace(/^\/?menu-images\/?/, '');
+  return MENU_IMAGES_BASE ? `${MENU_IMAGES_BASE}/${path}` : img;
+}
 
 // --- DATA: 狀態與任務 ---
 const STATE_DATA: Record<string, {
@@ -157,11 +171,11 @@ const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedIte
   }
 };
 
-// --- TRACKING STUB ---
+// --- TRACKING (Cross-site) ---
 const track = (event: string, payload: any = {}) => {
-  console.log(`[Track] ${event}`, payload);
-  if (typeof window !== 'undefined' && (window as any).gtag) {
-    (window as any).gtag('event', event, payload);
+  trackEvent(event, payload);
+  if (import.meta.env.DEV) {
+    console.log(`[Track] ${event}`, payload);
   }
 };
 
@@ -195,6 +209,8 @@ const App = () => {
   const [showResult, setShowResult] = useState(false);
   const [recommendation, setRecommendation] = useState<string>("");
   const [showMenu, setShowMenu] = useState(false);
+  // 僅甜點目錄頁：/menu 路徑只顯示目錄（與 Dessert-Booking / LINE 共用連結）
+  const [onlyMenuView] = useState(() => typeof window !== 'undefined' && window.location.pathname === '/menu');
   const [headerImage, setHeaderImage] = useState('');
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
@@ -204,9 +220,30 @@ const App = () => {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
   const [foundEggs, setFoundEggs] = useState<number[]>([]);
+  const isEasterEggComplete = foundEggs.length >= 8;
+  const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
+  const mbtiLabUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
+    medium: 'profile-card',
+    campaign: '2026-q1-integration',
+    content: 'profile_mbti_link',
+  });
 
-  // Load found eggs from localStorage
   useEffect(() => {
+    trackUtmLanding();
+  }, []);
+
+  // 彩蛋每月 renew：每月 1 號起用新月份 key，自動清空讓大家重新找
+  const EGGS_RENEW_KEY = 'moonmoon_eggs_renew_month';
+  useEffect(() => {
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const storedMonth = localStorage.getItem(EGGS_RENEW_KEY);
+    if (storedMonth !== monthKey) {
+      localStorage.removeItem('moonmoon_found_eggs');
+      localStorage.setItem(EGGS_RENEW_KEY, monthKey);
+      setFoundEggs([]);
+      return;
+    }
     const saved = localStorage.getItem('moonmoon_found_eggs');
     if (saved) {
       try {
@@ -275,7 +312,7 @@ const App = () => {
     {
       id: 7,
       title: '險些被吃掉',
-      content: `上週有個客人點了鬆餅。
+      content: `上週有個客人點了巴斯克。
 Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 幸好在叉子落下的前一秒，他嚇醒飛走了，但屁股還是少了一角。`
     },
@@ -436,15 +473,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               return {
                 name: item.name,
-                image: item.image,
+                image: getMenuImageUrl(item.image) ?? item.image ?? null,
                 description: item.description, // New Description Field
                 prices: sortedVariants || []
               };
             })
           }));
           setMenuCategories(combined);
-          // 預設收起所有分類
-          setCollapsedCategories(new Set(combined.map(cat => cat.id)));
+          // 預設：從 /menu 進來則全部展開（可直接點品項）；其餘頁面則收起
+          const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
+          setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(combined.map(cat => cat.id)));
         }
       } catch (error) {
         console.error('Error fetching menu:', error);
@@ -482,10 +520,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     }
   }, []);
 
-  // AUTO-OPEN MENU via HASH
+  // AUTO-OPEN MENU: 僅 hash #menu 時開 modal；路徑 /menu 用 onlyMenuView 渲染僅目錄頁
   useEffect(() => {
     if (window.location.hash === '#menu') {
       setShowMenu(true);
+    }
+  }, []);
+
+  // /menu 專用：分頁標題讓 LINE、Google 連結預覽顯示「甜點目錄」
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/menu') {
+      const prev = document.title;
+      document.title = '月島甜點 | 甜點目錄';
+      return () => { document.title = prev; };
     }
   }, []);
 
@@ -1019,6 +1066,125 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const today = new Date();
   const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
 
+  // 甜點目錄區塊（modal 與 /menu 僅目錄頁共用）
+  const menuBodyContent = menuCategories.map((cat) => {
+    const isCollapsed = collapsedCategories.has(cat.id);
+    return (
+      <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+        <div
+          onClick={() => toggleCategory(cat.id)}
+          style={{
+            marginBottom: '15px',
+            cursor: 'pointer',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start'
+          }}
+        >
+          <div>
+            <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
+              {cat.title}
+            </h4>
+            <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
+              {cat.subtitle}
+            </div>
+          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
+            +
+          </div>
+        </div>
+        {!isCollapsed && (
+          <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
+            {cat.items.map((item, idx) => (
+              <div key={idx} className="menu-item">
+                {item.image && (
+                  <div style={{
+                    width: '100%',
+                    height: '200px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    marginBottom: '12px',
+                    cursor: 'pointer'
+                  }}
+                    onClick={() => setExpandedItem(expandedItem === item.name ? null : item.name)}
+                  >
+                    <img
+                      src={item.image || ''}
+                      alt={item.name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                    />
+                  </div>
+                )}
+                <div>
+                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
+                  {item.description && (
+                    <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-line' }}>
+                      {item.description}
+                    </p>
+                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                    {cat.id === 'drinks' ? (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
+                        }}
+                        style={{
+                          fontSize: '0.8rem',
+                          color: '#999',
+                          fontStyle: 'italic',
+                          padding: '8px 12px',
+                          background: 'rgba(0,0,0,0.03)',
+                          border: '1px dashed #ccc',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = '#999'; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#ccc'; }}
+                      >
+                        僅供店內飲用 / In-store Only
+                      </button>
+                    ) : (
+                      item.prices && item.prices.length > 0 ? (
+                        item.prices.map((p, pIdx) => {
+                          const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
+                          return (
+                            <button
+                              key={pIdx}
+                              className="font-mono"
+                              onClick={(e) => { e.stopPropagation(); addToCart(item.name, p.spec, p.price); }}
+                              style={{
+                                fontSize: '0.8rem',
+                                color: inCart ? 'white' : '#666',
+                                background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
+                                padding: '4px 10px',
+                                borderRadius: '4px',
+                                border: '1px solid transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                fontWeight: inCart ? 'bold' : 'normal'
+                              }}
+                            >
+                              {p.spec}: {p.price} {inCart ? '(已選)' : ''}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>暫無規格</span>
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  });
+
   return (
     <>
       <style>{`
@@ -1403,9 +1569,40 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       `}</style>
 
       <div className="container">
+        {/* 僅甜點目錄網址 /menu：全螢幕目錄，購物車與結帳 modal 仍在上層 */}
+        {onlyMenuView && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            background: CONFIG.BRAND_COLORS.creamWhite,
+            overflow: 'auto',
+            padding: '20px',
+            paddingBottom: '120px'
+          }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>月島甜點 | 甜點目錄</h1>
+              <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
+            </header>
+            <div>
+              {menuBodyContent}
+            </div>
+          </div>
+        )}
+
         <div
           onClick={() => {
             track('click_easter_egg_progress_badge');
+            if (isEasterEggComplete) {
+              alert(`🎉 你已集滿 8 顆彩蛋！
+
+點下方的「已解鎖限定桌布」
+即可領取獎勵。`);
+              return;
+            }
             alert(`🥚 彩蛋收集進度
 
 已發現: ${foundEggs.length}/8
@@ -1420,6 +1617,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             top: '16px',
             left: '16px',
             zIndex: 2000,
+            display: onlyMenuView ? 'none' : undefined,
             background: CONFIG.BRAND_COLORS.moonYellow,
             color: '#000',
             border: '2px solid #000',
@@ -1435,6 +1633,34 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         >
           🥚 {foundEggs.length}/8
         </div>
+        {isEasterEggComplete && !onlyMenuView && (
+          <a
+            href={easterEggRewardUrl}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => track('click_easter_egg_reward')}
+            style={{
+              position: 'fixed',
+              top: '52px',
+              left: '16px',
+              zIndex: 2000,
+              background: '#000',
+              color: '#fff',
+              border: '2px solid #000',
+              borderRadius: '999px',
+              padding: '6px 12px',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+              letterSpacing: '0.05em',
+              boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+              cursor: 'pointer',
+              textDecoration: 'none'
+            }}
+            title="下載限定桌布"
+          >
+            🎁 已解鎖限定桌布
+          </a>
+        )}
 
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
@@ -1850,7 +2076,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
             alt=""
             className={`easter-egg-icon ${foundEggs.includes(6) ? 'found' : ''}`}
-              onClick={() => openEasterEgg(6)}
+            onClick={() => openEasterEgg(6)}
             style={{
               position: 'absolute',
               left: '20px',
@@ -1938,7 +2164,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
                   alt=""
                   className={`easter-egg-icon ${foundEggs.includes(2) ? 'found' : ''}`}
-              onClick={() => openEasterEgg(2)}
+                  onClick={() => openEasterEgg(2)}
                   style={{
                     position: 'absolute',
                     right: '8px',
@@ -2001,24 +2227,24 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   position: 'relative'
                 }}>
                   <strong className="font-mono">PROJECT LOADING... (準備中)</strong>
-                <img
-                  src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
-                  alt=""
-                  className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
-                  onClick={() => openEasterEgg(8)}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    bottom: '10px',
-                    width: '20px',
-                    height: '20px',
-                    opacity: 0.25,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
-                />
+                  <img
+                    src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+                    alt=""
+                    className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
+                    onClick={() => openEasterEgg(8)}
+                    style={{
+                      position: 'absolute',
+                      right: '10px',
+                      bottom: '10px',
+                      width: '20px',
+                      height: '20px',
+                      opacity: 0.25,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2)'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+                  />
                 </div>
 
               </div>
@@ -2091,155 +2317,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </div>
 
               <div className="modal-body">
-                {/* Image Carousel Removed as requested */}
-
-                {menuCategories.map((cat) => {
-                  const isCollapsed = collapsedCategories.has(cat.id);
-                  return (
-                    <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
-                      <div
-                        onClick={() => toggleCategory(cat.id)}
-                        style={{
-                          marginBottom: '15px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start'
-                        }}
-                      >
-                        <div>
-                          <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
-                            {cat.title}
-                          </h4>
-                          <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
-                            {cat.subtitle}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
-                          +
-                        </div>
-                      </div>
-
-                      {!isCollapsed && (
-                        <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
-                          {cat.items.map((item, idx) => (
-                            <div key={idx} className="menu-item">
-                              {/* 圖片區塊 - 只有當商品有圖片時才顯示 */}
-                              {item.image && (
-                                <div style={{
-                                  width: '100%',
-                                  height: '200px',
-                                  borderRadius: '8px',
-                                  overflow: 'hidden',
-                                  marginBottom: '12px',
-                                  cursor: 'pointer'
-                                }}
-                                  onClick={() => {
-                                    // 點擊圖片可以放大查看
-                                    setExpandedItem(expandedItem === item.name ? null : item.name);
-                                  }}>
-                                  <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    onError={(e) => {
-                                      // 如果圖片載入失敗，隱藏圖片區塊
-                                      e.currentTarget.parentElement.style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              )}
-
-                              <div>
-                                <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
-
-                                {/* 商品介紹 - 從 Supabase 抓取，直接顯示完整內容 */}
-                                {item.description && (
-                                  <p style={{
-                                    fontSize: '0.85rem',
-                                    color: '#666',
-                                    lineHeight: '1.6',
-                                    marginBottom: '12px',
-                                    whiteSpace: 'pre-line'
-                                  }}>
-                                    {item.description}
-                                  </p>
-                                )}
-
-                                {/* 價格/操作區塊 */}
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                                  {cat.id === 'drinks' ? (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
-                                      }}
-                                      style={{
-                                        fontSize: '0.8rem',
-                                        color: '#999',
-                                        fontStyle: 'italic',
-                                        padding: '8px 12px',
-                                        background: 'rgba(0,0,0,0.03)',
-                                        border: '1px dashed #ccc',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                      }}
-                                      onMouseOver={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0,0,0,0.05)';
-                                        e.currentTarget.style.borderColor = '#999';
-                                      }}
-                                      onMouseOut={(e) => {
-                                        e.currentTarget.style.background = 'rgba(0,0,0,0.03)';
-                                        e.currentTarget.style.borderColor = '#ccc';
-                                      }}
-                                    >
-                                      僅供店內飲用 / In-store Only
-                                    </button>
-                                  ) : (
-                                    item.prices && item.prices.length > 0 ? (
-                                      item.prices.map((p, pIdx) => {
-                                        const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
-                                        return (
-                                          <button
-                                            key={pIdx}
-                                            className="font-mono"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              addToCart(item.name, p.spec, p.price);
-                                            }}
-                                            style={{
-                                              fontSize: '0.8rem',
-                                              color: inCart ? 'white' : '#666',
-                                              background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
-                                              padding: '4px 10px',
-                                              borderRadius: '4px',
-                                              border: '1px solid transparent',
-                                              cursor: 'pointer',
-                                              transition: 'all 0.2s',
-                                              fontWeight: inCart ? 'bold' : 'normal'
-                                            }}>
-                                            {p.spec}: {p.price} {inCart ? '(已選)' : ''}
-                                          </button>
-                                        );
-                                      })
-                                    ) : (
-                                      <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>
-                                        暫無規格
-                                      </span>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-
+                {menuBodyContent}
               </div>
             </div>
           </div>
@@ -2683,7 +2761,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 {/* Cross-site Links */}
                 <div style={{ textAlign: 'center' }}>
                   <a
-                    href={CONFIG.LINKS.mbti_lab_url}
+                    href={mbtiLabUrl}
                     target="_blank"
                     rel="noreferrer"
                     style={{
@@ -2698,6 +2776,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
                       transition: 'transform 0.2s'
                     }}
+                    onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
                     onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   >

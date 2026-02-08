@@ -9,10 +9,11 @@ echo "🎨 月島圖片批次處理工具"
 echo "==============================\n"
 
 # === 設定 ===
+# 網頁用建議：638 + 品質 78，單檔約 200–500KB；若要較大圖可改 800、85
 SOURCE_DIR="$HOME/Desktop/原始照片"
 OUTPUT_DIR="$HOME/moon-island-upload/products/desserts"
-SIZE="800x800"
-QUALITY=85
+SIZE="638x638"
+QUALITY=78
 FORMAT="webp"
 
 # === 檢查來源資料夾 ===
