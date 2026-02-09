@@ -26,7 +26,7 @@ const CONFIG = {
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
     wallpaper_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
     easter_egg_reward_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
-    line_theme_url: "https://store.line.me/themeshop/product/moonmoon",
+    line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
@@ -35,6 +35,13 @@ const CONFIG = {
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
 };
+
+// Wallpaper assets (Supabase)
+const WALLPAPERS = [
+  { label: "2026.01", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_01.jpg" },
+  { label: "2026.02", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_02.jpg" },
+  { label: "2026.03", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_03.jpg" }
+];
 
 // --- SUPABASE STORAGE (圖床，與 Dessert-Booking 共用 menu-images bucket) ---
 const supabaseUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL;
@@ -2194,14 +2201,41 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               {/* 2. Downloadables Grid */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
 
-                {/* Wallpaper */}
-                <a href={CONFIG.LINKS.wallpaper_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
-                  <div>
-                    <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>DOWNLOAD</span><br />
-                    <strong>WALLPAPER (桌布)</strong>
+                {/* Wallpaper (multi) */}
+                <div style={{ borderRadius: '12px', padding: '18px 16px', border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.6)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <div>
+                      <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
+                      <strong>WALLPAPER (桌布)</strong>
+                    </div>
+                    <span style={{ opacity: 0.6 }}>↓</span>
                   </div>
-                  <span>↓</span>
-                </a>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+                    {WALLPAPERS.map((wp) => (
+                      <a key={wp.label} href={wp.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
+                        <div style={{
+                          border: '1px solid rgba(0,0,0,0.08)',
+                          borderRadius: '10px',
+                          padding: '10px',
+                          background: '#fff',
+                          transition: 'transform 0.2s, box-shadow 0.2s'
+                        }}>
+                          <div style={{
+                            width: '100%',
+                            height: '70px',
+                            borderRadius: '8px',
+                            backgroundImage: `url(${wp.url})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            marginBottom: '8px'
+                          }} />
+                          <div className="font-mono" style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>{wp.label}</div>
+                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111' }}>DOWNLOAD</div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
 
                 {/* Theme */}
                 <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
