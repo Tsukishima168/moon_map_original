@@ -24,8 +24,8 @@ const CONFIG = {
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu-mbti.vercel.app",
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
-    wallpaper_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
-    easter_egg_reward_url: "https://drive.google.com/drive/folders/moonmoon-wallpaper",
+    wallpaper_url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_01.jpg",
+    easter_egg_reward_url: "#wallpaper-section",
     line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
@@ -1641,11 +1641,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           🥚 {foundEggs.length}/8
         </div>
         {isEasterEggComplete && !onlyMenuView && (
-          <a
-            href={easterEggRewardUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => track('click_easter_egg_reward')}
+          <button
+            onClick={() => {
+              track('click_easter_egg_reward');
+              document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
             style={{
               position: 'fixed',
               top: '52px',
@@ -1666,7 +1666,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             title="下載限定桌布"
           >
             🎁 已解鎖限定桌布
-          </a>
+          </button>
         )}
 
         {/* A. HERO */}
@@ -2201,16 +2201,61 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               {/* 2. Downloadables Grid */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
 
-                {/* Wallpaper (multi) */}
-                <div style={{ borderRadius: '12px', padding: '18px 16px', border: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.6)' }}>
+                {/* Wallpaper (multi) with lock state */}
+                <div
+                  id="wallpaper-section"
+                  style={{
+                    borderRadius: '12px',
+                    padding: '18px 16px',
+                    border: '1px solid rgba(0,0,0,0.06)',
+                    background: 'rgba(255,255,255,0.6)',
+                    scrollMarginTop: '100px',
+                    position: 'relative'
+                  }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                     <div>
                       <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
                       <strong>WALLPAPER (桌布)</strong>
                     </div>
-                    <span style={{ opacity: 0.6 }}>↓</span>
+                    {isEasterEggComplete ? (
+                      <span style={{ opacity: 0.6 }}>🔓</span>
+                    ) : (
+                      <span style={{ fontSize: '1.5rem' }}>🔒</span>
+                    )}
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+
+                  {!isEasterEggComplete && (
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      borderRadius: '10px',
+                      padding: '20px',
+                      textAlign: 'center',
+                      border: '2px dashed rgba(0, 0, 0, 0.1)',
+                      marginBottom: '12px'
+                    }}>
+                      <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🔒</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '8px', color: '#333' }}>
+                        桌布已鎖定
+                      </div>
+                      <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
+                        找到全部 8 顆彩蛋即可解鎖<br />
+                        <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
+                          目前進度：{foundEggs.length}/8
+                        </strong>
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                    gap: '10px',
+                    filter: isEasterEggComplete ? 'none' : 'blur(8px) grayscale(1)',
+                    pointerEvents: isEasterEggComplete ? 'auto' : 'none',
+                    opacity: isEasterEggComplete ? 1 : 0.4,
+                    transition: 'all 0.5s ease'
+                  }}>
                     {WALLPAPERS.map((wp) => (
                       <a key={wp.label} href={wp.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                         <div style={{
