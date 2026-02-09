@@ -66,9 +66,14 @@ async function uploadFile(filePath, storagePath) {
     }
 }
 
-// 上傳整個資料夾
+// 上傳整個資料夾（若資料夾不存在則略過）
 async function uploadFolder(localFolder, remoteFolder) {
-    const files = fs.readdirSync(path.join(UPLOAD_DIR, localFolder))
+    const folderPath = path.join(UPLOAD_DIR, localFolder)
+    if (!fs.existsSync(folderPath)) {
+        console.log(`\n⏭️  Skipping ${localFolder} (folder not found: ${folderPath})`)
+        return
+    }
+    const files = fs.readdirSync(folderPath)
 
     console.log(`\n📁 Uploading folder: ${localFolder}`)
     console.log(`   Files: ${files.length}`)
@@ -76,7 +81,7 @@ async function uploadFolder(localFolder, remoteFolder) {
     for (const file of files) {
         if (file.startsWith('.')) continue // 跳過隱藏檔
 
-        const filePath = path.join(UPLOAD_DIR, localFolder, file)
+        const filePath = path.join(folderPath, file)
         if (fs.statSync(filePath).isFile()) {
             await uploadFile(filePath, remoteFolder)
         }
@@ -100,16 +105,17 @@ async function main() {
 
     console.log(`✅ Bucket "${BUCKET_NAME}" found\n`)
 
-    // 上傳各資料夾
+    // 上傳各資料夾（含產品照片：檔名請用英文代號，如 baileys_tiramisu.webp）
     await uploadFolder('backgrounds', 'backgrounds')
     await uploadFolder('menus', 'menus')
     await uploadFolder('characters', 'characters')
+    await uploadFolder('menu-items', 'menu-items')
 
     console.log('\n🎉 Upload complete!')
     console.log('\n📋 Next steps:')
     console.log('1. 前往 Supabase Dashboard → Storage 確認圖片')
-    console.log('2. 複製圖片 URL')
-    console.log('3. 更新 index.tsx 中的圖片路徑')
+    console.log('2. 若上傳的是 menu-items 產品照：執行 node scripts/generate-menu-image-updates.js 產生 SQL')
+    console.log('3. 在 Supabase SQL Editor 執行產生的 update_menu_images.sql，讓網頁選單同步顯示新圖')
 }
 
 main().catch(console.error)
