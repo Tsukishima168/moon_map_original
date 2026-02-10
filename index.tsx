@@ -19,8 +19,10 @@ const CONFIG = {
     grayLine: '#E0E0E0',
   },
   LINKS: {
-    preorder_pickup_url: "https://ezpretty.cc/CoQyB?openExternalBrowser=1",
-    delivery_url: "https://lin.ee/MndRHE2",
+    preorder_pickup_url: "https://moon-dessert-booking.vercel.app",
+    delivery_url: "https://moon-dessert-booking.vercel.app",
+    booking_url: "https://moon-dessert-booking.vercel.app",
+    passport_url: "https://moonmoon-dessert-passport.vercel.app",
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu-mbti.vercel.app",
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
@@ -233,6 +235,31 @@ const App = () => {
     medium: 'profile-card',
     campaign: '2026-q1-integration',
     content: 'profile_mbti_link',
+    additionalParams: { from: 'moon-map' },
+  });
+  const passportUrl = buildUtmUrl(CONFIG.LINKS.passport_url, {
+    medium: 'hero-checkin',
+    campaign: '2026-q1-integration',
+    content: 'checkin',
+    additionalParams: { from: 'moon-map' },
+  });
+  const bookingMenuUrl = buildUtmUrl(CONFIG.LINKS.booking_url, {
+    medium: 'menu-section',
+    campaign: '2026-q1-integration',
+    content: 'order_cta',
+    additionalParams: { from: 'moon-map' },
+  });
+  const mbtiRecommendationUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
+    medium: 'recommendation',
+    campaign: '2026-q1-integration',
+    content: 'personalized',
+    additionalParams: { from: 'moon-map' },
+  });
+  const mbtiMissionUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
+    medium: 'mission_card',
+    campaign: '2026-q1-integration',
+    content: 'cross_site',
+    additionalParams: { from: 'moon-map' },
   });
 
   useEffect(() => {
@@ -480,7 +507,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               return {
                 name: item.name,
-                image: getMenuImageUrl(item.image) ?? item.image ?? null,
+                image: getMenuImageUrl(item.image_url ?? item.image ?? item.image_path ?? item.imageUrl ?? null),
                 description: item.description, // New Description Field
                 prices: sortedVariants || []
               };
@@ -1793,9 +1820,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             />
           </p>
 
-          <a href="https://moonmoon-dessert-passport.vercel.app" target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
+          <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
-              <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>01 // INTERACT</span><br />
+              <span className="font-mono text-blue" style={{ fontSize: '1rem' }}>01 // INTERACT</span><br />
               <strong>我想登島互動 (Check-in)</strong>
             </div>
             <span>↗</span>
@@ -1805,7 +1832,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '0.8rem' }}>02 // PICKUP</span><br />
+              <span className="font-mono" style={{ fontSize: '1rem' }}>02 // PICKUP</span><br />
               <strong>我想帶走甜點 (預訂取貨)</strong>
             </div>
             <span>↓</span>
@@ -1815,7 +1842,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>03 // MUSIC</span><br />
+              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>03 // MUSIC</span><br />
               <strong>聽這一季音樂 (島嶼靜默)</strong>
             </div>
             <span>♫</span>
@@ -1825,7 +1852,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             alert(`🥚 彩蛋收集進度\n\n已發現: ${foundEggs.length}/8\n\n提示：仔細觀察頁面中那些\n看似不起眼的小圖標...\n\n他們藏著 Kiwimu 的秘密 ✨`);
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '0.8rem' }}>04 // DISCOVER</span><br />
+              <span className="font-mono" style={{ fontSize: '1rem' }}>04 // DISCOVER</span><br />
               <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
             </div>
             <span>✨</span>
@@ -1988,7 +2015,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   ))}
                   {!mbtiData && (
                     <a
-                      href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=recommendation&utm_campaign=personalized"
+                      href={mbtiRecommendationUrl}
                       target="_blank"
                       rel="noreferrer"
                       onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
@@ -2001,7 +2028,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 {/* MBTI 測驗引流 */}
                 <a
-                  href="https://kiwimu-mbti.vercel.app?utm_source=moon_island&utm_medium=mission_card&utm_campaign=cross_site"
+                  href={mbtiMissionUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="btn-small"
@@ -2151,6 +2178,21 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               OPEN COLLECTION
             </div>
           </button>
+
+          <a
+            href={bookingMenuUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-entry"
+            style={{ marginTop: '16px' }}
+            onClick={() => track('click_menu_order')}
+          >
+            <div>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>ORDER NOW</span><br />
+              <strong>前往線上訂購 (Online Booking)</strong>
+            </div>
+            <span>↗</span>
+          </a>
 
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <p style={{ marginBottom: '20px' }}>
