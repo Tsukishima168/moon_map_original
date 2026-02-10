@@ -294,6 +294,53 @@ const App = () => {
       const newFound = [...foundEggs, eggId];
       setFoundEggs(newFound);
       localStorage.setItem('moonmoon_found_eggs', JSON.stringify(newFound));
+
+      // Check if this was the 8th egg (completed all)
+      if (newFound.length === 8) {
+        // Generate Reward Claim Code
+        const claimCode = `egg_master_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+        // Save to Supabase (Fire and forget, optimistic UI)
+        supabase.from('reward_claims').insert({
+          code: claimCode,
+          reward_id: 'egg_master_2026_q1',
+          source: 'moon_map' // Current site
+        }).then(({ error }) => {
+          if (error) console.error('Failed to create reward claim:', error);
+        });
+
+        // Save locally to persist the code
+        localStorage.setItem('moonmoon_egg_master_code', claimCode);
+
+        // Show congratulations message after a brief delay
+        setTimeout(() => {
+          // Determine Passport URL for claiming
+          const passportClaimUrl = `${CONFIG.LINKS.passport_url}/redeem?code=${claimCode}&reward=egg_master_2026_q1`;
+
+          if (confirm(`🎉 恭喜你！已集滿全部 8 顆彩蛋！
+          
+🎁 你已獲得兩項獎勵：
+1. 專屬限定桌布 (Wallpaper)
+2. 護照限定徽章 (Secret Badge)
+
+是否要現在領取徽章？
+(點擊「取消」則前往下載桌布)`)) {
+            window.open(passportClaimUrl, '_blank');
+          }
+
+          alert(`畫面即將前往桌布下載區...
+          
+(若您尚未領取徽章，稍後可在桌布區找到領取按鈕)`);
+
+          // Auto scroll to wallpaper section
+          setTimeout(() => {
+            document.getElementById('wallpaper-section')?.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start'
+            });
+          }, 300);
+        }, 500);
+      }
     }
   };
 
@@ -2308,20 +2355,52 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           transition: 'transform 0.2s, box-shadow 0.2s'
                         }}>
                           <div style={{
-                            width: '100%',
-                            height: '70px',
-                            borderRadius: '8px',
-                            backgroundImage: `url(${wp.url})`,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            marginBottom: '8px'
-                          }} />
-                          <div className="font-mono" style={{ fontSize: '0.7rem', color: '#666', marginBottom: '2px' }}>{wp.label}</div>
-                          <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111' }}>DOWNLOAD</div>
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            color: '#333',
+                            marginBottom: '6px',
+                            display: 'flex',
+                            justifyContent: 'space-between'
+                          }}>
+                            <span>{wp.label}</span>
+                            <span>⬇</span>
+                          </div>
+                          <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
                         </div>
                       </a>
                     ))}
                   </div>
+
+                  {isEasterEggComplete && (
+                    <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '12px' }}>
+                        還有一份神秘禮物...
+                      </p>
+                      <button
+                        onClick={() => {
+                          const code = localStorage.getItem('moonmoon_egg_master_code');
+                          if (code) {
+                            window.open(`${CONFIG.LINKS.passport_url}/redeem?code=${code}&reward=egg_master_2026_q1`, '_blank');
+                          } else {
+                            alert('找不到兌換碼，請嘗試重新整理頁面或聯繫客服。');
+                          }
+                        }}
+                        style={{
+                          background: CONFIG.BRAND_COLORS.moonYellow,
+                          color: CONFIG.BRAND_COLORS.emotionBlack,
+                          border: '2px solid #000',
+                          padding: '10px 20px',
+                          borderRadius: '999px',
+                          fontWeight: 'bold',
+                          fontSize: '0.9rem',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
+                        }}
+                      >
+                        🏅 領取護照限定徽章 (Badge)
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Theme */}
@@ -2335,19 +2414,36 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 {/* Coming Soon */}
                 <div style={{
-                  background: '#f0f0f0',
-                  borderRadius: '12px',
-                  padding: '24px',
+                  borderRadius: '16px',
+                  padding: '30px 20px',
+                  background: 'rgba(255, 255, 255, 0.4)',
+                  backdropFilter: 'blur(4px)',
+                  border: '2px dashed rgba(0, 0, 0, 0.08)',
                   display: 'flex',
-                  justifyContent: 'center',
+                  flexDirection: 'column',
                   alignItems: 'center',
-                  height: '100%',
-                  minHeight: '80px',
+                  justifyContent: 'center',
+                  minHeight: '120px',
                   color: '#999',
-                  border: '1px dashed #ccc',
-                  position: 'relative'
+                  position: 'relative',
+                  transition: 'all 0.3s ease',
+                  boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)',
+                  userSelect: 'none'
                 }}>
-                  <strong className="font-mono">PROJECT LOADING... (準備中)</strong>
+                  <div style={{
+                    fontSize: '1.8rem',
+                    marginBottom: '10px',
+                    opacity: 0.4,
+                    filter: 'grayscale(1)'
+                  }}>🚧</div>
+                  <strong className="font-mono" style={{ fontSize: '0.9rem', letterSpacing: '0.15em', marginBottom: '6px', color: '#888' }}>
+                    COMING SOON
+                  </strong>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#aaa' }}>
+                    PROJECT LOADING... (準備中)
+                  </div>
+
+                  {/* Easter Egg #8 - 秘密計畫 */}
                   <img
                     src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
                     alt=""
@@ -2355,16 +2451,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     onClick={() => openEasterEgg(8)}
                     style={{
                       position: 'absolute',
-                      right: '10px',
-                      bottom: '10px',
-                      width: '20px',
-                      height: '20px',
-                      opacity: 0.25,
+                      right: '12px',
+                      bottom: '12px',
+                      width: '24px',
+                      height: '24px',
+                      opacity: 0.1,
                       cursor: 'pointer',
-                      transition: 'all 0.3s ease'
+                      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      filter: 'grayscale(1)'
                     }}
-                    onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2)'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                      e.currentTarget.style.transform = 'scale(1.3) rotate(15deg)';
+                      e.currentTarget.style.filter = 'grayscale(0) drop-shadow(0 4px 8px rgba(0,0,0,0.2))';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.opacity = '0.1';
+                      e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                      e.currentTarget.style.filter = 'grayscale(1)';
+                    }}
+                    title="?"
                   />
                 </div>
 
