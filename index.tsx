@@ -180,6 +180,13 @@ const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedIte
   }
 };
 
+// --- UTILITIES ---
+/** Check if user is on a mobile device */
+const isMobileDevice = () => {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+};
+
 // --- TRACKING (Cross-site) ---
 const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
@@ -423,6 +430,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // New "Smart Form" Fields
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  // Desktop Order Success Modal
+  const [showDesktopOrderSuccess, setShowDesktopOrderSuccess] = useState(false);
+  const [orderMessage, setOrderMessage] = useState('');
 
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
@@ -841,33 +851,36 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       msg += `\n付款完成後請回傳「後五碼」\n`;
       msg += `   （轉帳通知中的後五碼數字）`;
 
-      // 7. Redirect to LINE
+      // 7. Device-aware redirect to LINE
       const encodedMsg = encodeURIComponent(msg);
       const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
-      const liff = (window as any).liff;
 
       // Close modal and clear cart
       setShowCheckoutConfirm(false);
       clearCart();
 
-      // Redirect to LINE - 直接跳轉，不顯示 alert
-      try {
-        // 直接跳轉到 LINE，無論是否在 LINE app 內
-        // 如果在 LINE app 內，會直接打開對話
-        // 如果在瀏覽器內，會跳轉到 LINE 網頁版或提示下載 LINE app
-        window.location.href = lineUrl;
-      } catch (error) {
-        console.error('LINE redirect error:', error);
-        // 如果跳轉失敗，才顯示簡短提示並複製訊息到剪貼簿
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(msg).then(() => {
-            alert(`訂單已建立！訂單編號：${orderId}\n\n已複製訂單訊息到剪貼簿，請開啟 LINE 並貼上傳送。`);
-          }).catch(() => {
+      // Check if user is on mobile device
+      if (isMobileDevice()) {
+        // MOBILE: Direct redirect to LINE app
+        try {
+          window.location.href = lineUrl;
+        } catch (error) {
+          console.error('LINE redirect error:', error);
+          // Fallback: Copy to clipboard
+          if (navigator.clipboard) {
+            navigator.clipboard.writeText(msg).then(() => {
+              alert(`訂單已建立！訂單編號：${orderId}\n\n已複製訂單訊息到剪貼簿，請開啟 LINE 並貼上傳送。`);
+            }).catch(() => {
+              alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
+            });
+          } else {
             alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
-          });
-        } else {
-          alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
+          }
         }
+      } else {
+        // DESKTOP: Show order success modal with copy option
+        setOrderMessage(msg);
+        setShowDesktopOrderSuccess(true);
       }
 
 
@@ -2817,6 +2830,97 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
           </div>
         )}
+
+        {/* DESKTOP ORDER SUCCESS MODAL */}
+        {showDesktopOrderSuccess && (
+          <div className="modal-overlay" onClick={() => setShowDesktopOrderSuccess(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+                <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
+                <button className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                    🎉 訂單已成功送出！
+                  </p>
+                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                    請完成以下步驟以確認訂單：
+                  </p>
+                </div>
+
+                <div style={{ background: '#f8f8f8', padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                    📋 步驟 1：複製訂單訊息
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(orderMessage).then(() => {
+                        alert('✅ 已複製訂單訊息到剪貼簿！');
+                      }).catch(() => {
+                        alert('❌ 複製失敗，請手動複製下方訊息');
+                      });
+                    }}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      background: 'black',
+                      color: CONFIG.BRAND_COLORS.moonYellow,
+                      marginBottom: '15px'
+                    }}
+                  >
+                    📋 複製訊息到剪貼簿
+                  </button>
+
+                  <div style={{
+                    background: 'white',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'monospace',
+                    border: '1px solid #ddd'
+                  }}>
+                    {orderMessage}
+                  </div>
+                </div>
+
+                <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid #ffc107' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#856404' }}>
+                    📱 步驟 2：傳送到 LINE 官方帳號
+                  </div>
+                  <a
+                    href={CONFIG.LINKS.line_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'center',
+                      background: '#06C755',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '12px'
+                    }}
+                  >
+                    💬 開啟月島甜點 LINE@
+                  </a>
+                  <p style={{ fontSize: '0.75rem', color: '#856404', marginTop: '10px', marginBottom: 0, textAlign: 'center' }}>
+                    點擊上方按鈕後，將剪貼簿的訊息貼上並傳送
+                  </p>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
+                  完成付款後，我們會盡快與您確認訂單！
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {/* LOGIN MODAL */}
         {showLogin && (
