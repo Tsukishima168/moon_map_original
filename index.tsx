@@ -3187,362 +3187,300 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                 </div>
 
-                {/* Special Message */}
-                <div style={{
-                  background: 'linear-gradient(135deg, #FFF5F5 0%, #FFE8E8 100%)',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  marginBottom: '25px',
-                  border: '2px solid #FF6B6B',
-                  boxShadow: '0 4px 12px rgba(255,107,107,0.2)'
-                }}>
-                  <div style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#333', textAlign: 'center' }}>
-                    <p style={{ marginBottom: '12px', fontStyle: 'italic' }}>
-                      「在這個島上，<br />
-                      每一片甜點都是為你而生。」
-                    </p>
-                    <p style={{ fontWeight: 'bold', fontSize: '1rem', color: '#FF4757' }}>
-                      — Kiwimu
-                    </p>
-                  </div>
-                </div>
+                {/* VIP ISLAND MODAL */}
+                {showVipModal && (
+                  <div className="modal-overlay" onClick={() => setShowVipModal(false)} style={{ zIndex: 3000 }}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', zIndex: 3001 }}>
+                      <div
+                        className="modal-header"
+                        style={{
+                          background: '#fff',
+                          color: '#000',
+                          borderBottom: 'none',
+                          paddingBottom: '0'
+                        }}
+                      >
+                        <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
+                      </div>
 
-                {/* Redemption Code */}
-                <div style={{
-                  background: '#fff',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  border: '2px dashed #FF6B6B',
-                  marginBottom: '20px'
-                }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333', textAlign: 'center' }}>
-                    ❤️ VIP島嶼通關密語
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '15px', textAlign: 'center', lineHeight: '1.6' }}>
-                    傳送通關密語到 LINE@ 即可<br />
-                    <strong style={{ color: '#FF4757' }}>搶先預約VIP服務</strong>
-                  </div>
+                      <div className="modal-body" style={{ padding: '10px 30px 50px 30px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '2.5rem', marginBottom: '30px' }}>🏝️</div>
 
-                  {/* Code Display */}
+                        <div style={{
+                          fontSize: '0.95rem',
+                          lineHeight: '2.2',
+                          color: '#333',
+                          fontFamily: 'serif',
+                          letterSpacing: '1px',
+                          fontStyle: 'italic'
+                        }}>
+                          <p style={{ marginBottom: '20px' }}>
+                            「在這個島上，<br />
+                            每一片甜點都是為你而生。」
+                          </p>
+                          <p style={{
+                            fontSize: '0.9rem',
+                            fontWeight: 'bold',
+                            color: '#000',
+                            marginTop: '20px',
+                            fontStyle: 'normal'
+                          }}>
+                            — Kiwimu
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
+
+                {/* LOGIN MODAL */}
+                {showLogin && (
+                  <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
+                      <div className="modal-header">
+                        <h3 className="font-mono">登島手續：領取島民狀態</h3>
+                        <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+                      </div>
+                      <div className="modal-body" style={{ textAlign: 'center' }}>
+                        <div style={{ marginBottom: '25px', padding: '0 10px' }}>
+                          <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                            <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
+                            登入後可同步您的 MBTI 測驗結果，<br />
+                            解鎖專屬甜點處方，並獲取島嶼導覽優先權。
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleOAuthLogin('google')}
+                          style={{
+                            background: 'white',
+                            color: '#444',
+                            padding: '16px',
+                            borderRadius: '40px',
+                            fontWeight: 'bold',
+                            fontSize: '1rem',
+                            border: '1px solid #ddd',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '10px',
+                            cursor: 'pointer',
+                            boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                          }}
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                          </svg>
+                          使用 Google 帳號領取
+                        </button>
+
+                        <div style={{ position: 'relative', marginBottom: '30px' }}>
+                          <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
+                          <span style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            background: 'white',
+                            padding: '0 10px',
+                            fontSize: '0.8rem',
+                            color: '#999'
+                          }}>或使用 Email 登入</span>
+                        </div>
+
+                        <form onSubmit={handleLogin}>
+                          <input
+                            type="email"
+                            placeholder="your@email.com"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            required
+                            style={{
+                              width: '100%',
+                              padding: '12px',
+                              borderRadius: '8px',
+                              border: '1px solid #ddd',
+                              marginBottom: '15px',
+                              fontSize: '1rem'
+                            }}
+                          />
+                          <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
+                            {loginMessage || '寄送魔術連結'}
+                          </button>
+                          {loginMessage && (
+                            <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
+                              {loginMessage}
+                            </p>
+                          )}
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PROFILE MODAL */}
+                {showProfile && user && (
+                  <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
+                    <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
+                      <div className="modal-header">
+                        <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
+                        <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
+                      </div>
+                      <div className="modal-body">
+                        {/* Basic Info */}
+                        <div style={{ marginBottom: '30px', textAlign: 'center' }}>
+                          <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            background: CONFIG.BRAND_COLORS.moonYellow,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 15px',
+                            fontSize: '2rem'
+                          }}>
+                            {profile?.nickname?.[0] || user.email?.[0].toUpperCase()}
+                          </div>
+                          <h2 style={{ fontSize: '1.3rem', marginBottom: '5px' }}>
+                            {profile?.nickname || user.email?.split('@')[0]}
+                          </h2>
+                          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{user.email}</p>
+                          {profile?.mbti_type && (
+                            <div style={{
+                              display: 'inline-block',
+                              padding: '6px 16px',
+                              background: CONFIG.BRAND_COLORS.emotionBlack,
+                              color: 'white',
+                              borderRadius: '20px',
+                              fontSize: '0.9rem',
+                              fontWeight: 'bold'
+                            }}>
+                              MBTI: {profile.mbti_type}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Sync Status */}
+                        <div style={{
+                          background: '#f8f8f8',
+                          borderRadius: '12px',
+                          padding: '20px',
+                          marginBottom: '25px'
+                        }}>
+                          <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
+                            資料同步狀態
+                          </h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '0.9rem' }}>
+                                {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <div style={{
+                          background: '#fffdf0',
+                          border: '1px solid #ffd93d',
+                          borderRadius: '8px',
+                          padding: '15px',
+                          marginBottom: '25px',
+                          fontSize: '0.85rem',
+                          lineHeight: '1.6'
+                        }}>
+                          <strong>跨站同步說明</strong><br />
+                          在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
+                          無論您在哪裡更新資料，其他網站都會自動同步。
+                        </div>
+
+                        {/* Cross-site Links */}
+                        <div style={{ textAlign: 'center' }}>
+                          <a
+                            href={mbtiLabUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                              display: 'inline-block',
+                              background: CONFIG.BRAND_COLORS.moonYellow,
+                              color: CONFIG.BRAND_COLORS.emotionBlack,
+                              padding: '12px 24px',
+                              borderRadius: '24px',
+                              fontWeight: 'bold',
+                              textDecoration: 'none',
+                              border: '2px solid #000',
+                              boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                              transition: 'transform 0.2s'
+                            }}
+                            onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
+                            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                          >
+                            前往 MBTI Lab 查看測驗歷史 →
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+
+                {/* FLOATING CART BAR */}
+                {cart.length > 0 && (
                   <div style={{
-                    background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
-                    padding: '15px',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    marginBottom: '15px',
-                    border: '2px solid #FF4757'
-                  }}>
-                    <div style={{ fontSize: '0.7rem', color: '#fff', marginBottom: '5px', fontWeight: 'bold' }}>
-                      通關密語
-                    </div>
-                    <div style={{
-                      fontSize: '1.5rem',
-                      fontWeight: 'bold',
-                      fontFamily: 'monospace',
-                      color: '#fff',
-                      letterSpacing: '2px'
-                    }}>
-                      VIP777
-                    </div>
-                  </div>
-
-                  {/* Copy Button */}
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText('VIP777').then(() => {
-                        alert('✅ 已複製通關密語！');
-                      }).catch(() => {
-                        alert('❌ 複製失敗，請手動輸入：VIP777');
-                      });
-                    }}
-                    className="btn-primary"
-                    style={{
-                      width: '100%',
-                      background: '#000',
-                      color: '#FF6B6B',
-                      marginBottom: '15px'
-                    }}
-                  >
-                    📋 複製通關密語
-                  </button>
-
-                  {/* LINE Button */}
-                  <a
-                    href={CONFIG.LINKS.line_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary"
-                    style={{
-                      width: '100%',
-                      display: 'block',
-                      textAlign: 'center',
-                      background: '#06C755',
-                      color: 'white',
-                      textDecoration: 'none',
-                      padding: '12px'
-                    }}
-                  >
-                    💬 前往月島甜點 LINE@
-                  </a>
-                </div>
-
-                <div style={{ textAlign: 'center', fontSize: '0.7rem', color: '#999', lineHeight: '1.5' }}>
-                  * 請將通關密語貼上到 LINE@ 聊天室<br />
-                  我們會為您安排專屬的VIP服務！
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-
-        {/* LOGIN MODAL */}
-        {showLogin && (
-          <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
-            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
-              <div className="modal-header">
-                <h3 className="font-mono">登島手續：領取島民狀態</h3>
-                <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
-              </div>
-              <div className="modal-body" style={{ textAlign: 'center' }}>
-                <div style={{ marginBottom: '25px', padding: '0 10px' }}>
-                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
-                    <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
-                    登入後可同步您的 MBTI 測驗結果，<br />
-                    解鎖專屬甜點處方，並獲取島嶼導覽優先權。
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleOAuthLogin('google')}
-                  style={{
-                    background: 'white',
-                    color: '#444',
-                    padding: '16px',
-                    borderRadius: '40px',
-                    fontWeight: 'bold',
-                    fontSize: '1rem',
-                    border: '1px solid #ddd',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  使用 Google 帳號領取
-                </button>
-
-                <div style={{ position: 'relative', marginBottom: '30px' }}>
-                  <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
-                  <span style={{
-                    position: 'absolute',
-                    top: '50%',
+                    position: 'fixed',
+                    bottom: '20px',
                     left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    background: 'white',
-                    padding: '0 10px',
-                    fontSize: '0.8rem',
-                    color: '#999'
-                  }}>或使用 Email 登入</span>
-                </div>
-
-                <form onSubmit={handleLogin}>
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      marginBottom: '15px',
-                      fontSize: '1rem'
-                    }}
-                  />
-                  <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
-                    {loginMessage || '寄送魔術連結'}
-                  </button>
-                  {loginMessage && (
-                    <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
-                      {loginMessage}
-                    </p>
-                  )}
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PROFILE MODAL */}
-        {showProfile && user && (
-          <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
-            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
-              <div className="modal-header">
-                <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
-                <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
-              </div>
-              <div className="modal-body">
-                {/* Basic Info */}
-                <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-                  <div style={{
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    transform: 'translateX(-50%)',
+                    width: '90%',
+                    maxWidth: '500px',
+                    background: CONFIG.BRAND_COLORS.emotionBlack,
+                    color: 'white',
+                    borderRadius: '50px',
+                    padding: '15px 25px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                     display: 'flex',
+                    justifyContent: 'space-between',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    margin: '0 auto 15px',
-                    fontSize: '2rem'
+                    zIndex: 1500,
+                    animation: 'fadeIn 0.3s'
                   }}>
-                    {profile?.nickname?.[0] || user.email?.[0].toUpperCase()}
-                  </div>
-                  <h2 style={{ fontSize: '1.3rem', marginBottom: '5px' }}>
-                    {profile?.nickname || user.email?.split('@')[0]}
-                  </h2>
-                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{user.email}</p>
-                  {profile?.mbti_type && (
-                    <div style={{
-                      display: 'inline-block',
-                      padding: '6px 16px',
-                      background: CONFIG.BRAND_COLORS.emotionBlack,
-                      color: 'white',
-                      borderRadius: '20px',
-                      fontSize: '0.9rem',
-                      fontWeight: 'bold'
-                    }}>
-                      MBTI: {profile.mbti_type}
+                    <div style={{ fontWeight: 'bold' }}>
+                      已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
                     </div>
-                  )}
-                </div>
-
-                {/* Sync Status */}
-                <div style={{
-                  background: '#f8f8f8',
-                  borderRadius: '12px',
-                  padding: '20px',
-                  marginBottom: '25px'
-                }}>
-                  <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
-                    資料同步狀態
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.9rem' }}>
-                        {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>
+                      <button onClick={handleCheckout} style={{
+                        background: 'white',
+                        color: CONFIG.BRAND_COLORS.emotionBlack,
+                        padding: '8px 20px',
+                        borderRadius: '30px',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}>
+                        傳送預訂
+                      </button>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Description */}
-                <div style={{
-                  background: '#fffdf0',
-                  border: '1px solid #ffd93d',
-                  borderRadius: '8px',
-                  padding: '15px',
-                  marginBottom: '25px',
-                  fontSize: '0.85rem',
-                  lineHeight: '1.6'
-                }}>
-                  <strong>跨站同步說明</strong><br />
-                  在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
-                  無論您在哪裡更新資料，其他網站都會自動同步。
-                </div>
-
-                {/* Cross-site Links */}
-                <div style={{ textAlign: 'center' }}>
-                  <a
-                    href={mbtiLabUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'inline-block',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
-                      color: CONFIG.BRAND_COLORS.emotionBlack,
-                      padding: '12px 24px',
-                      borderRadius: '24px',
-                      fontWeight: 'bold',
-                      textDecoration: 'none',
-                      border: '2px solid #000',
-                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                      transition: 'transform 0.2s'
-                    }}
-                    onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
-                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-                  >
-                    前往 MBTI Lab 查看測驗歷史 →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-        {/* FLOATING CART BAR */}
-        {cart.length > 0 && (
-          <div style={{
-            position: 'fixed',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            width: '90%',
-            maxWidth: '500px',
-            background: CONFIG.BRAND_COLORS.emotionBlack,
-            color: 'white',
-            borderRadius: '50px',
-            padding: '15px 25px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            zIndex: 1500,
-            animation: 'fadeIn 0.3s'
-          }}>
-            <div style={{ fontWeight: 'bold' }}>
-              已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>
-              <button onClick={handleCheckout} style={{
-                background: 'white',
-                color: CONFIG.BRAND_COLORS.emotionBlack,
-                padding: '8px 20px',
-                borderRadius: '30px',
-                fontWeight: 'bold',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px'
-              }}>
-                傳送預訂
-              </button>
-            </div>
-          </div>
-        )}
-
-      </div >
-    </>
-  );
+              </div >
+            </>
+            );
 };
 
-const rootElement = document.getElementById('root');
-if (rootElement) {
+            const rootElement = document.getElementById('root');
+            if (rootElement) {
   const root = createRoot(rootElement);
-  root.render(<App />);
+            root.render(<App />);
 }
