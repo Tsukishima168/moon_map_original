@@ -433,6 +433,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // Desktop Order Success Modal
   const [showDesktopOrderSuccess, setShowDesktopOrderSuccess] = useState(false);
   const [orderMessage, setOrderMessage] = useState('');
+  // Valentine Golden Egg
+  const [showValentineModal, setShowValentineModal] = useState(false);
+  const [valentineRemaining, setValentineRemaining] = useState(50);
 
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
@@ -702,6 +705,48 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const clearCart = () => setCart([]);
+
+  // Valentine Golden Egg
+  const openValentineEgg = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('special_eggs')
+        .select('code, total_limit, claimed_count')
+        .eq('egg_id', 'valentine_2026')
+        .eq('active', true)
+        .single();
+
+      if (error || !data) {
+        alert('彩蛋暫時無法開啟，請稍後再試！');
+        console.error('Valentine egg fetch error:', error);
+        return;
+      }
+
+      const remaining = data.total_limit - data.claimed_count;
+
+      if (remaining <= 0) {
+        alert('😢 抱歉，名額已滿！感謝你的參與～');
+        return;
+      }
+
+      setValentineRemaining(remaining);
+      setShowValentineModal(true);
+
+      // Track event
+      track('valentine_egg_found', { remaining });
+
+      // Decrement count (optimistic update)
+      await supabase
+        .from('special_eggs')
+        .update({ claimed_count: data.claimed_count + 1 })
+        .eq('egg_id', 'valentine_2026');
+
+    } catch (err) {
+      console.error('Valentine egg error:', err);
+      alert('發生錯誤，請稍後再試！');
+    }
+  };
+
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
@@ -2386,9 +2431,42 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                   {isEasterEggComplete && (
                     <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '12px' }}>
-                        還有一份神秘禮物...
+                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
+                        🎉 恭喜通關！還有兩份特別獎勵...
                       </p>
+
+                      {/* Golden Valentine Egg Button */}
+                      <button
+                        onClick={openValentineEgg}
+                        style={{
+                          background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                          color: '#000',
+                          border: '3px solid #DAA520',
+                          padding: '15px 30px',
+                          borderRadius: '50px',
+                          fontWeight: 'bold',
+                          fontSize: '1rem',
+                          cursor: 'pointer',
+                          boxShadow: '0 8px 20px rgba(255,215,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)',
+                          marginBottom: '15px',
+                          width: '100%',
+                          maxWidth: '300px',
+                          transition: 'all 0.3s ease',
+                          animation: 'pulse 2s infinite'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.05)';
+                          e.currentTarget.style.boxShadow = '0 12px 30px rgba(255,215,0,0.6), inset 0 1px 0 rgba(255,255,255,0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                          e.currentTarget.style.boxShadow = '0 8px 20px rgba(255,215,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3)';
+                        }}
+                      >
+                        ✨ 金色彩蛋 Golden Egg ✨
+                      </button>
+
+                      {/* Passport Badge Button */}
                       <button
                         onClick={() => {
                           const code = localStorage.getItem('moonmoon_egg_master_code');
@@ -2407,7 +2485,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           fontWeight: 'bold',
                           fontSize: '0.9rem',
                           cursor: 'pointer',
-                          boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
+                          boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                          width: '100%',
+                          maxWidth: '300px'
                         }}
                       >
                         🏅 領取護照限定徽章 (Badge)
@@ -2915,6 +2995,160 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
                   完成付款後，我們會盡快與您確認訂單！
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VALENTINE GOLDEN EGG MODAL */}
+        {showValentineModal && (
+          <div className="modal-overlay" onClick={() => setShowValentineModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                  color: '#000',
+                  borderBottom: '3px solid #DAA520'
+                }}
+              >
+                <h3 className="font-mono" style={{ margin: 0 }}>✨ 金色彩蛋 Golden Egg ✨</h3>
+                <button className="close-btn" onClick={() => setShowValentineModal(false)} style={{ color: '#000' }}>×</button>
+              </div>
+
+              <div className="modal-body">
+                {/* Success Message */}
+                <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>💛</div>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                    你找到了第 9 顆彩蛋！
+                  </p>
+                  <p style={{ fontSize: '0.9rem', color: '#666' }}>
+                    這是月島最珍貴的金色彩蛋
+                  </p>
+                </div>
+
+                {/* Kiwimu's Confession */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #FFF9E6 0%, #FFE8CC 100%)',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  marginBottom: '25px',
+                  border: '2px solid #FFD700',
+                  boxShadow: '0 4px 12px rgba(255,215,0,0.2)'
+                }}>
+                  <div style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#333', fontStyle: 'italic' }}>
+                    <p style={{ marginBottom: '12px' }}>
+                      「我本來是一坨普通的鮮奶油。<br />
+                      直到那天，甜點師打發我的時候，<br />
+                      我看見了你。
+                    </p>
+                    <p style={{ marginBottom: '12px' }}>
+                      我的心跳變成了 100 下/分鐘。<br />
+                      我的質地變得更蓬鬆了。<br />
+                      我整個人（整坨？）都升溫了 3 度。
+                    </p>
+                    <p style={{ marginBottom: '12px' }}>
+                      科學無法解釋這種現象。<br />
+                      甜點師說這叫做『質變』。
+                    </p>
+                    <p style={{ fontWeight: 'bold', fontSize: '1rem', color: '#FF6B6B' }}>
+                      我想，這就是愛吧。」
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: '0.85rem', marginTop: '15px', color: '#666' }}>
+                    — Kiwimu 💛
+                  </div>
+                </div>
+
+                {/* Redemption Code */}
+                <div style={{
+                  background: '#fff',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  border: '2px dashed #FFD700',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333', textAlign: 'center' }}>
+                    💝 情人節特別任務
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '15px', textAlign: 'center', lineHeight: '1.6' }}>
+                    傳送通關密語到 LINE@ 即可兌換<br />
+                    <strong style={{ color: '#FF6B6B' }}>布丁一顆</strong>
+                  </div>
+
+                  {/* Code Display */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    marginBottom: '15px',
+                    border: '2px solid #DAA520'
+                  }}>
+                    <div style={{ fontSize: '0.7rem', color: '#000', marginBottom: '5px', fontWeight: 'bold' }}>
+                      通關密語
+                    </div>
+                    <div style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      fontFamily: 'monospace',
+                      color: '#000',
+                      letterSpacing: '2px'
+                    }}>
+                      KIWIMU KISS
+                    </div>
+                  </div>
+
+                  {/* Copy Button */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText('KIWIMU KISS').then(() => {
+                        alert('✅ 已複製通關密語！');
+                      }).catch(() => {
+                        alert('❌ 複製失敗，請手動輸入：KIWIMU KISS');
+                      });
+                    }}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      background: '#000',
+                      color: '#FFD700',
+                      marginBottom: '15px'
+                    }}
+                  >
+                    📋 複製通關密語
+                  </button>
+
+                  {/* LINE Button */}
+                  <a
+                    href={CONFIG.LINKS.line_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'center',
+                      background: '#06C755',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '12px'
+                    }}
+                  >
+                    💬 前往月島甜點 LINE@
+                  </a>
+                </div>
+
+                {/* Remaining Count */}
+                <div style={{ textAlign: 'center', fontSize: '0.75rem', color: '#999', marginBottom: '10px' }}>
+                  ⏰ 限量 50 份，剩餘：<strong style={{ color: '#FF6B6B' }}>{valentineRemaining}/50</strong>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '0.7rem', color: '#999', lineHeight: '1.5' }}>
+                  * 請將通關密語貼上到 LINE@ 聊天室<br />
+                  我們會盡快為您核對兌換！
                 </div>
               </div>
             </div>
