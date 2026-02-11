@@ -2284,20 +2284,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
           </button>
 
-          <a
-            href={bookingMenuUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="btn-entry"
-            style={{ marginTop: '16px' }}
-            onClick={() => track('click_menu_order')}
-          >
-            <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.8rem' }}>ORDER NOW</span><br />
-              <strong>前往線上訂購 (Online Booking)</strong>
-            </div>
-            <span>↗</span>
-          </a>
+
 
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <p style={{ marginBottom: '20px' }}>
@@ -2423,7 +2410,44 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             <span>{wp.label}</span>
                             <span>⬇</span>
                           </div>
-                          <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+                          <div style={{ position: 'relative' }}>
+                            <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+
+                            {/* Hidden VIP Heart on Cherry Blossom Wallpaper */}
+                            {wp.label === '2026.03' && (
+                              <div
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  alert('❤️ 島民的VIP島嶼\n\n即將開放，敬請期待！');
+                                }}
+                                style={{
+                                  position: 'absolute',
+                                  bottom: '25%',
+                                  left: '20%',
+                                  width: '24px',
+                                  height: '24px',
+                                  cursor: 'pointer',
+                                  fontSize: '20px',
+                                  lineHeight: '24px',
+                                  textAlign: 'center',
+                                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                                  transition: 'transform 0.2s, filter 0.2s',
+                                  zIndex: 10
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1.3)';
+                                  e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,0,0,0.5))';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'scale(1)';
+                                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                                }}
+                              >
+                                ❤️
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </a>
                     ))}
