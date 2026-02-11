@@ -436,6 +436,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // Valentine Golden Egg
   const [showValentineModal, setShowValentineModal] = useState(false);
   const [valentineRemaining, setValentineRemaining] = useState(50);
+  // VIP Island Modal
+  const [showVipModal, setShowVipModal] = useState(false);
 
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
@@ -2419,7 +2421,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  alert('❤️ 島民的VIP島嶼\n\n即將開放，敬請期待！');
+                                  setShowVipModal(true);
                                 }}
                                 style={{
                                   position: 'absolute',
@@ -3178,6 +3180,144 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
           </div>
         )}
+
+        {/* VIP ISLAND MODAL */}
+        {showVipModal && (
+          <div className="modal-overlay" onClick={() => setShowVipModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
+                  color: '#fff',
+                  borderBottom: '3px solid #FF4757'
+                }}
+              >
+                <h3 className="font-mono" style={{ margin: 0 }}>❤️ 島民的VIP島嶼 ❤️</h3>
+                <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#fff' }}>×</button>
+              </div>
+
+              <div className="modal-body">
+                {/* Discovery Message */}
+                <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🏝️</div>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                    你發現了隱藏的VIP島嶼！
+                  </p>
+                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                    這裡是月島甜點為島民保留的專屬空間<br />
+                    即將開放預約服務
+                  </p>
+                </div>
+
+                {/* Special Message */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #FFF5F5 0%, #FFE8E8 100%)',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  marginBottom: '25px',
+                  border: '2px solid #FF6B6B',
+                  boxShadow: '0 4px 12px rgba(255,107,107,0.2)'
+                }}>
+                  <div style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#333', textAlign: 'center' }}>
+                    <p style={{ marginBottom: '12px', fontStyle: 'italic' }}>
+                      「在這個島上，<br />
+                      每一片甜點都是為你而生。」
+                    </p>
+                    <p style={{ fontWeight: 'bold', fontSize: '1rem', color: '#FF4757' }}>
+                      — Kiwimu
+                    </p>
+                  </div>
+                </div>
+
+                {/* Redemption Code */}
+                <div style={{
+                  background: '#fff',
+                  padding: '20px',
+                  borderRadius: '12px',
+                  border: '2px dashed #FF6B6B',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333', textAlign: 'center' }}>
+                    ❤️ VIP島嶼通關密語
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '15px', textAlign: 'center', lineHeight: '1.6' }}>
+                    傳送通關密語到 LINE@ 即可<br />
+                    <strong style={{ color: '#FF4757' }}>搶先預約VIP服務</strong>
+                  </div>
+
+                  {/* Code Display */}
+                  <div style={{
+                    background: 'linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%)',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    marginBottom: '15px',
+                    border: '2px solid #FF4757'
+                  }}>
+                    <div style={{ fontSize: '0.7rem', color: '#fff', marginBottom: '5px', fontWeight: 'bold' }}>
+                      通關密語
+                    </div>
+                    <div style={{
+                      fontSize: '1.5rem',
+                      fontWeight: 'bold',
+                      fontFamily: 'monospace',
+                      color: '#fff',
+                      letterSpacing: '2px'
+                    }}>
+                      VIP777
+                    </div>
+                  </div>
+
+                  {/* Copy Button */}
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText('VIP777').then(() => {
+                        alert('✅ 已複製通關密語！');
+                      }).catch(() => {
+                        alert('❌ 複製失敗，請手動輸入：VIP777');
+                      });
+                    }}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      background: '#000',
+                      color: '#FF6B6B',
+                      marginBottom: '15px'
+                    }}
+                  >
+                    📋 複製通關密語
+                  </button>
+
+                  {/* LINE Button */}
+                  <a
+                    href={CONFIG.LINKS.line_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'center',
+                      background: '#06C755',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '12px'
+                    }}
+                  >
+                    💬 前往月島甜點 LINE@
+                  </a>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '0.7rem', color: '#999', lineHeight: '1.5' }}>
+                  * 請將通關密語貼上到 LINE@ 聊天室<br />
+                  我們會為您安排專屬的VIP服務！
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
 
 
         {/* LOGIN MODAL */}
