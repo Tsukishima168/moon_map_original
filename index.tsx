@@ -2286,6 +2286,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
           </button>
 
+          <button
+            onClick={() => setShowVipModal(true)}
+            className="btn-entry"
+            style={{ marginTop: '16px', cursor: 'pointer' }}
+          >
+            <div>
+              <span className="font-mono text-red" style={{ fontSize: '0.8rem', color: '#FF6B6B' }}>VIP ISLAND</span><br />
+              <strong>島民的VIP島嶼</strong>
+            </div>
+            <span>🏝️</span>
+          </button>
 
 
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
@@ -2421,7 +2432,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
-                                  setShowVipModal(true);
+                                  openValentineEgg();
                                 }}
                                 style={{
                                   position: 'absolute',
