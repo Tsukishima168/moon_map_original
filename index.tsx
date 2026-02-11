@@ -737,6 +737,21 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       // Track event
       track('valentine_egg_found', { remaining });
 
+      // Discord notification
+      try {
+        await fetch('/api/notify-discord-valentine', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            remaining,
+            timestamp: new Date().toLocaleString('zh-TW')
+          })
+        });
+      } catch (notifyError) {
+        console.error('Discord notification failed:', notifyError);
+        // Don't block user experience if notification fails
+      }
+
       // Decrement count (optimistic update)
       await supabase
         .from('special_eggs')
