@@ -3192,8 +3192,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
         </div>
 
-        <div className="modal-body" style={{ padding: '10px 30px 50px 30px', textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '30px' }}>🏝️</div>
+        <div className="modal-body" style={{ padding: '30px 30px 60px 30px', textAlign: 'center' }}>
 
           <div style={{
             fontSize: '0.95rem',
@@ -3216,10 +3215,39 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             }}>
               — Kiwimu
             </p>
+            <p style={{
+              fontSize: '0.8rem',
+              color: '#999',
+              marginTop: '40px',
+              letterSpacing: '2px',
+              fontFamily: 'monospace',
+              fontStyle: 'normal'
+            }}>
+              COMING SOON...
+            </p>
           </div>
+          color: '#333',
+          fontFamily: 'serif',
+          letterSpacing: '1px',
+          fontStyle: 'italic'
+          }}>
+          <p style={{ marginBottom: '20px' }}>
+            「在這個島上，<br />
+            每一片甜點都是為你而生。」
+          </p>
+          <p style={{
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            color: '#000',
+            marginTop: '20px',
+            fontStyle: 'normal'
+          }}>
+            — Kiwimu
+          </p>
         </div>
       </div>
     </div>
+    </div >
   )
 }
 
