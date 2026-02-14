@@ -32,7 +32,7 @@ const CONFIG = {
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
-    hours_text: "Wed - Sun / 13:00 - 19:00",
+    hours_text: "Tue - Sun / 13:00 - 19:00",
     liff_id: "2008848603-ANGQX0GN",
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
@@ -228,7 +228,6 @@ const App = () => {
   // 僅甜點目錄頁：/menu 路徑只顯示目錄（與 Dessert-Booking / LINE 共用連結）
   const [onlyMenuView] = useState(() => typeof window !== 'undefined' && window.location.pathname === '/menu');
   const [headerImage, setHeaderImage] = useState('');
-  const [expandedItem, setExpandedItem] = useState<string | null>(null);
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
 
@@ -295,8 +294,11 @@ const App = () => {
     }
   }, []);
 
+  // Reward claim saving state
+  const [rewardClaimStatus, setRewardClaimStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
   // Save found eggs to localStorage
-  const markEggAsFound = (eggId: number) => {
+  const markEggAsFound = async (eggId: number) => {
     if (!foundEggs.includes(eggId)) {
       const newFound = [...foundEggs, eggId];
       setFoundEggs(newFound);
@@ -304,20 +306,36 @@ const App = () => {
 
       // Check if this was the 8th egg (completed all)
       if (newFound.length === 8) {
-        // Generate Reward Claim Code
-        const claimCode = `egg_master_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        // Check if code already exists
+        const existingCode = localStorage.getItem('moonmoon_egg_master_code');
+        if (!existingCode) {
+          // Generate Reward Claim Code
+          const claimCode = `egg_master_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          setRewardClaimStatus('saving');
 
-        // Save to Supabase (Fire and forget, optimistic UI)
-        supabase.from('reward_claims').insert({
-          code: claimCode,
-          reward_id: 'egg_master_2026_q1',
-          source: 'moon_map' // Current site
-        }).then(({ error }) => {
-          if (error) console.error('Failed to create reward claim:', error);
-        });
+          try {
+            const { error } = await supabase.from('reward_claims').insert({
+              code: claimCode,
+              reward_id: 'egg_master_2026_q1',
+              source: 'moon_map'
+            });
 
-        // Save locally to persist the code
-        localStorage.setItem('moonmoon_egg_master_code', claimCode);
+            if (error) {
+              console.error('Failed to create reward claim:', error);
+              setRewardClaimStatus('error');
+            } else {
+              localStorage.setItem('moonmoon_egg_master_code', claimCode);
+              setRewardClaimStatus('saved');
+            }
+          } catch (e) {
+            console.error('Network error saving reward claim:', e);
+            setRewardClaimStatus('error');
+            // Still save locally as fallback
+            localStorage.setItem('moonmoon_egg_master_code', claimCode);
+          }
+        } else {
+          setRewardClaimStatus('saved');
+        }
 
         // Auto scroll to wallpaper section immediately
         setTimeout(() => {
@@ -414,7 +432,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [orderMessage, setOrderMessage] = useState('');
   // Valentine Golden Egg
   const [showValentineModal, setShowValentineModal] = useState(false);
-  const [valentineRemaining, setValentineRemaining] = useState(50);
   // VIP Island Modal
   const [showVipModal, setShowVipModal] = useState(false);
 
@@ -436,7 +453,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedDate = e.target.value;
     if (isMonday(selectedDate)) {
-      alert('抱歉，週一為公休日，請選擇其他日期。\n營業時間：週二-週日 13:00-19:00');
+      alert('抱歉，週一為公休日，請選擇其他日期。\n營業時間：週二至週日 13:00-19:00');
       setPickupDate('');
     } else {
       setPickupDate(selectedDate);
@@ -464,16 +481,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   // --- GA4 & UTM TRACKING HELPERS ---
   const getGAClientId = (): string | null => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      let clientId: string | null = null;
+    if (typeof window !== 'undefined') {
+      // Try reading from GA cookie directly (synchronous)
       try {
-        (window as any).gtag('get', 'G-TMRJ21C1GK', 'client_id', (id: string) => {
-          clientId = id;
-        });
+        const cookies = document.cookie.split(';');
+        const gaCookie = cookies.find(c => c.trim().startsWith('_ga='));
+        if (gaCookie) {
+          const parts = gaCookie.trim().split('.');
+          if (parts.length >= 4) {
+            return `${parts[2]}.${parts[3]}`;
+          }
+        }
       } catch (e) {
-        console.error('Failed to get GA Client ID:', e);
+        // Silently fail
       }
-      return clientId;
     }
     return null;
   };
@@ -615,7 +636,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   useEffect(() => {
     const params = getUTMParams();
     setStoredUTMParams(params);
-    console.log('Stored UTM params:', params);
+    // UTM params stored for checkout tracking
   }, []);
 
   // Collapsible state: Set containing IDs of collapsed categories.  
@@ -754,13 +775,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     // Use stored UTM params (captured on page load) instead of reading at checkout
     const utmParams = storedUTMParams || getUTMParams();
 
-    console.log('Order data being saved:', {
-      order_note: orderNote,
-      utm_source: utmParams.utm_source,
-      utm_campaign: utmParams.utm_campaign,
-      utm_medium: utmParams.utm_medium,
-      referrer: utmParams.referrer
-    });
+    // Order data prepared for Supabase insert
 
     try {
       // 3. Save to Supabase
@@ -947,7 +962,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    alert('Logged out!');
+    alert('已成功登出島民身份 👋');
   };
 
   useEffect(() => {
@@ -1185,9 +1200,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     borderRadius: '8px',
                     overflow: 'hidden',
                     marginBottom: '12px',
-                    cursor: 'pointer'
+                    cursor: 'default'
                   }}
-                    onClick={() => setExpandedItem(expandedItem === item.name ? null : item.name)}
                   >
                     <img
                       src={item.image || ''}
@@ -1638,7 +1652,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
         .easter-egg-icon.found {
           opacity: 1 !important;
-          filter: drop-shadow(0 0 8px rgba(216, 224, 56, 0.9));
+          filter: drop-shadow(0 0 8px rgba(216, 224, 56, 0.9)) !important;
         }
 @media (max-width: 768px) {
           .header-bird {
@@ -1720,7 +1734,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             }}
             style={{
               position: 'fixed',
-              top: '52px',
+              top: '60px',
               left: '16px',
               zIndex: 2000,
               background: '#000',
@@ -1836,7 +1850,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Logo Integration */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto' }} />
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
               Island Landing
             </h1>
@@ -2414,17 +2428,70 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     🎉 恭喜通關！還有兩份特別獎勵...
                   </p>
 
+                  {/* Reward Claim Code Display */}
+                  {(() => {
+                    const code = localStorage.getItem('moonmoon_egg_master_code');
+                    if (rewardClaimStatus === 'saving') {
+                      return (
+                        <p style={{ fontSize: '0.85rem', color: '#999' }}>正在產生兌換碼...</p>
+                      );
+                    }
+                    if (rewardClaimStatus === 'error' && !code) {
+                      return (
+                        <p style={{ fontSize: '0.85rem', color: '#c00' }}>兌換碼產生失敗，請重新整理頁面或聯繫客服。</p>
+                      );
+                    }
+                    if (code) {
+                      return (
+                        <div style={{
+                          background: '#f9f9f9',
+                          border: '1px solid #eee',
+                          borderRadius: '12px',
+                          padding: '15px',
+                          marginBottom: '15px'
+                        }}>
+                          <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
+                            你的兌換碼（截圖保存）
+                          </p>
+                          <div
+                            onClick={() => {
+                              navigator.clipboard.writeText(code).then(() => {
+                                alert('已複製兌換碼！');
+                              }).catch(() => {
+                                // Fallback: just let them copy manually
+                              });
+                            }}
+                            style={{
+                              background: '#000',
+                              color: CONFIG.BRAND_COLORS.moonYellow,
+                              padding: '12px',
+                              borderRadius: '8px',
+                              fontFamily: 'monospace',
+                              fontSize: '0.85rem',
+                              letterSpacing: '1px',
+                              cursor: 'pointer',
+                              textAlign: 'center',
+                              wordBreak: 'break-all'
+                            }}
+                          >
+                            {code}
+                            <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px' }}>
+                              TAP TO COPY
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+
                   {/* Passport Badge Button */}
-                  <button
-                    onClick={() => {
-                      const code = localStorage.getItem('moonmoon_egg_master_code');
-                      if (code) {
-                        window.open(`${CONFIG.LINKS.passport_url}/redeem?code=${code}&reward=egg_master_2026_q1`, '_blank');
-                      } else {
-                        alert('找不到兌換碼，請嘗試重新整理頁面或聯繫客服。');
-                      }
-                    }}
+                  <a
+                    href={`${CONFIG.LINKS.passport_url}?claim_code=${localStorage.getItem('moonmoon_egg_master_code') || ''}&reward=egg_master_2026_q1&utm_source=moon_map&utm_medium=reward&utm_campaign=egg_master`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
+                      display: 'inline-block',
                       background: CONFIG.BRAND_COLORS.moonYellow,
                       color: CONFIG.BRAND_COLORS.emotionBlack,
                       border: '2px solid #000',
@@ -2435,11 +2502,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       cursor: 'pointer',
                       boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
                       width: '100%',
-                      maxWidth: '300px'
+                      maxWidth: '300px',
+                      textDecoration: 'none',
+                      textAlign: 'center'
                     }}
                   >
-                    🏅 領取護照限定徽章 (Badge)
-                  </button>
+                    🏅 前往護照領取限定徽章
+                  </a>
                 </div>
               )}
             </div>
@@ -2517,56 +2586,57 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           </div>
         </div>
-      </div>
-      {/* F. FOOTER */}
-      <footer style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
-          <div>
-            <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
-            <p style={{ marginBottom: '10px' }}>
-              {/* Google Maps Link */}
-              <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.LINKS.address_text)}`}
-                target="_blank"
-                rel="noreferrer"
-                style={{ textDecoration: 'underline' }}
-              >
-                {CONFIG.LINKS.address_text} ↗
-              </a>
-            </p>
-            <p>
-              {CONFIG.LINKS.hours_text}<br />
-              <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
-            </p>
+        {/* Container closing div removed */}
+        {/* F. FOOTER */}
+        <footer style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+            <div>
+              <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
+              <p style={{ marginBottom: '10px' }}>
+                {/* Google Maps Link */}
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.LINKS.address_text)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ textDecoration: 'underline' }}
+                >
+                  {CONFIG.LINKS.address_text} ↗
+                </a>
+              </p>
+              <p>
+                {CONFIG.LINKS.hours_text}<br />
+                <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
+              </p>
+            </div>
+            <div>
+              <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONTACT</h5>
+              <ul style={{ listStyle: 'none' }}>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Instagram</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>LINE Official</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
+                <li style={{ marginBottom: '12px' }}>
+                  <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>Spotify Playlist</span>
+                    <span style={{ fontSize: '0.8em' }}>↗</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONTACT</h5>
-            <ul style={{ listStyle: 'none' }}>
-              <li style={{ marginBottom: '12px' }}>
-                <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Instagram</span>
-                  <span style={{ fontSize: '0.8em' }}>↗</span>
-                </a>
-              </li>
-              <li style={{ marginBottom: '12px' }}>
-                <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>LINE Official</span>
-                  <span style={{ fontSize: '0.8em' }}>↗</span>
-                </a>
-              </li>
-              <li style={{ marginBottom: '12px' }}>
-                <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>Spotify Playlist</span>
-                  <span style={{ fontSize: '0.8em' }}>↗</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <p style={{ textAlign: 'center', color: '#999', fontSize: '0.8rem' }}>
-          © {new Date().getFullYear()} {CONFIG.STORE_NAME_EN}. All Rights Reserved.
-        </p>
-      </footer >
+          <p style={{ textAlign: 'center', color: '#999', fontSize: '0.8rem' }}>
+            © {new Date().getFullYear()} {CONFIG.STORE_NAME_EN}. All Rights Reserved.
+          </p>
+        </footer >
+      </div >
 
       {/* --- MODALS --- */}
 
@@ -2577,14 +2647,21 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="modal-card" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <div>
-                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
+                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 01</div>
                   <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
                 </div>
                 <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
               </div>
 
               <div className="modal-body">
-                {menuBodyContent}
+                {loadingMenu ? (
+                  <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>⏳</div>
+                    載入甜點目錄中...
+                  </div>
+                ) : (
+                  menuBodyContent
+                )}
               </div>
             </div>
           </div>
@@ -2838,7 +2915,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：兩天後 | 週一公休<br />
-                    營業時間：週二-週日 13:00-19:00
+                    營業時間：週二至週日 13:00-19:00
                   </p>
                 </div>
 
@@ -3087,7 +3164,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#ccc', marginTop: '20px' }}>
-                  LIMITED QUANTITY: {valentineRemaining}/50
+                  LIMITED QUANTITY
                 </div>
               </div>
             </div>
@@ -3144,26 +3221,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     fontStyle: 'normal'
                   }}>
                     COMING SOON...
-                  </p>
-                </div>
-                <div style={{
-                  color: '#333',
-                  fontFamily: 'serif',
-                  letterSpacing: '1px',
-                  fontStyle: 'italic'
-                }}>
-                  <p style={{ marginBottom: '20px' }}>
-                    「在這個島上，<br />
-                    每一片甜點都是為你而生。」
-                  </p>
-                  <p style={{
-                    fontSize: '0.9rem',
-                    fontWeight: 'bold',
-                    color: '#000',
-                    marginTop: '20px',
-                    fontStyle: 'normal'
-                  }}>
-                    — Kiwimu
                   </p>
                 </div>
               </div>
