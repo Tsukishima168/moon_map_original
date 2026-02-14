@@ -687,60 +687,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const clearCart = () => setCart([]);
 
-  // Valentine Golden Egg
-  const openValentineEgg = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('special_eggs')
-        .select('code, total_limit, claimed_count')
-        .eq('egg_id', 'valentine_2026')
-        .eq('active', true)
-        .single();
+  // Valentine Golden Egg - Simplified version
+  const openValentineEgg = () => {
+    // Show alert message
+    alert('❤️ 你發現了情人節隱藏彩蛋！\n\n點擊確定後將前往 LINE@ 聯繫我們～');
 
-      if (error || !data) {
-        alert('彩蛋暫時無法開啟，請稍後再試！');
-        console.error('Valentine egg fetch error:', error);
-        return;
-      }
+    // Track event
+    track('valentine_egg_found', { source: 'wallpaper_heart' });
 
-      const remaining = data.total_limit - data.claimed_count;
-
-      if (remaining <= 0) {
-        alert('😢 抱歉，名額已滿！感謝你的參與～');
-        return;
-      }
-
-      setValentineRemaining(remaining);
-      setShowValentineModal(true);
-
-      // Track event
-      track('valentine_egg_found', { remaining });
-
-      // Discord notification
-      try {
-        await fetch('/api/notify-discord-valentine', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            remaining,
-            timestamp: new Date().toLocaleString('zh-TW')
-          })
-        });
-      } catch (notifyError) {
-        console.error('Discord notification failed:', notifyError);
-        // Don't block user experience if notification fails
-      }
-
-      // Decrement count (optimistic update)
-      await supabase
-        .from('special_eggs')
-        .update({ claimed_count: data.claimed_count + 1 })
-        .eq('egg_id', 'valentine_2026');
-
-    } catch (err) {
-      console.error('Valentine egg error:', err);
-      alert('發生錯誤，請稍後再試！');
-    }
+    // Redirect to LINE@
+    window.open(CONFIG.LINKS.line_url, '_blank');
   };
 
 
@@ -2421,38 +2377,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       <div style={{ position: 'relative' }}>
                         <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
 
-                        {/* Hidden VIP Heart on Cherry Blossom Wallpaper - DISABLED */}
+                        {/* Valentine's Day Hidden Heart Egg */}
                         {wp.label === '2026.03' && (
                           <div
-                            // onClick disabled - Valentine's egg unavailable
-                            // onClick={(e) => {
-                            //   e.preventDefault();
-                            //   e.stopPropagation();
-                            //   openValentineEgg();
-                            // }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              alert('情人節快樂！請加入LINE官方帳號領取限定優惠。');
+                              window.open(CONFIG.LINKS.line_url, '_blank');
+                            }}
                             style={{
                               position: 'absolute',
                               bottom: '25%',
                               left: '20%',
                               width: '24px',
                               height: '24px',
-                              cursor: 'default', // Changed from 'pointer'
+                              cursor: 'pointer',
                               fontSize: '20px',
                               lineHeight: '24px',
                               textAlign: 'center',
                               filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                              opacity: 0.5, // Dimmed to show it's disabled
+                              transition: 'transform 0.2s, filter 0.2s',
                               zIndex: 10
                             }}
-                          // Hover effects disabled
-                          // onMouseEnter={(e) => {
-                          //   e.currentTarget.style.transform = 'scale(1.3)';
-                          //   e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,0,0,0.5))';
-                          // }}
-                          // onMouseLeave={(e) => {
-                          //   e.currentTarget.style.transform = 'scale(1)';
-                          //   e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
-                          // }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.3)';
+                              e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,0,0,0.5))';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                            }}
                           >
                             ❤️
                           </div>
