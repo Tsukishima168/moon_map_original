@@ -687,20 +687,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const clearCart = () => setCart([]);
 
-  // Valentine Golden Egg - Simplified version
-  const openValentineEgg = () => {
-    // Copy to clipboard
-    navigator.clipboard.writeText('KIWIMU KISS').then(() => {
-      // Show alert message
-      alert('❤️ 情人節快樂！通關密語已複製！\n\n請將「KIWIMU KISS」貼上給 LINE@ 領取驚喜～');
-      // Redirect to LINE@
-      window.open(CONFIG.LINKS.line_url, '_blank');
-    }).catch(() => {
-      // Fallback if clipboard fails
-      alert('❤️ 情人節快樂！\n\n請輸入通關密語「KIWIMU KISS」給 LINE@ 領取驚喜～');
-      window.open(CONFIG.LINKS.line_url, '_blank');
-    });
-  };
+
 
 
   const handleCheckout = () => {
@@ -2386,15 +2373,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-
-                              // Copy to clipboard logic
-                              navigator.clipboard.writeText('KIWIMU KISS').then(() => {
-                                alert('❤️ 情人節快樂！通關密語已複製！\n\n請將「KIWIMU KISS」貼上給 LINE@ 領取驚喜～');
-                                window.open(CONFIG.LINKS.line_url, '_blank');
-                              }).catch(() => {
-                                alert('❤️ 情人節快樂！\n\n請輸入通關密語「KIWIMU KISS」給 LINE@ 領取驚喜～');
-                                window.open(CONFIG.LINKS.line_url, '_blank');
-                              });
+                              setShowValentineModal(true);
+                              track('valentine_egg_clicked', { source: 'wallpaper_heart' });
                             }}
                             style={{
                               position: 'absolute',
