@@ -319,33 +319,12 @@ const App = () => {
         // Save locally to persist the code
         localStorage.setItem('moonmoon_egg_master_code', claimCode);
 
-        // Show congratulations message after a brief delay
+        // Auto scroll to wallpaper section immediately
         setTimeout(() => {
-          // Determine Passport URL for claiming
-          const passportClaimUrl = `${CONFIG.LINKS.passport_url}/redeem?code=${claimCode}&reward=egg_master_2026_q1`;
-
-          if (confirm(`🎉 恭喜你！已集滿全部 8 顆彩蛋！
-          
-🎁 你已獲得兩項獎勵：
-1. 專屬限定桌布 (Wallpaper)
-2. 護照限定徽章 (Secret Badge)
-
-是否要現在領取徽章？
-(點擊「取消」則前往下載桌布)`)) {
-            window.open(passportClaimUrl, '_blank');
-          }
-
-          alert(`畫面即將前往桌布下載區...
-          
-(若您尚未領取徽章，稍後可在桌布區找到領取按鈕)`);
-
-          // Auto scroll to wallpaper section
-          setTimeout(() => {
-            document.getElementById('wallpaper-section')?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'start'
-            });
-          }, 300);
+          document.getElementById('wallpaper-section')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
         }, 500);
       }
     }
@@ -1753,10 +1732,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           onClick={() => {
             track('click_easter_egg_progress_badge');
             if (isEasterEggComplete) {
-              alert(`🎉 你已集滿 8 顆彩蛋！
-
-點下方的「已解鎖限定桌布」
-即可領取獎勵。`);
+              alert(`🎉 你已集滿 8 顆彩蛋！ 恭喜！`);
+              document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               return;
             }
             alert(`🥚 彩蛋收集進度
@@ -2320,1185 +2297,1184 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
             </p>
           </div>
+          {/* END OF SECTIONS */}
         </section>
+      </div>
 
-      </p>
-    </div >
+      {/* NEW: CURATED CONTENT */}
+      <div style={{ marginTop: '80px' }}>
+        <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED EXHIBITION</h2>
 
-      {/* NEW: CURATED CONTENT */ }
-      < div style = {{ marginTop: '80px' }
-}>
-            <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED EXHIBITION</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+          {/* 1. Spotify Embed */}
+          <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px', position: 'relative' }}>
+            {/* Easter Egg #2 - 神秘好友 */}
+            <img
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              alt=""
+              className={`easter-egg-icon ${foundEggs.includes(2) ? 'found' : ''}`}
+              onClick={() => openEasterEgg(2)}
+              style={{
+                position: 'absolute',
+                right: '8px',
+                top: '8px',
+                width: '22px',
+                height: '22px',
+                opacity: 0.25,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                zIndex: 10
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
+            />
+            <iframe
+              src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
+              width="100%"
+              height="352"
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              style={{ border: 'none' }}
+            ></iframe>
+          </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-              {/* 1. Spotify Embed */}
-              <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px', position: 'relative' }}>
-                {/* Easter Egg #2 - 神秘好友 */}
-                <img
-                  src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
-                  alt=""
-                  className={`easter-egg-icon ${foundEggs.includes(2) ? 'found' : ''}`}
-                  onClick={() => openEasterEgg(2)}
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '8px',
-                    width: '22px',
-                    height: '22px',
-                    opacity: 0.25,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    zIndex: 10
-                  }}
-                  onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3)'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
-                />
-                <iframe
-                  src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
-                  width="100%"
-                  height="352"
-                  frameBorder="0"
-                  allowFullScreen
-                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  style={{ border: 'none' }}
-                ></iframe>
+          {/* 2. Downloadables Grid */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+            {/* Wallpaper (multi) with lock state */}
+            <div
+              id="wallpaper-section"
+              style={{
+                borderRadius: '12px',
+                padding: '18px 16px',
+                border: '1px solid rgba(0,0,0,0.06)',
+                background: 'rgba(255,255,255,0.6)',
+                scrollMarginTop: '100px',
+                position: 'relative'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <div>
+                  <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
+                  <strong>WALLPAPER (桌布)</strong>
+                </div>
+                {isEasterEggComplete ? (
+                  <span style={{ opacity: 0.6 }}>🔓</span>
+                ) : (
+                  <span style={{ fontSize: '1.5rem' }}>🔒</span>
+                )}
               </div>
 
-              {/* 2. Downloadables Grid */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-
-                {/* Wallpaper (multi) with lock state */}
-                <div
-                  id="wallpaper-section"
-                  style={{
-                    borderRadius: '12px',
-                    padding: '18px 16px',
-                    border: '1px solid rgba(0,0,0,0.06)',
-                    background: 'rgba(255,255,255,0.6)',
-                    scrollMarginTop: '100px',
-                    position: 'relative'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <div>
-                      <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
-                      <strong>WALLPAPER (桌布)</strong>
-                    </div>
-                    {isEasterEggComplete ? (
-                      <span style={{ opacity: 0.6 }}>🔓</span>
-                    ) : (
-                      <span style={{ fontSize: '1.5rem' }}>🔒</span>
-                    )}
+              {!isEasterEggComplete && (
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  borderRadius: '10px',
+                  padding: '20px',
+                  textAlign: 'center',
+                  border: '2px dashed rgba(0, 0, 0, 0.1)',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🔒</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '8px', color: '#333' }}>
+                    桌布已鎖定
                   </div>
+                  <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
+                    找到全部 8 顆彩蛋即可解鎖<br />
+                    <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
+                      目前進度：{foundEggs.length}/8
+                    </strong>
+                  </div>
+                </div>
+              )}
 
-                  {!isEasterEggComplete && (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                gap: '10px',
+                filter: isEasterEggComplete ? 'none' : 'blur(8px) grayscale(1)',
+                pointerEvents: isEasterEggComplete ? 'auto' : 'none',
+                opacity: isEasterEggComplete ? 1 : 0.4,
+                transition: 'all 0.5s ease'
+              }}>
+                {WALLPAPERS.map((wp) => (
+                  <a key={wp.label} href={wp.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <div style={{
-                      background: 'rgba(255, 255, 255, 0.9)',
+                      border: '1px solid rgba(0,0,0,0.08)',
                       borderRadius: '10px',
-                      padding: '20px',
-                      textAlign: 'center',
-                      border: '2px dashed rgba(0, 0, 0, 0.1)',
-                      marginBottom: '12px'
+                      padding: '10px',
+                      background: '#fff',
+                      transition: 'transform 0.2s, box-shadow 0.2s'
                     }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🔒</div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '8px', color: '#333' }}>
-                        桌布已鎖定
+                      <div style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        color: '#333',
+                        marginBottom: '6px',
+                        display: 'flex',
+                        justifyContent: 'space-between'
+                      }}>
+                        <span>{wp.label}</span>
+                        <span>⬇</span>
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
-                        找到全部 8 顆彩蛋即可解鎖<br />
-                        <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
-                          目前進度：{foundEggs.length}/8
-                        </strong>
+                      <div style={{ position: 'relative' }}>
+                        <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+
+                        {/* Hidden VIP Heart on Cherry Blossom Wallpaper - DISABLED */}
+                        {wp.label === '2026.03' && (
+                          <div
+                            // onClick disabled - Valentine's egg unavailable
+                            // onClick={(e) => {
+                            //   e.preventDefault();
+                            //   e.stopPropagation();
+                            //   openValentineEgg();
+                            // }}
+                            style={{
+                              position: 'absolute',
+                              bottom: '25%',
+                              left: '20%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'default', // Changed from 'pointer'
+                              fontSize: '20px',
+                              lineHeight: '24px',
+                              textAlign: 'center',
+                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                              opacity: 0.5, // Dimmed to show it's disabled
+                              zIndex: 10
+                            }}
+                          // Hover effects disabled
+                          // onMouseEnter={(e) => {
+                          //   e.currentTarget.style.transform = 'scale(1.3)';
+                          //   e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,0,0,0.5))';
+                          // }}
+                          // onMouseLeave={(e) => {
+                          //   e.currentTarget.style.transform = 'scale(1)';
+                          //   e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                          // }}
+                          >
+                            ❤️
+                          </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </a>
+                ))}
+              </div>
 
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                    gap: '10px',
-                    filter: isEasterEggComplete ? 'none' : 'blur(8px) grayscale(1)',
-                    pointerEvents: isEasterEggComplete ? 'auto' : 'none',
-                    opacity: isEasterEggComplete ? 1 : 0.4,
-                    transition: 'all 0.5s ease'
-                  }}>
-                    {WALLPAPERS.map((wp) => (
-                      <a key={wp.label} href={wp.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
-                        <div style={{
-                          border: '1px solid rgba(0,0,0,0.08)',
-                          borderRadius: '10px',
-                          padding: '10px',
-                          background: '#fff',
-                          transition: 'transform 0.2s, box-shadow 0.2s'
-                        }}>
-                          <div style={{
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            color: '#333',
-                            marginBottom: '6px',
-                            display: 'flex',
-                            justifyContent: 'space-between'
-                          }}>
-                            <span>{wp.label}</span>
-                            <span>⬇</span>
-                          </div>
-                          <div style={{ position: 'relative' }}>
-                            <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+              {isEasterEggComplete && (
+                <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
+                    🎉 恭喜通關！還有兩份特別獎勵...
+                  </p>
 
-                            {/* Hidden VIP Heart on Cherry Blossom Wallpaper */}
-                            {wp.label === '2026.03' && (
-                              <div
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  openValentineEgg();
-                                }}
-                                style={{
-                                  position: 'absolute',
-                                  bottom: '25%',
-                                  left: '20%',
-                                  width: '24px',
-                                  height: '24px',
-                                  cursor: 'pointer',
-                                  fontSize: '20px',
-                                  lineHeight: '24px',
-                                  textAlign: 'center',
-                                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-                                  transition: 'transform 0.2s, filter 0.2s',
-                                  zIndex: 10
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'scale(1.3)';
-                                  e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,0,0,0.5))';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'scale(1)';
-                                  e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
-                                }}
-                              >
-                                ❤️
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
+                  {/* Passport Badge Button */}
+                  <button
+                    onClick={() => {
+                      const code = localStorage.getItem('moonmoon_egg_master_code');
+                      if (code) {
+                        window.open(`${CONFIG.LINKS.passport_url}/redeem?code=${code}&reward=egg_master_2026_q1`, '_blank');
+                      } else {
+                        alert('找不到兌換碼，請嘗試重新整理頁面或聯繫客服。');
+                      }
+                    }}
+                    style={{
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      color: CONFIG.BRAND_COLORS.emotionBlack,
+                      border: '2px solid #000',
+                      padding: '10px 20px',
+                      borderRadius: '999px',
+                      fontWeight: 'bold',
+                      fontSize: '0.9rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                      width: '100%',
+                      maxWidth: '300px'
+                    }}
+                  >
+                    🏅 領取護照限定徽章 (Badge)
+                  </button>
+                </div>
+              )}
+            </div>
 
-                  {isEasterEggComplete && (
-                    <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
-                        🎉 恭喜通關！還有兩份特別獎勵...
-                      </p>
+            {/* Theme */}
+            <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
+              <div>
+                <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>LINE STORE</span><br />
+                <strong>OFFICIAL THEME (主題)</strong>
+              </div>
+              <span>↗</span>
+            </a>
 
-                      {/* Passport Badge Button */}
-                      <button
-                        onClick={() => {
-                          const code = localStorage.getItem('moonmoon_egg_master_code');
-                          if (code) {
-                            window.open(`${CONFIG.LINKS.passport_url}/redeem?code=${code}&reward=egg_master_2026_q1`, '_blank');
-                          } else {
-                            alert('找不到兌換碼，請嘗試重新整理頁面或聯繫客服。');
-                          }
-                        }}
-                        style={{
-                          background: CONFIG.BRAND_COLORS.moonYellow,
-                          color: CONFIG.BRAND_COLORS.emotionBlack,
-                          border: '2px solid #000',
-                          padding: '10px 20px',
-                          borderRadius: '999px',
-                          fontWeight: 'bold',
-                          fontSize: '0.9rem',
-                          cursor: 'pointer',
-                          boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                          width: '100%',
-                          maxWidth: '300px'
-                        }}
-                      >
-                        🏅 領取護照限定徽章 (Badge)
-                      </button>
+            {/* Coming Soon */}
+            <div style={{
+              borderRadius: '16px',
+              padding: '30px 20px',
+              background: 'rgba(255, 255, 255, 0.4)',
+              backdropFilter: 'blur(4px)',
+              border: '2px dashed rgba(0, 0, 0, 0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '120px',
+              color: '#999',
+              position: 'relative',
+              transition: 'all 0.3s ease',
+              boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)',
+              userSelect: 'none'
+            }}>
+              <div style={{
+                fontSize: '1.8rem',
+                marginBottom: '10px',
+                opacity: 0.4,
+                filter: 'grayscale(1)'
+              }}>🚧</div>
+              <strong className="font-mono" style={{ fontSize: '0.9rem', letterSpacing: '0.15em', marginBottom: '6px', color: '#888' }}>
+                COMING SOON
+              </strong>
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#aaa' }}>
+                PROJECT LOADING... (準備中)
+              </div>
+
+              {/* Easter Egg #8 - 秘密計畫 */}
+              <img
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+                alt=""
+                className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
+                onClick={() => openEasterEgg(8)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  bottom: '12px',
+                  width: '24px',
+                  height: '24px',
+                  opacity: 0.1,
+                  cursor: 'pointer',
+                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  filter: 'grayscale(1)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.transform = 'scale(1.3) rotate(15deg)';
+                  e.currentTarget.style.filter = 'grayscale(0) drop-shadow(0 4px 8px rgba(0,0,0,0.2))';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.opacity = '0.1';
+                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                  e.currentTarget.style.filter = 'grayscale(1)';
+                }}
+                title="?"
+              />
+            </div>
+
+          </div>
+        </div>
+      </div>
+      {/* F. FOOTER */}
+      <footer style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
+          <div>
+            <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
+            <p style={{ marginBottom: '10px' }}>
+              {/* Google Maps Link */}
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.LINKS.address_text)}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ textDecoration: 'underline' }}
+              >
+                {CONFIG.LINKS.address_text} ↗
+              </a>
+            </p>
+            <p>
+              {CONFIG.LINKS.hours_text}<br />
+              <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
+            </p>
+          </div>
+          <div>
+            <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONTACT</h5>
+            <ul style={{ listStyle: 'none' }}>
+              <li style={{ marginBottom: '12px' }}>
+                <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Instagram</span>
+                  <span style={{ fontSize: '0.8em' }}>↗</span>
+                </a>
+              </li>
+              <li style={{ marginBottom: '12px' }}>
+                <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>LINE Official</span>
+                  <span style={{ fontSize: '0.8em' }}>↗</span>
+                </a>
+              </li>
+              <li style={{ marginBottom: '12px' }}>
+                <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>Spotify Playlist</span>
+                  <span style={{ fontSize: '0.8em' }}>↗</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <p style={{ textAlign: 'center', color: '#999', fontSize: '0.8rem' }}>
+          © {new Date().getFullYear()} {CONFIG.STORE_NAME_EN}. All Rights Reserved.
+        </p>
+      </footer >
+
+      {/* --- MODALS --- */}
+
+      {/* MENU MODAL */}
+      {
+        showMenu && (
+          <div className="modal-overlay" onClick={() => setShowMenu(false)}>
+            <div className="modal-card" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
+                  <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
+                </div>
+                <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
+              </div>
+
+              <div className="modal-body">
+                {menuBodyContent}
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Easter Egg Modal - NEW */}
+      {
+        showEasterEgg && currentEasterEgg !== null && (
+          <div
+            className="modal-overlay"
+            onClick={() => setShowEasterEgg(false)}
+            style={{ zIndex: 3500, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}
+          >
+            <div
+              className="result-card"
+              onClick={e => e.stopPropagation()}
+              style={{
+                maxWidth: '420px',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(30px) saturate(200%)',
+                border: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
+                borderRadius: '20px',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.6)',
+                padding: '35px 30px',
+                color: CONFIG.BRAND_COLORS.emotionBlack
+              }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+                <div style={{
+                  fontSize: '3rem',
+                  marginBottom: '15px',
+                  filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                }}>🥚</div>
+                <h3 style={{
+                  fontSize: '1.3rem',
+                  color: CONFIG.BRAND_COLORS.emotionBlack,
+                  marginBottom: '8px',
+                  fontWeight: 700
+                }}>
+                  {EASTER_EGGS[currentEasterEgg - 1]?.title}
+                </h3>
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: '#888',
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.05em'
+                }}>
+                  EASTER EGG #{currentEasterEgg}/8
+                </p>
+              </div>
+
+              <div style={{
+                lineHeight: '1.9',
+                fontSize: '0.95rem',
+                color: '#333',
+                whiteSpace: 'pre-line',
+                marginBottom: '25px',
+                padding: '20px',
+                background: 'rgba(248, 248, 248, 0.6)',
+                borderRadius: '12px',
+                border: '1px solid rgba(0,0,0,0.05)'
+              }}>
+                {EASTER_EGGS[currentEasterEgg - 1]?.content}
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '15px 20px',
+                background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.moonYellow}20, ${CONFIG.BRAND_COLORS.islandBlue}10)`,
+                borderRadius: '10px',
+                marginBottom: '20px'
+              }}>
+                <span style={{ fontSize: '0.85rem', color: '#666' }}>
+                  收集進度
+                </span>
+                <strong style={{ fontSize: '1.1rem', color: CONFIG.BRAND_COLORS.emotionBlack }}>
+                  {foundEggs.length} / 8
+                </strong>
+              </div>
+
+              <button
+                onClick={() => setShowEasterEgg(false)}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  background: CONFIG.BRAND_COLORS.emotionBlack,
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = '#333';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = CONFIG.BRAND_COLORS.emotionBlack;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                }}
+              >
+                繼續探索 ✨
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+
+      {/* OLD Story Modal - Keep for header bird */}
+      {
+        showStory && (
+          <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
+            {/* Story Modal - Glassmorphism Style */}
+            <div
+              className="result-card"
+              onClick={e => e.stopPropagation()}
+              style={{
+                maxWidth: '400px',
+                border: '1px solid rgba(255,255,255,0.8)',
+                background: 'rgba(255,255,255,0.7)',
+                backdropFilter: 'blur(20px) saturate(180%)',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
+                color: CONFIG.BRAND_COLORS.emotionBlack,
+                marginTop: '0' // Align centered in modal-overlay
+              }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
+                <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+              </div>
+
+              <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
+                <p style={{ marginBottom: '20px' }}>
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
+                </p>
+                <p style={{ marginBottom: '20px' }}>
+                  當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
+                </p>
+                <p>
+                  等你願意整理，它又會重新打發成形，變回可以前進的你。
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowStory(false)}
+                style={{
+                  marginTop: '40px',
+                  width: '100%',
+                  padding: '15px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  borderRadius: '30px',
+                  background: 'rgba(255,255,255,0.5)',
+                  color: '#666',
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.1em',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'white'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
+              >
+                CLOSE DIARY
+              </button>
+            </div>
+          </div>
+        )
+      }
+
+      {/* CHECKOUT CONFIRMATION MODAL */}
+      {
+        showCheckoutConfirm && (
+          <div className="modal-overlay" onClick={() => setShowCheckoutConfirm(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+                <h3 className="font-mono" style={{ margin: 0 }}>訂購確認 Check Order</h3>
+                <button className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ marginBottom: '20px', maxHeight: '30vh', overflowY: 'auto' }}>
+                  {cart.map((item, idx) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
+                      <div>
+                        <div style={{ fontWeight: 'bold' }}>{item.name}</div>
+                        <div style={{ fontSize: '0.85rem', color: '#666' }}>{item.spec}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div>x{item.count}</div>
+                        <div style={{ fontSize: '0.9rem' }}>{item.price}</div>
+                      </div>
                     </div>
-                  )}
+                  ))}
                 </div>
 
-                {/* Theme */}
-                <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
-                  <div>
-                    <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>LINE STORE</span><br />
-                    <strong>OFFICIAL THEME (主題)</strong>
-                  </div>
-                  <span>↗</span>
-                </a>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '20px' }}>
+                  <span>TOTAL</span>
+                  <span>${calculateTotal()}</span>
+                </div>
 
-                {/* Coming Soon */}
-                <div style={{
-                  borderRadius: '16px',
-                  padding: '30px 20px',
-                  background: 'rgba(255, 255, 255, 0.4)',
-                  backdropFilter: 'blur(4px)',
-                  border: '2px dashed rgba(0, 0, 0, 0.08)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  minHeight: '120px',
-                  color: '#999',
-                  position: 'relative',
-                  transition: 'all 0.3s ease',
-                  boxShadow: 'inset 0 0 20px rgba(0,0,0,0.02)',
-                  userSelect: 'none'
-                }}>
-                  <div style={{
-                    fontSize: '1.8rem',
-                    marginBottom: '10px',
-                    opacity: 0.4,
-                    filter: 'grayscale(1)'
-                  }}>🚧</div>
-                  <strong className="font-mono" style={{ fontSize: '0.9rem', letterSpacing: '0.15em', marginBottom: '6px', color: '#888' }}>
-                    COMING SOON
-                  </strong>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#aaa' }}>
-                    PROJECT LOADING... (準備中)
-                  </div>
+                <p style={{ background: '#f8f8f8', padding: '10px', fontSize: '0.85rem', color: '#555', borderRadius: '8px', marginBottom: '20px' }}>
+                  請確認以下資訊正確，我們會用此資訊與您對帳。
+                </p>
 
-                  {/* Easter Egg #8 - 秘密計畫 */}
-                  <img
-                    src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
-                    alt=""
-                    className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
-                    onClick={() => openEasterEgg(8)}
-                    style={{
-                      position: 'absolute',
-                      right: '12px',
-                      bottom: '12px',
-                      width: '24px',
-                      height: '24px',
-                      opacity: 0.1,
-                      cursor: 'pointer',
-                      transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-                      filter: 'grayscale(1)'
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.opacity = '1';
-                      e.currentTarget.style.transform = 'scale(1.3) rotate(15deg)';
-                      e.currentTarget.style.filter = 'grayscale(0) drop-shadow(0 4px 8px rgba(0,0,0,0.2))';
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.opacity = '0.1';
-                      e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                      e.currentTarget.style.filter = 'grayscale(1)';
-                    }}
-                    title="?"
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>訂購人姓名 Name <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="text"
+                    placeholder="請輸入真實姓名"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
                   />
                 </div>
 
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>手機號碼 Phone <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="tel"
+                    placeholder="09xxxxxxxx"
+                    maxLength={10}
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
+                  <input
+                    type="date"
+                    required
+                    min={getMinPickupDate()}
+                    value={pickupDate}
+                    onChange={handleDateChange}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                  />
+                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
+                    *請選擇您要來店取貨的日期<br />
+                    最快取貨日期：兩天後 | 週一公休<br />
+                    營業時間：週二-週日 13:00-19:00
+                  </p>
+                </div>
+
+                <div style={{ marginBottom: '30px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>備註 Note (選填)</label>
+                  <textarea
+                    value={orderNote}
+                    onChange={(e) => setOrderNote(e.target.value)}
+                    placeholder="例如：需要蠟燭、大概幾點到..."
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', minHeight: '80px' }}
+                  />
+                </div>
+
+                <button
+                  onClick={confirmAndSend}
+                  className="btn-primary"
+                  style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonYellow }}
+                >
+                  確認並傳送至 LINE ➔
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* DESKTOP ORDER SUCCESS MODAL */}
+      {
+        showDesktopOrderSuccess && (
+          <div className="modal-overlay" onClick={() => setShowDesktopOrderSuccess(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+                <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
+                <button className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                    🎉 訂單已成功送出！
+                  </p>
+                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                    請完成以下步驟以確認訂單：
+                  </p>
+                </div>
+
+                <div style={{ background: '#f8f8f8', padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                    📋 步驟 1：複製訂單訊息
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(orderMessage).then(() => {
+                        alert('✅ 已複製訂單訊息到剪貼簿！');
+                      }).catch(() => {
+                        alert('❌ 複製失敗，請手動複製下方訊息');
+                      });
+                    }}
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      background: 'black',
+                      color: CONFIG.BRAND_COLORS.moonYellow,
+                      marginBottom: '15px'
+                    }}
+                  >
+                    📋 複製訊息到剪貼簿
+                  </button>
+
+                  <div style={{
+                    background: 'white',
+                    padding: '15px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    maxHeight: '200px',
+                    overflowY: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    fontFamily: 'monospace',
+                    border: '1px solid #ddd'
+                  }}>
+                    {orderMessage}
+                  </div>
+                </div>
+
+                <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid #ffc107' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#856404' }}>
+                    📱 步驟 2：傳送到 LINE 官方帳號
+                  </div>
+                  <a
+                    href={CONFIG.LINKS.line_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'center',
+                      background: '#06C755',
+                      color: 'white',
+                      textDecoration: 'none',
+                      padding: '12px'
+                    }}
+                  >
+                    💬 開啟月島甜點 LINE@
+                  </a>
+                  <p style={{ fontSize: '0.75rem', color: '#856404', marginTop: '10px', marginBottom: 0, textAlign: 'center' }}>
+                    點擊上方按鈕後，將剪貼簿的訊息貼上並傳送
+                  </p>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
+                  完成付款後，我們會盡快與您確認訂單！
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* VALENTINE GOLDEN EGG MODAL */}
+      {
+        showValentineModal && (
+          <div className="modal-overlay" onClick={() => setShowValentineModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: '#fff',
+                  color: '#000',
+                  borderBottom: '1px solid #eee'
+                }}
+              >
+                <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>HIDDEN EGG NO.9</h3>
+                <button className="close-btn" onClick={() => setShowValentineModal(false)} style={{ color: '#000' }}>×</button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '30px 20px' }}>
+                {/* Success Message */}
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '15px' }}>💛</div>
+                  <p style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px', color: '#000', letterSpacing: '1px' }}>
+                    妳發現了隱藏彩蛋
+                  </p>
+                  <p style={{ fontSize: '0.8rem', color: '#999', fontFamily: 'monospace' }}>
+                    The Golden Valentine Egg
+                  </p>
+                </div>
+
+                {/* Kiwimu's Confession */}
+                <div style={{
+                  background: '#fff',
+                  padding: '25px',
+                  borderRadius: '0',
+                  marginBottom: '30px',
+                  border: '1px solid #000',
+                  position: 'relative'
+                }}>
+                  {/* Decorative corner */}
+                  <div style={{ position: 'absolute', top: '-5px', left: '-5px', width: '10px', height: '10px', background: '#000' }}></div>
+                  <div style={{ position: 'absolute', bottom: '-5px', right: '-5px', width: '10px', height: '10px', background: '#000' }}></div>
+
+                  <div style={{ fontSize: '0.85rem', lineHeight: '2', color: '#333', textAlign: 'center' }}>
+                    <p style={{ marginBottom: '15px' }}>
+                      我本來是一坨普通的鮮奶油<br />
+                      直到那天，甜點師打發我的時候<br />
+                      我看見了妳
+                    </p>
+                    <p style={{ marginBottom: '15px' }}>
+                      我的心跳變成了 100 下/分鐘<br />
+                      我的質地變得更蓬鬆了<br />
+                      我整個人都升溫了 3 度
+                    </p>
+                    <p style={{ marginBottom: '15px' }}>
+                      科學無法解釋這種現象<br />
+                      甜點師說這叫做『質變』
+                    </p>
+                    <p style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#000', letterSpacing: '1px', marginTop: '20px' }}>
+                      我想，這就是愛吧
+                    </p>
+                  </div>
+                  <div style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '20px', color: '#999', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                    — Kiwimu
+                  </div>
+                </div>
+
+                {/* Redemption Code */}
+                <div style={{
+                  marginBottom: '10px'
+                }}>
+                  <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '15px', textAlign: 'center', letterSpacing: '1px' }}>
+                    傳送通關密語到 LINE@ 兌換布丁
+                  </div>
+
+                  {/* Code Display */}
+                  <div
+                    onClick={() => {
+                      navigator.clipboard.writeText('KIWIMU KISS');
+                      alert('已複製通關密語！');
+                    }}
+                    style={{
+                      background: '#000',
+                      padding: '15px',
+                      textAlign: 'center',
+                      marginBottom: '15px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ fontSize: '0.6rem', color: '#666', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                      SECRET CODE
+                    </div>
+                    <div style={{
+                      fontSize: '1.2rem',
+                      fontWeight: 'bold',
+                      fontFamily: 'monospace',
+                      color: '#fff',
+                      letterSpacing: '2px'
+                    }}>
+                      KIWIMU KISS
+                    </div>
+                    <div style={{ fontSize: '0.6rem', color: '#444', marginTop: '5px' }}>
+                      (TAP TO COPY)
+                    </div>
+                  </div>
+
+                  {/* LINE Button */}
+                  <a
+                    href={CONFIG.LINKS.line_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{
+                      width: '100%',
+                      display: 'block',
+                      textAlign: 'center',
+                      background: '#fff',
+                      color: '#000',
+                      textDecoration: 'none',
+                      padding: '12px',
+                      border: '1px solid #000',
+                      fontSize: '0.85rem',
+                      letterSpacing: '1px'
+                    }}
+                  >
+                    前往 LINE@ 兌換
+                  </a>
+                </div>
+
+                <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#ccc', marginTop: '20px' }}>
+                  LIMITED QUANTITY: {valentineRemaining}/50
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* VIP ISLAND MODAL */}
+      {
+        showVipModal && (
+          <div className="modal-overlay" onClick={() => setShowVipModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: '#fff',
+                  color: '#000',
+                  borderBottom: 'none',
+                  paddingBottom: '0'
+                }}
+              >
+                <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '30px 30px 60px 30px', textAlign: 'center' }}>
+
+                <div style={{
+                  fontSize: '0.95rem',
+                  lineHeight: '2.2',
+                  color: '#333',
+                  fontFamily: 'serif',
+                  letterSpacing: '1px',
+                  fontStyle: 'italic'
+                }}>
+                  <p style={{ marginBottom: '20px' }}>
+                    「在這個島上，<br />
+                    每一片甜點都是為你而生。」
+                  </p>
+                  <p style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    color: '#000',
+                    marginTop: '20px',
+                    fontStyle: 'normal'
+                  }}>
+                    — Kiwimu
+                  </p>
+                  <p style={{
+                    fontSize: '0.8rem',
+                    color: '#999',
+                    marginTop: '40px',
+                    letterSpacing: '2px',
+                    fontFamily: 'monospace',
+                    fontStyle: 'normal'
+                  }}>
+                    COMING SOON...
+                  </p>
+                </div>
+                <div style={{
+                  color: '#333',
+                  fontFamily: 'serif',
+                  letterSpacing: '1px',
+                  fontStyle: 'italic'
+                }}>
+                  <p style={{ marginBottom: '20px' }}>
+                    「在這個島上，<br />
+                    每一片甜點都是為你而生。」
+                  </p>
+                  <p style={{
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    color: '#000',
+                    marginTop: '20px',
+                    fontStyle: 'normal'
+                  }}>
+                    — Kiwimu
+                  </p>
+                </div>
               </div>
             </div>
           </div >
-        </section >
+        )
+      }
 
-  {/* F. FOOTER */ }
-  < footer style = {{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
-            <div>
-              <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
-              <p style={{ marginBottom: '10px' }}>
-                {/* Google Maps Link */}
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.LINKS.address_text)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ textDecoration: 'underline' }}
+
+
+      {/* LOGIN MODAL */}
+      {
+        showLogin && (
+          <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
+              <div className="modal-header">
+                <h3 className="font-mono">登島手續：領取島民狀態</h3>
+                <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+              </div>
+              <div className="modal-body" style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: '25px', padding: '0 10px' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
+                    <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
+                    登入後可同步您的 MBTI 測驗結果，<br />
+                    解鎖專屬甜點處方，並獲取島嶼導覽優先權。
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleOAuthLogin('google')}
+                  style={{
+                    background: 'white',
+                    color: '#444',
+                    padding: '16px',
+                    borderRadius: '40px',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                    border: '1px solid #ddd',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
+                  }}
                 >
-                  {CONFIG.LINKS.address_text} ↗
-                </a>
-              </p>
-              <p>
-                {CONFIG.LINKS.hours_text}<br />
-                <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
-              </p>
-            </div>
-            <div>
-              <h5 className="font-mono" style={{ marginBottom: '15px' }}>CONTACT</h5>
-              <ul style={{ listStyle: 'none' }}>
-                <li style={{ marginBottom: '12px' }}>
-                  <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>Instagram</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
-                  </a>
-                </li>
-                <li style={{ marginBottom: '12px' }}>
-                  <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>LINE Official</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
-                  </a>
-                </li>
-                <li style={{ marginBottom: '12px' }}>
-                  <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span>Spotify Playlist</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
-                  </a>
-                </li>
-              </ul>
+                  <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                  </svg>
+                  使用 Google 帳號領取
+                </button>
+
+                <div style={{ position: 'relative', marginBottom: '30px' }}>
+                  <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
+                  <span style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'white',
+                    padding: '0 10px',
+                    fontSize: '0.8rem',
+                    color: '#999'
+                  }}>或使用 Email 登入</span>
+                </div>
+
+                <form onSubmit={handleLogin}>
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      borderRadius: '8px',
+                      border: '1px solid #ddd',
+                      marginBottom: '15px',
+                      fontSize: '1rem'
+                    }}
+                  />
+                  <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
+                    {loginMessage || '寄送魔術連結'}
+                  </button>
+                  {loginMessage && (
+                    <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
+                      {loginMessage}
+                    </p>
+                  )}
+                </form>
+              </div>
             </div>
           </div>
-          <p style={{ textAlign: 'center', color: '#999', fontSize: '0.8rem' }}>
-            © {new Date().getFullYear()} {CONFIG.STORE_NAME_EN}. All Rights Reserved.
-          </p>
-        </footer >
+        )
+      }
 
-  {/* --- MODALS --- */ }
+      {/* PROFILE MODAL */}
+      {
+        showProfile && user && (
+          <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
+              <div className="modal-header">
+                <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
+                <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
+              </div>
+              <div className="modal-body">
+                {/* Basic Info */}
+                <div style={{ marginBottom: '30px', textAlign: 'center' }}>
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 15px',
+                    fontSize: '2rem'
+                  }}>
+                    {profile?.nickname?.[0] || user.email?.[0].toUpperCase()}
+                  </div>
+                  <h2 style={{ fontSize: '1.3rem', marginBottom: '5px' }}>
+                    {profile?.nickname || user.email?.split('@')[0]}
+                  </h2>
+                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{user.email}</p>
+                  {profile?.mbti_type && (
+                    <div style={{
+                      display: 'inline-block',
+                      padding: '6px 16px',
+                      background: CONFIG.BRAND_COLORS.emotionBlack,
+                      color: 'white',
+                      borderRadius: '20px',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold'
+                    }}>
+                      MBTI: {profile.mbti_type}
+                    </div>
+                  )}
+                </div>
 
-{/* MENU MODAL */ }
-{
-  showMenu && (
-    <div className="modal-overlay" onClick={() => setShowMenu(false)}>
-      <div className="modal-card" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 04</div>
-            <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
+                {/* Sync Status */}
+                <div style={{
+                  background: '#f8f8f8',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  marginBottom: '25px'
+                }}>
+                  <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
+                    資料同步狀態
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem' }}>
+                        {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  background: '#fffdf0',
+                  border: '1px solid #ffd93d',
+                  borderRadius: '8px',
+                  padding: '15px',
+                  marginBottom: '25px',
+                  fontSize: '0.85rem',
+                  lineHeight: '1.6'
+                }}>
+                  <strong>跨站同步說明</strong><br />
+                  在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
+                  無論您在哪裡更新資料，其他網站都會自動同步。
+                </div>
+
+                {/* Cross-site Links */}
+                <div style={{ textAlign: 'center' }}>
+                  <a
+                    href={mbtiLabUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: 'inline-block',
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      color: CONFIG.BRAND_COLORS.emotionBlack,
+                      padding: '12px 24px',
+                      borderRadius: '24px',
+                      fontWeight: 'bold',
+                      textDecoration: 'none',
+                      border: '2px solid #000',
+                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                      transition: 'transform 0.2s'
+                    }}
+                    onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
+                    onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                    onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+                  >
+                    前往 MBTI Lab 查看測驗歷史 →
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
-          <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
-        </div>
+        )
+      }
 
-        <div className="modal-body">
-          {menuBodyContent}
-        </div>
-      </div>
-    </div>
-  )
-}
 
-{/* Easter Egg Modal - NEW */ }
-{
-  showEasterEgg && currentEasterEgg !== null && (
-    <div
-      className="modal-overlay"
-      onClick={() => setShowEasterEgg(false)}
-      style={{ zIndex: 3500, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(10px)' }}
-    >
-      <div
-        className="result-card"
-        onClick={e => e.stopPropagation()}
-        style={{
-          maxWidth: '420px',
-          background: 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(30px) saturate(200%)',
-          border: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
-          borderRadius: '20px',
-          boxShadow: '0 25px 50px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.6)',
-          padding: '35px 30px',
-          color: CONFIG.BRAND_COLORS.emotionBlack
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '25px' }}>
+      {/* FLOATING CART BAR */}
+      {
+        cart.length > 0 && (
           <div style={{
-            fontSize: '3rem',
-            marginBottom: '15px',
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
-          }}>🥚</div>
-          <h3 style={{
-            fontSize: '1.3rem',
-            color: CONFIG.BRAND_COLORS.emotionBlack,
-            marginBottom: '8px',
-            fontWeight: 700
-          }}>
-            {EASTER_EGGS[currentEasterEgg - 1]?.title}
-          </h3>
-          <p style={{
-            fontSize: '0.75rem',
-            color: '#888',
-            fontFamily: 'monospace',
-            letterSpacing: '0.05em'
-          }}>
-            EASTER EGG #{currentEasterEgg}/8
-          </p>
-        </div>
-
-        <div style={{
-          lineHeight: '1.9',
-          fontSize: '0.95rem',
-          color: '#333',
-          whiteSpace: 'pre-line',
-          marginBottom: '25px',
-          padding: '20px',
-          background: 'rgba(248, 248, 248, 0.6)',
-          borderRadius: '12px',
-          border: '1px solid rgba(0,0,0,0.05)'
-        }}>
-          {EASTER_EGGS[currentEasterEgg - 1]?.content}
-        </div>
-
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '15px 20px',
-          background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.moonYellow}20, ${CONFIG.BRAND_COLORS.islandBlue}10)`,
-          borderRadius: '10px',
-          marginBottom: '20px'
-        }}>
-          <span style={{ fontSize: '0.85rem', color: '#666' }}>
-            收集進度
-          </span>
-          <strong style={{ fontSize: '1.1rem', color: CONFIG.BRAND_COLORS.emotionBlack }}>
-            {foundEggs.length} / 8
-          </strong>
-        </div>
-
-        <button
-          onClick={() => setShowEasterEgg(false)}
-          style={{
-            width: '100%',
-            padding: '14px',
+            position: 'fixed',
+            bottom: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90%',
+            maxWidth: '500px',
             background: CONFIG.BRAND_COLORS.emotionBlack,
             color: 'white',
-            border: 'none',
-            borderRadius: '10px',
-            fontSize: '0.95rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = '#333';
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 6px 16px rgba(0,0,0,0.2)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = CONFIG.BRAND_COLORS.emotionBlack;
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-          }}
-        >
-          繼續探索 ✨
-        </button>
-      </div>
-    </div>
-  )
-}
-
-
-{/* OLD Story Modal - Keep for header bird */ }
-{
-  showStory && (
-    <div className="modal-overlay" onClick={() => setShowStory(false)} style={{ zIndex: 3000, background: 'rgba(255,255,255,0.4)', backdropFilter: 'blur(4px)' }}>
-      {/* Story Modal - Glassmorphism Style */}
-      <div
-        className="result-card"
-        onClick={e => e.stopPropagation()}
-        style={{
-          maxWidth: '400px',
-          border: '1px solid rgba(255,255,255,0.8)',
-          background: 'rgba(255,255,255,0.7)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5)',
-          color: CONFIG.BRAND_COLORS.emotionBlack,
-          marginTop: '0' // Align centered in modal-overlay
-        }}
-      >
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-            <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
-          <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
-        </div>
-
-        <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
-          <p style={{ marginBottom: '20px' }}>
-            Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
-          </p>
-          <p style={{ marginBottom: '20px' }}>
-            牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
-          </p>
-          <p style={{ marginBottom: '20px' }}>
-            當你焦慮、委屈、逞強，或覺得自己不夠好時，牠會先融化，像一團柔軟的白，把你的情緒接住；
-          </p>
-          <p>
-            等你願意整理，它又會重新打發成形，變回可以前進的你。
-          </p>
-        </div>
-
-        <button
-          onClick={() => setShowStory(false)}
-          style={{
-            marginTop: '40px',
-            width: '100%',
-            padding: '15px',
-            border: '1px solid rgba(0,0,0,0.1)',
-            borderRadius: '30px',
-            background: 'rgba(255,255,255,0.5)',
-            color: '#666',
-            fontSize: '0.8rem',
-            letterSpacing: '0.1em',
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'white'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.5)'}
-        >
-          CLOSE DIARY
-        </button>
-      </div>
-    </div>
-  )
-}
-
-{/* CHECKOUT CONFIRMATION MODAL */ }
-{
-  showCheckoutConfirm && (
-    <div className="modal-overlay" onClick={() => setShowCheckoutConfirm(false)} style={{ zIndex: 3000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
-        <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
-          <h3 className="font-mono" style={{ margin: 0 }}>訂購確認 Check Order</h3>
-          <button className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
-        </div>
-        <div className="modal-body">
-          <div style={{ marginBottom: '20px', maxHeight: '30vh', overflowY: 'auto' }}>
-            {cart.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                <div>
-                  <div style={{ fontWeight: 'bold' }}>{item.name}</div>
-                  <div style={{ fontSize: '0.85rem', color: '#666' }}>{item.spec}</div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div>x{item.count}</div>
-                  <div style={{ fontSize: '0.9rem' }}>{item.price}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '20px' }}>
-            <span>TOTAL</span>
-            <span>${calculateTotal()}</span>
-          </div>
-
-          <p style={{ background: '#f8f8f8', padding: '10px', fontSize: '0.85rem', color: '#555', borderRadius: '8px', marginBottom: '20px' }}>
-            請確認以下資訊正確，我們會用此資訊與您對帳。
-          </p>
-
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>訂購人姓名 Name <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="text"
-              placeholder="請輸入真實姓名"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>手機號碼 Phone <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="tel"
-              placeholder="09xxxxxxxx"
-              maxLength={10}
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
-            />
-          </div>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
-            <input
-              type="date"
-              required
-              min={getMinPickupDate()}
-              value={pickupDate}
-              onChange={handleDateChange}
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
-            />
-            <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
-              *請選擇您要來店取貨的日期<br />
-              最快取貨日期：兩天後 | 週一公休<br />
-              營業時間：週二-週日 13:00-19:00
-            </p>
-          </div>
-
-          <div style={{ marginBottom: '30px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>備註 Note (選填)</label>
-            <textarea
-              value={orderNote}
-              onChange={(e) => setOrderNote(e.target.value)}
-              placeholder="例如：需要蠟燭、大概幾點到..."
-              style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', minHeight: '80px' }}
-            />
-          </div>
-
-          <button
-            onClick={confirmAndSend}
-            className="btn-primary"
-            style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonYellow }}
-          >
-            確認並傳送至 LINE ➔
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* DESKTOP ORDER SUCCESS MODAL */ }
-{
-  showDesktopOrderSuccess && (
-    <div className="modal-overlay" onClick={() => setShowDesktopOrderSuccess(false)} style={{ zIndex: 3000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
-        <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
-          <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
-          <button className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
-        </div>
-        <div className="modal-body">
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>
-              🎉 訂單已成功送出！
-            </p>
-            <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
-              請完成以下步驟以確認訂單：
-            </p>
-          </div>
-
-          <div style={{ background: '#f8f8f8', padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
-              📋 步驟 1：複製訂單訊息
-            </div>
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(orderMessage).then(() => {
-                  alert('✅ 已複製訂單訊息到剪貼簿！');
-                }).catch(() => {
-                  alert('❌ 複製失敗，請手動複製下方訊息');
-                });
-              }}
-              className="btn-primary"
-              style={{
-                width: '100%',
-                background: 'black',
-                color: CONFIG.BRAND_COLORS.moonYellow,
-                marginBottom: '15px'
-              }}
-            >
-              📋 複製訊息到剪貼簿
-            </button>
-
-            <div style={{
-              background: 'white',
-              padding: '15px',
-              borderRadius: '8px',
-              fontSize: '0.75rem',
-              maxHeight: '200px',
-              overflowY: 'auto',
-              whiteSpace: 'pre-wrap',
-              fontFamily: 'monospace',
-              border: '1px solid #ddd'
-            }}>
-              {orderMessage}
-            </div>
-          </div>
-
-          <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid #ffc107' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#856404' }}>
-              📱 步驟 2：傳送到 LINE 官方帳號
-            </div>
-            <a
-              href={CONFIG.LINKS.line_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-              style={{
-                width: '100%',
-                display: 'block',
-                textAlign: 'center',
-                background: '#06C755',
-                color: 'white',
-                textDecoration: 'none',
-                padding: '12px'
-              }}
-            >
-              💬 開啟月島甜點 LINE@
-            </a>
-            <p style={{ fontSize: '0.75rem', color: '#856404', marginTop: '10px', marginBottom: 0, textAlign: 'center' }}>
-              點擊上方按鈕後，將剪貼簿的訊息貼上並傳送
-            </p>
-          </div>
-
-          <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
-            完成付款後，我們會盡快與您確認訂單！
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* VALENTINE GOLDEN EGG MODAL */ }
-{
-  showValentineModal && (
-    <div className="modal-overlay" onClick={() => setShowValentineModal(false)} style={{ zIndex: 3000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', zIndex: 3001 }}>
-        <div
-          className="modal-header"
-          style={{
-            background: '#fff',
-            color: '#000',
-            borderBottom: '1px solid #eee'
-          }}
-        >
-          <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>HIDDEN EGG NO.9</h3>
-          <button className="close-btn" onClick={() => setShowValentineModal(false)} style={{ color: '#000' }}>×</button>
-        </div>
-
-        <div className="modal-body" style={{ padding: '30px 20px' }}>
-          {/* Success Message */}
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '15px' }}>💛</div>
-            <p style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px', color: '#000', letterSpacing: '1px' }}>
-              妳發現了隱藏彩蛋
-            </p>
-            <p style={{ fontSize: '0.8rem', color: '#999', fontFamily: 'monospace' }}>
-              The Golden Valentine Egg
-            </p>
-          </div>
-
-          {/* Kiwimu's Confession */}
-          <div style={{
-            background: '#fff',
-            padding: '25px',
-            borderRadius: '0',
-            marginBottom: '30px',
-            border: '1px solid #000',
-            position: 'relative'
+            borderRadius: '50px',
+            padding: '15px 25px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            zIndex: 1500,
+            animation: 'fadeIn 0.3s'
           }}>
-            {/* Decorative corner */}
-            <div style={{ position: 'absolute', top: '-5px', left: '-5px', width: '10px', height: '10px', background: '#000' }}></div>
-            <div style={{ position: 'absolute', bottom: '-5px', right: '-5px', width: '10px', height: '10px', background: '#000' }}></div>
-
-            <div style={{ fontSize: '0.85rem', lineHeight: '2', color: '#333', textAlign: 'center' }}>
-              <p style={{ marginBottom: '15px' }}>
-                我本來是一坨普通的鮮奶油<br />
-                直到那天，甜點師打發我的時候<br />
-                我看見了妳
-              </p>
-              <p style={{ marginBottom: '15px' }}>
-                我的心跳變成了 100 下/分鐘<br />
-                我的質地變得更蓬鬆了<br />
-                我整個人都升溫了 3 度
-              </p>
-              <p style={{ marginBottom: '15px' }}>
-                科學無法解釋這種現象<br />
-                甜點師說這叫做『質變』
-              </p>
-              <p style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#000', letterSpacing: '1px', marginTop: '20px' }}>
-                我想，這就是愛吧
-              </p>
+            <div style={{ fontWeight: 'bold' }}>
+              已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
             </div>
-            <div style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '20px', color: '#999', textTransform: 'uppercase', letterSpacing: '2px' }}>
-              — Kiwimu
-            </div>
-          </div>
-
-          {/* Redemption Code */}
-          <div style={{
-            marginBottom: '10px'
-          }}>
-            <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '15px', textAlign: 'center', letterSpacing: '1px' }}>
-              傳送通關密語到 LINE@ 兌換布丁
-            </div>
-
-            {/* Code Display */}
-            <div
-              onClick={() => {
-                navigator.clipboard.writeText('KIWIMU KISS');
-                alert('已複製通關密語！');
-              }}
-              style={{
-                background: '#000',
-                padding: '15px',
-                textAlign: 'center',
-                marginBottom: '15px',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-            >
-              <div style={{ fontSize: '0.6rem', color: '#666', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                SECRET CODE
-              </div>
-              <div style={{
-                fontSize: '1.2rem',
-                fontWeight: 'bold',
-                fontFamily: 'monospace',
-                color: '#fff',
-                letterSpacing: '2px'
-              }}>
-                KIWIMU KISS
-              </div>
-              <div style={{ fontSize: '0.6rem', color: '#444', marginTop: '5px' }}>
-                (TAP TO COPY)
-              </div>
-            </div>
-
-            {/* LINE Button */}
-            <a
-              href={CONFIG.LINKS.line_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary"
-              style={{
-                width: '100%',
-                display: 'block',
-                textAlign: 'center',
-                background: '#fff',
-                color: '#000',
-                textDecoration: 'none',
-                padding: '12px',
-                border: '1px solid #000',
-                fontSize: '0.85rem',
-                letterSpacing: '1px'
-              }}
-            >
-              前往 LINE@ 兌換
-            </a>
-          </div>
-
-          <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#ccc', marginTop: '20px' }}>
-            LIMITED QUANTITY: {valentineRemaining}/50
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* VIP ISLAND MODAL */ }
-{
-  showVipModal && (
-    <div className="modal-overlay" onClick={() => setShowVipModal(false)} style={{ zIndex: 3000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', zIndex: 3001 }}>
-        <div
-          className="modal-header"
-          style={{
-            background: '#fff',
-            color: '#000',
-            borderBottom: 'none',
-            paddingBottom: '0'
-          }}
-        >
-          <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
-        </div>
-
-        <div className="modal-body" style={{ padding: '30px 30px 60px 30px', textAlign: 'center' }}>
-
-          <div style={{
-            fontSize: '0.95rem',
-            lineHeight: '2.2',
-            color: '#333',
-            fontFamily: 'serif',
-            letterSpacing: '1px',
-            fontStyle: 'italic'
-          }}>
-            <p style={{ marginBottom: '20px' }}>
-              「在這個島上，<br />
-              每一片甜點都是為你而生。」
-            </p>
-            <p style={{
-              fontSize: '0.9rem',
-              fontWeight: 'bold',
-              color: '#000',
-              marginTop: '20px',
-              fontStyle: 'normal'
-            }}>
-              — Kiwimu
-            </p>
-            <p style={{
-              fontSize: '0.8rem',
-              color: '#999',
-              marginTop: '40px',
-              letterSpacing: '2px',
-              fontFamily: 'monospace',
-              fontStyle: 'normal'
-            }}>
-              COMING SOON...
-            </p>
-          </div>
-          color: '#333',
-          fontFamily: 'serif',
-          letterSpacing: '1px',
-          fontStyle: 'italic'
-          }}>
-          <p style={{ marginBottom: '20px' }}>
-            「在這個島上，<br />
-            每一片甜點都是為你而生。」
-          </p>
-          <p style={{
-            fontSize: '0.9rem',
-            fontWeight: 'bold',
-            color: '#000',
-            marginTop: '20px',
-            fontStyle: 'normal'
-          }}>
-            — Kiwimu
-          </p>
-        </div>
-      </div>
-    </div>
-    </div >
-  )
-}
-
-
-
-{/* LOGIN MODAL */ }
-{
-  showLogin && (
-    <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
-        <div className="modal-header">
-          <h3 className="font-mono">登島手續：領取島民狀態</h3>
-          <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
-        </div>
-        <div className="modal-body" style={{ textAlign: 'center' }}>
-          <div style={{ marginBottom: '25px', padding: '0 10px' }}>
-            <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
-              <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
-              登入後可同步您的 MBTI 測驗結果，<br />
-              解鎖專屬甜點處方，並獲取島嶼導覽優先權。
-            </p>
-          </div>
-          <button
-            onClick={() => handleOAuthLogin('google')}
-            style={{
-              background: 'white',
-              color: '#444',
-              padding: '16px',
-              borderRadius: '40px',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              border: '1px solid #ddd',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px',
-              cursor: 'pointer',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
-            }}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-            </svg>
-            使用 Google 帳號領取
-          </button>
-
-          <div style={{ position: 'relative', marginBottom: '30px' }}>
-            <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
-            <span style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              background: 'white',
-              padding: '0 10px',
-              fontSize: '0.8rem',
-              color: '#999'
-            }}>或使用 Email 登入</span>
-          </div>
-
-          <form onSubmit={handleLogin}>
-            <input
-              type="email"
-              placeholder="your@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '12px',
-                borderRadius: '8px',
-                border: '1px solid #ddd',
-                marginBottom: '15px',
-                fontSize: '1rem'
-              }}
-            />
-            <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
-              {loginMessage || '寄送魔術連結'}
-            </button>
-            {loginMessage && (
-              <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
-                {loginMessage}
-              </p>
-            )}
-          </form>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* PROFILE MODAL */ }
-{
-  showProfile && user && (
-    <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
-      <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
-        <div className="modal-header">
-          <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
-          <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
-        </div>
-        <div className="modal-body">
-          {/* Basic Info */}
-          <div style={{ marginBottom: '30px', textAlign: 'center' }}>
-            <div style={{
-              width: '80px',
-              height: '80px',
-              borderRadius: '50%',
-              background: CONFIG.BRAND_COLORS.moonYellow,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 15px',
-              fontSize: '2rem'
-            }}>
-              {profile?.nickname?.[0] || user.email?.[0].toUpperCase()}
-            </div>
-            <h2 style={{ fontSize: '1.3rem', marginBottom: '5px' }}>
-              {profile?.nickname || user.email?.split('@')[0]}
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px' }}>{user.email}</p>
-            {profile?.mbti_type && (
-              <div style={{
-                display: 'inline-block',
-                padding: '6px 16px',
-                background: CONFIG.BRAND_COLORS.emotionBlack,
-                color: 'white',
-                borderRadius: '20px',
-                fontSize: '0.9rem',
-                fontWeight: 'bold'
-              }}>
-                MBTI: {profile.mbti_type}
-              </div>
-            )}
-          </div>
-
-          {/* Sync Status */}
-          <div style={{
-            background: '#f8f8f8',
-            borderRadius: '12px',
-            padding: '20px',
-            marginBottom: '25px'
-          }}>
-            <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
-              資料同步狀態
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>
-                  {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.9rem' }}>島民身份已啟用</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Description */}
-          <div style={{
-            background: '#fffdf0',
-            border: '1px solid #ffd93d',
-            borderRadius: '8px',
-            padding: '15px',
-            marginBottom: '25px',
-            fontSize: '0.85rem',
-            lineHeight: '1.6'
-          }}>
-            <strong>跨站同步說明</strong><br />
-            在月島的所有網站（MBTI Lab、甜點店）都使用同一個帳號。<br />
-            無論您在哪裡更新資料，其他網站都會自動同步。
-          </div>
-
-          {/* Cross-site Links */}
-          <div style={{ textAlign: 'center' }}>
-            <a
-              href={mbtiLabUrl}
-              target="_blank"
-              rel="noreferrer"
-              style={{
-                display: 'inline-block',
-                background: CONFIG.BRAND_COLORS.moonYellow,
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>
+              <button onClick={handleCheckout} style={{
+                background: 'white',
                 color: CONFIG.BRAND_COLORS.emotionBlack,
-                padding: '12px 24px',
-                borderRadius: '24px',
+                padding: '8px 20px',
+                borderRadius: '30px',
                 fontWeight: 'bold',
-                textDecoration: 'none',
-                border: '2px solid #000',
-                boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                transition: 'transform 0.2s'
-              }}
-              onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
-              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
-            >
-              前往 MBTI Lab 查看測驗歷史 →
-            </a>
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                傳送預訂
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+        )
+      }
 
 
-{/* FLOATING CART BAR */ }
-{
-  cart.length > 0 && (
-    <div style={{
-      position: 'fixed',
-      bottom: '20px',
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '90%',
-      maxWidth: '500px',
-      background: CONFIG.BRAND_COLORS.emotionBlack,
-      color: 'white',
-      borderRadius: '50px',
-      padding: '15px 25px',
-      boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      zIndex: 1500,
-      animation: 'fadeIn 0.3s'
-    }}>
-      <div style={{ fontWeight: 'bold' }}>
-        已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
-      </div>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>
-        <button onClick={handleCheckout} style={{
-          background: 'white',
-          color: CONFIG.BRAND_COLORS.emotionBlack,
-          padding: '8px 20px',
-          borderRadius: '30px',
-          fontWeight: 'bold',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px'
-        }}>
-          傳送預訂
-        </button>
-      </div>
-    </div>
-  )
-}
-
-      </div >
     </>
   );
 };
