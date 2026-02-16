@@ -42,6 +42,8 @@ const CONFIG = {
 const WALLPAPERS = [
   { label: "2026.01", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_01.jpg" },
   { label: "2026.02", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_02.jpg" },
+  { label: "Spring", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/%20New_year.jpg" },
+  { label: "Fortune", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/%20New_year-2.jpg" },
   { label: "2026.03", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_03.jpg" }
 ];
 
@@ -230,6 +232,11 @@ const App = () => {
   const [headerImage, setHeaderImage] = useState('');
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
+  const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [cartToast, setCartToast] = useState<string | null>(null);
+
+  // Helper for LINE browser detection
+  const isLineBrowser = typeof window !== 'undefined' && /Line/i.test(navigator.userAgent);
 
   // Easter Egg System
   const [showEasterEgg, setShowEasterEgg] = useState(false);
@@ -348,6 +355,45 @@ const App = () => {
     }
   };
 
+  // LINE Direct Message Helper
+  const handleLineDirectMessage = (message: string) => {
+    // 這裡會直接把文字帶到 LINE 輸入框，讓顧客「打開就可以按送出」
+    const encodedMsg = encodeURIComponent(message);
+    const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
+
+    if (isMobileDevice()) {
+      // 手機：直接跳轉到 LINE 官方帳號聊天視窗（已帶入訊息）
+      window.location.href = lineUrl;
+    } else {
+      // 桌機：開新分頁一樣帶入訊息，顧客只要按送出即可
+      window.open(lineUrl, '_blank');
+    }
+  };
+
+  // Existing unlock effect
+  const [showAllCompleteModal, setShowAllCompleteModal] = useState(false); // Added this state variable
+  useEffect(() => {
+    if (foundEggs.length === 8 && !showAllCompleteModal) {
+      setTimeout(() => {
+        // Only show if not already shown in this session (simple check)
+        setShowAllCompleteModal(true);
+        track('easter_egg_complete', { count: 8 });
+      }, 1000);
+    }
+  }, [foundEggs, showAllCompleteModal]); // Added showAllCompleteModal to dependency array
+
+  // Add unlock_all query param for testing
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('unlock_all') === 'true') {
+        const cheatEggs = [1, 2, 3, 4, 5, 6, 7, 8];
+        setFoundEggs(cheatEggs);
+        localStorage.setItem('moonmoon_found_eggs', JSON.stringify(cheatEggs));
+      }
+    }
+  }, []);
+
   // Easter Egg Data
   const EASTER_EGGS = [
     {
@@ -427,6 +473,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // New "Smart Form" Fields
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   // Desktop Order Success Modal
   const [showDesktopOrderSuccess, setShowDesktopOrderSuccess] = useState(false);
   const [orderMessage, setOrderMessage] = useState('');
@@ -434,6 +481,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [showValentineModal, setShowValentineModal] = useState(false);
   // VIP Island Modal
   const [showVipModal, setShowVipModal] = useState(false);
+  const [showHiddenMenu, setShowHiddenMenu] = useState(false);
+
+  // Lunar New Year Eggs
+  const [showRedEnvelopeModal, setShowRedEnvelopeModal] = useState(false);
+  const [showGoldCoinModal, setShowGoldCoinModal] = useState(false);
 
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
@@ -694,6 +746,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }]
         });
 
+        // UI Feedback: Toast
+        setCartToast(`已加入：${itemName}`);
+        setTimeout(() => setCartToast(null), 2500);
+
         return [...prev, { name: itemName, spec, price, count: 1 }];
       }
     });
@@ -738,18 +794,24 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const confirmAndSend = async () => {
+    if (submitting) return;
+    setSubmitting(true);
+
     // 1. Validation
     if (!customerName || customerName.length < 2) {
       alert('請填寫完整姓名 (至少 2 個字)');
+      setSubmitting(false);
       return;
     }
     const phoneRegex = /^09\d{8}$/;
     if (!customerPhone || !phoneRegex.test(customerPhone)) {
       alert('請填寫有效的手機號碼 (09開頭共10碼)');
+      setSubmitting(false);
       return;
     }
     if (!pickupDate) {
       alert('請選擇取貨日期');
+      setSubmitting(false);
       return;
     }
 
@@ -757,27 +819,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     const minDate = getMinPickupDate();
     if (pickupDate < minDate) {
       alert('取貨日期至少需要兩天前預訂');
+      setSubmitting(false);
       return;
     }
     if (isMonday(pickupDate)) {
       alert('週一為公休日，請選擇其他日期');
+      setSubmitting(false);
       return;
     }
 
-    // 2. Generate Order ID (Simple Timestamp-Random)
-    const now = new Date();
-    const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-    const randPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const orderId = `ORD${datePart}${randPart}`; // e.g., ORD0127042
-
-    const totalAmount = calculateTotal();
-    const gaClientId = getGAClientId();
-    // Use stored UTM params (captured on page load) instead of reading at checkout
-    const utmParams = storedUTMParams || getUTMParams();
-
-    // Order data prepared for Supabase insert
-
     try {
+      // 2. Generate Order ID (Simple Timestamp-Random)
+      const now = new Date();
+      const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+      const randPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+      const orderId = `ORD${datePart}${randPart}`;
+
+      const totalAmount = calculateTotal();
+      const gaClientId = getGAClientId();
+      const utmParams = storedUTMParams || getUTMParams();
+
       // 3. Save to Supabase
       const { data: order, error: orderError } = await supabase
         .from('shop_orders')
@@ -788,7 +849,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           customer_email: user?.email || null,
           total_amount: totalAmount,
           pickup_date: pickupDate,
-          order_note: orderNote || null, // Explicitly save even if empty string
+          order_note: orderNote || null,
           user_id: user?.id || null,
           payment_status: 'pending',
           source: 'website',
@@ -835,7 +896,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         });
       }
 
-      // 6. Build LINE message with payment info
+      // 6. Build LINE message
       let msg = `【月島甜點訂單確認】\n`;
       msg += `訂單編號：${orderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
@@ -853,47 +914,27 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       msg += `\n付款完成後請回傳「後五碼」\n`;
       msg += `   （轉帳通知中的後五碼數字）`;
 
-      // 7. Device-aware redirect to LINE
+      // 7. Redirect
       const encodedMsg = encodeURIComponent(msg);
       const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
 
-      // Close modal and clear cart
       setShowCheckoutConfirm(false);
       clearCart();
 
-      // Check if user is on mobile device
       if (isMobileDevice()) {
-        // MOBILE: Direct redirect to LINE app
-        try {
-          window.location.href = lineUrl;
-        } catch (error) {
-          console.error('LINE redirect error:', error);
-          // Fallback: Copy to clipboard
-          if (navigator.clipboard) {
-            navigator.clipboard.writeText(msg).then(() => {
-              alert(`訂單已建立！訂單編號：${orderId}\n\n已複製訂單訊息到剪貼簿，請開啟 LINE 並貼上傳送。`);
-            }).catch(() => {
-              alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
-            });
-          } else {
-            alert(`訂單已建立！訂單編號：${orderId}\n\n請手動開啟 LINE 並傳送以下訊息：\n\n${msg}`);
-          }
-        }
+        window.location.href = lineUrl;
       } else {
-        // DESKTOP: Show order success modal with copy option
         setOrderMessage(msg);
         setShowDesktopOrderSuccess(true);
       }
-
-
-
     } catch (error) {
       console.error('結帳錯誤:', error);
       alert('發生錯誤，請稍後再試');
+    } finally {
+      setSubmitting(false);
     }
-
-
   };
+
 
   // --- AUTH ---
   useEffect(() => {
@@ -1012,32 +1053,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     const svgContent = `
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <rect width="100%" height="100%" fill="${CONFIG.BRAND_COLORS.creamWhite}"/>
-        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="5,5"/>
+        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="8,8"/>
         <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
-        <text x="40" y="60" font-family="Arial, sans-serif" font-size="14" fill="#666">MOON MOON MISSION CARD</text>
-        <text x="40" y="100" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">STATE:</text>
-        <text x="40" y="130" font-family="Arial, sans-serif" font-size="20" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
         
-        <line x1="40" y1="150" x2="360" y2="150" stroke="#ddd" stroke-width="1"/>
+        <text x="40" y="60" font-family="'Inter', sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#888">MOON MOON MISSION CARD</text>
         
-        <text x="40" y="180" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
-        <text x="40" y="205" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[0]}</text>
-        <text x="40" y="230" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[1]}</text>
-        <text x="40" y="255" font-family="Arial, sans-serif" font-size="13" fill="#333">• ${recommendedItemsForCard[2]}</text>
+        <text x="40" y="100" font-family="'Inter', sans-serif" font-weight="bold" font-size="14" fill="#aaa">CURRENT STATE:</text>
+        <text x="40" y="135" font-family="serif" font-size="28" font-weight="bold" letter-spacing="1" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
         
-        <line x1="40" y1="280" x2="360" y2="280" stroke="#ddd" stroke-width="1"/>
+        <line x1="40" y1="160" x2="360" y2="160" stroke="#000" stroke-width="0.5"/>
         
-        <rect x="40" y="295" width="320" height="100" fill="#f9f9f9" stroke="#ddd" stroke-width="1"/>
-        <text x="60" y="320" font-family="Arial, sans-serif" font-weight="bold" font-size="14" fill="#000">YOUR MISSION:</text>
-        <text x="60" y="345" font-family="Arial, sans-serif" font-size="12" fill="#333">${data.mission.substring(0, 40)}</text>
-        <text x="60" y="370" font-family="Arial, sans-serif" font-size="12" fill="#333">${data.mission.substring(40)}</text>
+        <text x="40" y="195" font-family="'Inter', sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
+        <text x="40" y="225" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[0]}</text>
+        <text x="40" y="255" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[1]}</text>
+        <text x="40" y="285" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[2]}</text>
         
-        <rect x="40" y="420" width="320" height="100" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2"/>
-        <text x="60" y="450" font-family="Arial, sans-serif" font-weight="bold" font-size="16" fill="#000">兌換券 COUPON</text>
-        <text x="60" y="475" font-family="Arial, sans-serif" font-size="13" fill="#000">完成任務來店出示此卡</text>
-        <text x="60" y="498" font-family="Arial, sans-serif" font-size="13" fill="#000">即可兌換「烤布丁一個」</text>
+        <line x1="40" y1="315" x2="360" y2="315" stroke="#000" stroke-width="0.5"/>
         
-        <text x="40" y="560" font-family="monospace" font-size="11" fill="#999">VALID FOR 24 HOURS | moon-island.vercel.app</text>
+        <rect x="40" y="335" width="320" height="90" fill="#fcfcfc" stroke="#eee" stroke-width="1" rx="8"/>
+        <text x="60" y="360" font-family="'Inter', sans-serif" font-weight="800" font-size="12" fill="#aaa">OUR MISSION FOR YOU:</text>
+        <text x="60" y="388" font-family="serif" font-size="14" line-height="1.6" fill="#444">
+          <tspan x="60" dy="0">${data.mission.substring(0, 22)}</tspan>
+          <tspan x="60" dy="20">${data.mission.substring(22, 44)}</tspan>
+          <tspan x="60" dy="20">${data.mission.substring(44)}</tspan>
+        </text>
+        
+        <rect x="40" y="445" width="320" height="95" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2" rx="4"/>
+        <text x="200" y="475" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="18" fill="#000">兌換券 COUPON</text>
+        <text x="200" y="500" text-anchor="middle" font-family="serif" font-size="13" font-weight="bold" fill="#000">來店出示此卡 即可兌換「烤布丁」</text>
+        <text x="200" y="520" text-anchor="middle" font-family="'Inter', sans-serif" font-size="9" font-weight="bold" fill="#000" opacity="0.6">COMPLETE MISSION / SHOW THIS CARD</text>
+        
+        <text x="200" y="575" text-anchor="middle" font-family="monospace" font-size="10" fill="#bbb">VALID FOR 24 HRS | MOON ISLAND NAVIGATION</text>
       </svg>
     `;
 
@@ -1764,10 +1810,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             background: CONFIG.BRAND_COLORS.moonYellow,
             border: '2px solid black',
             fontSize: '0.9rem',
-            boxShadow: '4px 4px 0 rgba(0,0,0,0.1)'
+            boxShadow: '4px 4px 0 rgba(0,0,0,0.1)',
+            position: 'relative'
           }}>
             <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q1</span>
             <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
+
+            {/* Gold Coin Egg (Hidden in Yellow Background) */}
+            {/* REMOVED: Moved to 'Fortune' (New_year-2.jpg) wallpaper based on user feedback */}
           </div>
 
           <div
@@ -1850,7 +1900,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Logo Integration */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto' }} />
+            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
               Island Landing
             </h1>
@@ -1883,6 +1933,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div>
               <span className="font-mono text-blue" style={{ fontSize: '1rem' }}>01 // INTERACT</span><br />
               <strong>我想登島互動 (Check-in)</strong>
+              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>*將開啟護照外部網頁</div>
             </div>
             <span>↗</span>
           </a>
@@ -1908,7 +1959,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </button>
           <button className="btn-entry" onClick={() => {
             track('click_hero_easter_egg_progress');
-            alert(`🥚 彩蛋收集進度\n\n已發現: ${foundEggs.length}/8\n\n提示：仔細觀察頁面中那些\n看似不起眼的小圖標...\n\n他們藏著 Kiwimu 的秘密 ✨`);
+            setShowDiscoverModal(true);
           }}>
             <div>
               <span className="font-mono" style={{ fontSize: '1rem' }}>04 // DISCOVER</span><br />
@@ -2162,7 +2213,103 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
         {/* E. SOFT BUY (MENU ENTRY) */}
         <section id="menu-section" className="section-padding border-t" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
-          <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ARCHIVE / COLLECTION</h2>
+          <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ISLAND MENU / VIP ISLANDS</h2>
+
+          {/* HIDDEN MENU SECTION (Daily Secret) */}
+          {(() => {
+            const hiddenCat = menuCategories.find(c => c.id === 'hidden');
+            if (!hiddenCat || hiddenCat.items.length === 0) return null;
+
+            return (
+              <div style={{ maxWidth: '600px', margin: '0 auto 40px auto' }}>
+                {!showHiddenMenu ? (
+                  <div
+                    className="hidden-seal-container"
+                    onClick={() => {
+                      setShowHiddenMenu(true);
+                      track('reveal_hidden_menu');
+                    }}
+                    style={{
+                      background: '#fff',
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      padding: '40px 20px',
+                      textAlign: 'center',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+                      backgroundImage: 'radial-gradient(#f0f0f0 1px, transparent 1px)',
+                      backgroundSize: '20px 20px'
+                    }}
+                  >
+                    <div className="wax-seal"></div>
+                    <div className="font-mono" style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px', letterSpacing: '0.2em' }}>
+                      TOP SECRET
+                    </div>
+                    <h3 style={{ fontSize: '1.2rem', margin: 0, opacity: 0.6 }}>本日隱藏限定 / Daily Secret</h3>
+                    <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '15px' }}>
+                      島主的私房信籤，揭開今日驚喜
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`hidden-content ${showHiddenMenu ? 'revealed' : ''}`}>
+                    <div style={{
+                      background: '#fff9e6',
+                      border: '2px solid #f0e0b0',
+                      borderRadius: '16px',
+                      padding: '30px',
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
+                      position: 'relative'
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        top: '15px',
+                        right: '15px',
+                        fontSize: '0.7rem',
+                        color: '#b0a070',
+                        fontWeight: 'bold',
+                        border: '1px solid #b0a070',
+                        padding: '2px 8px',
+                        borderRadius: '4px'
+                      }}>
+                        SECRET SERIES
+                      </div>
+                      <h3 className="font-mono" style={{ textAlign: 'center', marginBottom: '25px', color: '#8b6b23' }}>
+                        ✧ 本日隱藏限定 ✧
+                      </h3>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                        {hiddenCat.items.map((item: any, idx: number) => (
+                          <div key={idx} style={{ textAlign: 'center', padding: '15px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
+                            {item.image && <img src={item.image} alt={item.name} style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', border: '2px solid #fff' }} />}
+                            <div style={{ fontWeight: 800, fontSize: '1rem', color: '#333' }}>{item.name}</div>
+                            {item.description && <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px' }}>{item.description}</div>}
+                            <div style={{ marginTop: '8px', color: '#8b6b23', fontWeight: 'bold' }}>
+                              {item.prices && item.prices.length > 0 ? `$${item.prices[0].price}` : '時價'}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setShowHiddenMenu(false)}
+                        style={{
+                          display: 'block',
+                          margin: '25px auto 0 auto',
+                          background: 'none',
+                          border: 'none',
+                          color: '#b0a070',
+                          fontSize: '0.8rem',
+                          textDecoration: 'underline',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        收起信籤
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Easter Egg #6 - 秘密配方 */}
           <img
@@ -2262,7 +2409,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       </div>
 
       {/* NEW: CURATED CONTENT */}
-      <div style={{ marginTop: '80px' }}>
+      <div style={{ marginTop: '80px', padding: '0 20px' }}>
         <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED EXHIBITION</h2>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
@@ -2319,6 +2466,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div>
                   <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
                   <strong>WALLPAPER (桌布)</strong>
+                  <div style={{ fontSize: '0.7rem', color: '#888', marginTop: '4px', lineHeight: 1.5 }}>
+                    小提醒：桌布裡藏著一些小細節，多多放大觀察，說不定會發現限定小彩蛋喔！
+                  </div>
                 </div>
                 {isEasterEggComplete ? (
                   <span style={{ opacity: 0.6 }}>🔓</span>
@@ -2381,14 +2531,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       <div style={{ position: 'relative' }}>
                         <img src={wp.url} alt={wp.label} style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
 
-                        {/* Valentine's Day Hidden Heart Egg */}
-                        {wp.label === '2026.03' && (
+                        {/* Red Envelope Egg (Hidden in Spring Wallpaper) */}
+                        {wp.label === 'Spring' && (
                           <div
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setShowValentineModal(true);
-                              track('valentine_egg_clicked', { source: 'wallpaper_heart' });
+                              setShowRedEnvelopeModal(true);
+                              track('lny_egg_clicked', { source: 'wallpaper_red_envelope' });
                             }}
                             style={{
                               position: 'absolute',
@@ -2413,7 +2563,43 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
                             }}
                           >
-                            ❤️
+                            🧧
+                          </div>
+                        )}
+
+                        {/* Gold Coin Egg (Hidden in Fortune/Yellow Wallpaper) */}
+                        {wp.label === 'Fortune' && (
+                          <div
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setShowGoldCoinModal(true);
+                              track('lny_egg_clicked', { source: 'wallpaper_gold_coin' });
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '25%',
+                              right: '20%',
+                              width: '24px',
+                              height: '24px',
+                              cursor: 'pointer',
+                              fontSize: '20px',
+                              lineHeight: '24px',
+                              textAlign: 'center',
+                              filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
+                              transition: 'transform 0.2s, filter 0.2s',
+                              zIndex: 10
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.3)';
+                              e.currentTarget.style.filter = 'drop-shadow(0 4px 8px rgba(255,215,0,0.8))';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                              e.currentTarget.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                            }}
+                          >
+                            💰
                           </div>
                         )}
                       </div>
@@ -2455,11 +2641,15 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           </p>
                           <div
                             onClick={() => {
-                              navigator.clipboard.writeText(code).then(() => {
-                                alert('已複製兌換碼！');
-                              }).catch(() => {
-                                // Fallback: just let them copy manually
-                              });
+                              if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(code).then(() => {
+                                  alert('已複製兌換碼！');
+                                }).catch(() => {
+                                  alert('複製好像失敗了，請長按選取文字手動複製或截圖保存喔！');
+                                });
+                              } else {
+                                alert('目前裝置不支援一鍵複製，請長按選取文字手動複製或截圖保存喔！');
+                              }
                             }}
                             style={{
                               background: '#000',
@@ -2613,20 +2803,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <ul style={{ listStyle: 'none' }}>
                 <li style={{ marginBottom: '12px' }}>
                   <a href={CONFIG.LINKS.instagram_moonmoon_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" /></svg>
                     <span>Instagram</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
                   </a>
                 </li>
                 <li style={{ marginBottom: '12px' }}>
                   <a href={CONFIG.LINKS.line_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 10.304c0-5.231-5.383-9.504-12-9.504-6.617 0-12 4.273-12 9.504 0 4.691 4.272 8.611 10.05 9.358.391.084.922.258 1.057.592.121.298.079.766.038 1.068l-.164 1.006c-.049.303-.239 1.187 1.029.648 1.268-.539 6.848-4.032 9.339-6.903l.01-.01c1.479-1.637 2.641-3.619 2.641-5.859zm-16.142 4.671h-2.131c-.347 0-.631-.284-.631-.631v-4.437c0-.347.284-.631.631-.631h2.131c.347 0 .631.284.631.631s-.284.631-.631.631h-1.5v.942h1.5c.347 0 .631.284.631.631s-.284.631-.631.631h-1.5v.942h1.5c.347 0 .631.284.631.631s-.284.631-.631.631zm3.837 0h-2.131c-.347 0-.631-.284-.631-.631v-4.437c0-.347.284-.631.631-.631.347 0 .631.284.631.631v3.806h1.5c.347 0 .631.284.631.631s-.284.631-.631.631zm2.345 0c-.347 0-.631-.284-.631-.631v-4.437c0-.347.284-.631.631-.631s.631.284.631.631v4.437c0 .347-.284.631-.631.631zm5.222 0h-2.131c-.347 0-.631-.284-.631-.631v-4.437c0-.347.284-.631.631-.631h2.131c.347 0 .631.284.631.631s-.284.631-.631.631h-1.5v.942h1.5c.347 0 .631.284.631.631s-.284.631-.631.631h-1.5v.942h1.5c.347 0 .631.284.631.631s-.284.631-.631.631h-1.5v.942h1.5c.347 0 .631.284.631.631s-.284.631-.631.631z" /></svg>
                     <span>LINE Official</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
                   </a>
                 </li>
                 <li style={{ marginBottom: '12px' }}>
                   <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.59 17.357c-.214.307-.605.404-.919.228-2.553-1.423-5.714-1.748-9.457-.932-.34.07-.675-.145-.745-.485-.07-.339.145-.675.485-.745 4.091-.89 7.643-.51 10.509 1.096.31.205.41.605.227.938zm1.488-3.262c-.269.414-.81.543-1.224.274-2.885-1.774-7.295-2.288-10.71-1.252-.469.14-1.02-.128-1.16-.597-.14-.469.128-1.019.597-1.159 3.844-1.164 8.79-.571 12.115 1.503.414.27 1.54.811 1.382 1.331-.158.52-.81 1.224.274z" /></svg>
                     <span>Spotify Playlist</span>
-                    <span style={{ fontSize: '0.8em' }}>↗</span>
                   </a>
                 </li>
               </ul>
@@ -2639,6 +2829,50 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       </div >
 
       {/* --- MODALS --- */}
+
+      {/* DISCOVER PROGRESS MODAL (M1) */}
+      {showDiscoverModal && (
+        <div className="modal-overlay" onClick={() => setShowDiscoverModal(false)} style={{ zIndex: 1000 }}>
+          <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)' }}>
+            <div className="modal-header" style={{ border: 'none', paddingBottom: 0 }}>
+              <div className="font-mono" style={{ fontSize: '0.8rem', color: '#888' }}>PROGRESS</div>
+              <button className="close-btn" onClick={() => setShowDiscoverModal(false)}>×</button>
+            </div>
+            <div className="modal-body" style={{ textAlign: 'center', padding: '10px 30px 40px 30px' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🥚</div>
+              <h3 className="font-mono" style={{ fontSize: '1.2rem', marginBottom: '15px' }}>找尋彩蛋 ({foundEggs.length}/8)</h3>
+              <div style={{ height: '8px', width: '100%', background: '#eee', borderRadius: '4px', marginBottom: '20px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${(foundEggs.length / 8) * 100}%`, background: CONFIG.BRAND_COLORS.moonYellow, transition: 'width 0.8s ease-out' }} />
+              </div>
+              <p style={{ lineHeight: '1.8', color: '#555', fontSize: '0.9rem' }}>
+                目前收集到 {foundEggs.length} / 8 個彩蛋！<br />
+                仔細觀察頁面中那些看似不起眼的小圖標...<br />
+                他們藏著 Kiwimu 的秘密 ✨
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CART FEEDBACK TOAST (M7) */}
+      {cartToast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '100px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '30px',
+          fontSize: '0.9rem',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+          animation: 'fadeInUp 0.3s ease-out'
+        }}>
+          {cartToast}
+        </div>
+      )}
 
       {/* MENU MODAL */}
       {
@@ -3161,6 +3395,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   >
                     前往 LINE@ 兌換
                   </a>
+                  {/* Checkout Button */}
+                  <button
+                    onClick={confirmAndSend}
+                    disabled={submitting}
+                    className="checkout-btn"
+                    style={{
+                      width: '100%',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      color: 'black',
+                      fontWeight: 'bold',
+                      border: 'none',
+                      fontSize: '1.1rem',
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                      marginTop: '10px'
+                    }}
+                  >
+                    {submitting ? '提交中...' : (isLineBrowser ? 'LINE Pay 結帳' : '確認訂單並提交')}
+                  </button>
                 </div>
 
                 <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#ccc', marginTop: '20px' }}>
@@ -3230,6 +3484,141 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       }
 
 
+
+
+      {/* RED ENVELOPE MODAL */}
+      {
+        showRedEnvelopeModal && (
+          <div className="modal-overlay" onClick={() => setShowRedEnvelopeModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: '#D93025', // Red
+                  color: '#fff',
+                  borderBottom: '1px solid #eee'
+                }}
+              >
+                <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>LUNAR NEW YEAR SPECIAL</h3>
+                <button className="close-btn" onClick={() => setShowRedEnvelopeModal(false)} style={{ color: '#fff', background: 'rgba(0,0,0,0.2)' }}>×</button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '30px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>🧧</div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: '#D93025' }}>新年快樂！Happy New Year!</h3>
+                <p style={{
+                  fontSize: '1rem',
+                  lineHeight: '1.8',
+                  color: '#444',
+                  whiteSpace: 'pre-line',
+                  marginBottom: '25px',
+                  fontStyle: 'italic'
+                }}>
+                  "這包不是壓歲錢，是壓驚錢。<br />
+                  過去一年你辛苦了，真的。<br />
+                  新的一年，願你的焦慮像鮮奶油一樣融化，<br />
+                  願你的福氣像海綿蛋糕一樣蓬鬆！"
+                  <br /><br />
+                  — Kiwimu (遞)
+                </p>
+
+                <button
+                  className="btn-primary"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    background: '#D93025',
+                    color: '#fff',
+                    textDecoration: 'none',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(217, 48, 37, 0.4)',
+                    border: 'none',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    handleLineDirectMessage('新年快樂');
+                    track('lny_action_click', { type: 'red_envelope' });
+                  }}
+                >
+                  前往 LINE 領取 (輸入: 新年快樂) ➔
+                </button>
+                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
+                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#D93025', fontWeight: 'bold' }}>新年快樂</span>」即可抽獎！
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* GOLD COIN MODAL */}
+      {
+        showGoldCoinModal && (
+          <div className="modal-overlay" onClick={() => setShowGoldCoinModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '450px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: '#FFD700', // Gold
+                  color: '#000',
+                  borderBottom: '1px solid #eee'
+                }}
+              >
+                <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>WEALTH & FORTUNE</h3>
+                <button className="close-btn" onClick={() => setShowGoldCoinModal(false)} style={{ color: '#000', background: 'rgba(255,255,255,0.4)' }}>×</button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '30px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '15px' }}>💰</div>
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '15px', color: '#B8860B' }}>今年財源滾滾來！</h3>
+                <p style={{
+                  fontSize: '1rem',
+                  lineHeight: '1.8',
+                  color: '#444',
+                  whiteSpace: 'pre-line',
+                  marginBottom: '25px',
+                  fontStyle: 'italic'
+                }}>
+                  "錢不是萬能的，但沒有錢買甜點是萬萬不能的。<br />
+                  這枚金幣送給你，<br />
+                  祝你新的一年，荷包跟我的肚子一樣，<br />
+                  越來越圓，越來越滿！"
+                  <br /><br />
+                  — Kiwimu (拍肚皮)
+                </p>
+
+                <button
+                  className="btn-primary"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    background: '#FFD700',
+                    color: '#000',
+                    textDecoration: 'none',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
+                    border: 'none',
+                    padding: '12px',
+                    fontSize: '1rem',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => {
+                    handleLineDirectMessage('golden pudding');
+                    track('lny_action_click', { type: 'gold_coin' });
+                  }}
+                >
+                  前往 LINE 領取 (輸入: golden pudding) ➔
+                </button>
+                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
+                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#B8860B', fontWeight: 'bold' }}>golden pudding</span>」<br />獲得布丁買一送一券！
+                </p>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       {/* LOGIN MODAL */}
       {
@@ -3476,7 +3865,63 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         )
       }
 
-
+      <style>{`
+        .hidden-seal-container {
+          cursor: pointer;
+          position: relative;
+          transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          margin-bottom: 30px;
+        }
+        .hidden-seal-container:hover {
+          transform: translateY(-5px);
+        }
+        .wax-seal {
+          width: 60px;
+          height: 60px;
+          background: #8b0000;
+          border-radius: 50%;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          transition: all 0.6s ease;
+          border: 2px solid #5d0000;
+        }
+        .wax-seal::after {
+          content: 'M';
+          color: rgba(255,255,255,0.4);
+          font-family: serif;
+          font-size: 24px;
+          font-weight: bold;
+        }
+        .wax-seal.broken {
+          transform: translate(-50%, -50%) scale(1.5);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .hidden-content {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.8s ease-in-out;
+        }
+        .hidden-content.revealed {
+          max-height: 2000px;
+        }
+        @keyframes seal-shake {
+          0% { transform: translate(-50%, -50%) rotate(0); }
+          25% { transform: translate(-52%, -50%) rotate(-5deg); }
+          75% { transform: translate(-48%, -50%) rotate(5deg); }
+          100% { transform: translate(-50%, -50%) rotate(0); }
+        }
+        .hidden-seal-container:hover .wax-seal {
+          animation: seal-shake 0.3s infinite;
+        }
+      `}</style>
     </>
   );
 };
