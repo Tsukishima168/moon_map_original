@@ -896,7 +896,31 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         });
       }
 
-      // 6. Build LINE message
+      // 6. Discord 通知（非同步，不影響使用者流程）
+      if (typeof window !== 'undefined') {
+        try {
+          fetch('/api/notify-discord-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId,
+              totalAmount,
+              pickupDate,
+              customerName,
+              customerPhone,
+              orderNote,
+              items: cart,
+              source: 'moon_map_menu',
+            }),
+          }).catch((err) => {
+            console.error('[DISCORD][ORDER] Failed to notify (client):', err);
+          });
+        } catch (err) {
+          console.error('[DISCORD][ORDER] Failed to notify (unexpected):', err);
+        }
+      }
+
+      // 7. Build LINE message
       let msg = `【月島甜點訂單確認】\n`;
       msg += `訂單編號：${orderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
@@ -914,7 +938,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       msg += `\n付款完成後請回傳「後五碼」\n`;
       msg += `   （轉帳通知中的後五碼數字）`;
 
-      // 7. Redirect
+      // 8. Redirect
       const encodedMsg = encodeURIComponent(msg);
       const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
 
@@ -1046,6 +1070,47 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
     const recommendedItemsForCard = mbtiData ? mbtiData.recommendedItems : data.recommendedItems;
 
+    // 隨機展籤優惠（皆為「續杯半價」，但語氣不同）
+    const commonVariants = [
+      // Variant 1：屁股黏住篇
+      {
+        header: '屁股黏住了 COUPON',
+        line1: '既然都坐這麼久了，不如再來一杯。',
+        line2: '分享到 IG 限動＋標記 @moon_moon_dessert',
+        footer: '出示此卡＋同日同款飲料・即可享續杯半價',
+      },
+      // Variant 2：咖啡因成癮篇
+      {
+        header: '續命專用 50% OFF',
+        line1: '看你一臉需要咖啡因的樣子。',
+        line2: '請先發 IG 限動並標記 @moon_moon_dessert',
+        footer: 'VALID TODAY・SAME DRINK・SHOW STORY FOR REFILL 50% OFF',
+      },
+      // Variant 3：單純口渴篇
+      {
+        header: '再來一杯 HALF PRICE',
+        line1: '第一杯是享受，第二杯是為了不想動。',
+        line2: 'Kiwimu 要求：限動標記 @moon_moon_dessert 才能啟動續杯半價',
+        footer: '限當日使用・限同品項・出示限動與此卡・Kiwimu 認證',
+      },
+    ];
+
+    // 隱藏版 Variant 4：稀有出現（約 5% 機率）
+    const rareVariant = {
+      header: '老闆沒看見 SPECIAL',
+      line1: '噓。雖然我很懶，但偷偷給你一個折扣。',
+      line2: '記得先發 IG 限動＋標記 @moon_moon_dessert 再低調出示此卡。',
+      footer: 'SECRET COUPON・TODAY ONLY・REFILL 50% OFF',
+    };
+
+    let coupon;
+    const roll = Math.random();
+    if (roll < 0.05) {
+      coupon = rareVariant;
+    } else {
+      coupon = commonVariants[Math.floor(Math.random() * commonVariants.length)];
+    }
+
     const width = 400;
     const height = 600;
 
@@ -1079,11 +1144,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </text>
         
         <rect x="40" y="445" width="320" height="95" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2" rx="4"/>
-        <text x="200" y="475" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="18" fill="#000">兌換券 COUPON</text>
-        <text x="200" y="500" text-anchor="middle" font-family="serif" font-size="13" font-weight="bold" fill="#000">來店出示此卡 即可兌換「烤布丁」</text>
-        <text x="200" y="520" text-anchor="middle" font-family="'Inter', sans-serif" font-size="9" font-weight="bold" fill="#000" opacity="0.6">COMPLETE MISSION / SHOW THIS CARD</text>
+        <text x="200" y="472" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" font-size="18" fill="#000">${coupon.header}</text>
+        <text x="200" y="497" text-anchor="middle" font-family="serif" font-size="13" font-weight="bold" fill="#000">${coupon.line1}</text>
+        <text x="200" y="517" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" font-weight="bold" fill="#000" opacity="0.9">${coupon.line2}</text>
         
-        <text x="200" y="575" text-anchor="middle" font-family="monospace" font-size="10" fill="#bbb">VALID FOR 24 HRS | MOON ISLAND NAVIGATION</text>
+        <text x="200" y="575" text-anchor="middle" font-family="monospace" font-size="9" fill="#bbb">${coupon.footer}</text>
       </svg>
     `;
 
