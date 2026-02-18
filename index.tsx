@@ -47,6 +47,43 @@ const WALLPAPERS = [
   { label: "2026.03", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_03.jpg" }
 ];
 
+// -- Fortune Slip (心情展籤) System --
+const FORTUNES = [
+  { level: '大吉', text: '新的一年，願你的煩惱像我的工作一樣少。' },
+  { level: '中吉', text: '變胖沒關係，那是你對甜點尊重的重量。' },
+  { level: '小吉', text: '把錢變成喜歡的形狀，例如千層蛋糕。' },
+  { level: '吉', text: '今天的運氣，適合再來一顆布丁。' },
+  { level: '大吉', text: '願你的財運，像台南的糖度一樣高。' },
+  { level: '中吉', text: '工作可以低糖，但生活要全糖。' },
+  { level: '吉', text: '老闆說，轉到這張的人，今年會變漂亮。' },
+  { level: '小吉', text: '休息是為了走更長的路，吃甜點是為了不想走路。' },
+  { level: '大吉', text: '恭喜，你今年的桃花運會跟鮮奶油一樣順滑。' },
+  { level: '隱藏版', text: 'Kiwimu 覺得你今天長得很好看。' },
+];
+const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
+const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
+function getTodayKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function getTodayFortune(): { level: string; text: string } | null {
+  try {
+    if (localStorage.getItem(FORTUNE_DATE_KEY) === getTodayKey()) {
+      const s = localStorage.getItem(FORTUNE_RESULT_KEY);
+      if (s) return JSON.parse(s);
+    }
+  } catch { /* */ }
+  return null;
+}
+function drawAndSaveFortune(): { level: string; text: string } {
+  const existing = getTodayFortune();
+  if (existing) return existing;
+  const drawn = FORTUNES[Math.floor(Math.random() * FORTUNES.length)];
+  localStorage.setItem(FORTUNE_DATE_KEY, getTodayKey());
+  localStorage.setItem(FORTUNE_RESULT_KEY, JSON.stringify(drawn));
+  return drawn;
+}
+
 // --- SUPABASE STORAGE (圖床，與 Dessert-Booking 共用 menu-images bucket) ---
 const supabaseUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL;
 const MENU_IMAGES_BASE = supabaseUrl ? `${supabaseUrl}/storage/v1/object/public/menu-images` : '';
@@ -486,6 +523,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // Lunar New Year Eggs
   const [showRedEnvelopeModal, setShowRedEnvelopeModal] = useState(false);
   const [showGoldCoinModal, setShowGoldCoinModal] = useState(false);
+
+  // Fortune Slip Modal
+  const [showFortuneModal, setShowFortuneModal] = useState(false);
+  const [currentFortune, setCurrentFortune] = useState<{ level: string; text: string } | null>(null);
 
   // 計算最小可選日期（兩天後）
   const getMinPickupDate = () => {
@@ -2247,8 +2288,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
 
                 {/* 下載按鈕 */}
-                <button className="btn-primary" onClick={handleDownloadCard}>
-                  下載展籤 DOWNLOAD CARD
+                <button className="btn-primary" onClick={() => {
+                  const f = drawAndSaveFortune();
+                  setCurrentFortune(f);
+                  setShowFortuneModal(true);
+                  track('fortune_drawn', { level: f.level, state: selectedState });
+                }}>
+                  抽展籤 DRAW FORTUNE SLIP
+                </button>
+                <button className="btn-primary" onClick={handleDownloadCard} style={{ marginTop: '10px', background: 'transparent', color: '#333', border: '1px solid #ccc' }}>
+                  下載任務卡 DOWNLOAD CARD
                 </button>
               </div>
             );
@@ -3550,6 +3599,95 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
 
 
+      {/* FORTUNE SLIP MODAL */}
+      {
+        showFortuneModal && currentFortune && (
+          <div className="modal-overlay" onClick={() => setShowFortuneModal(false)} style={{ zIndex: 3000 }}>
+            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', zIndex: 3001 }}>
+              <div
+                className="modal-header"
+                style={{
+                  background: '#000',
+                  color: '#fff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '12px 20px'
+                }}
+              >
+                <span style={{ fontWeight: 'bold', fontSize: '0.85rem', letterSpacing: '0.1em' }}>🎴 心情展籤</span>
+                <button className="close-btn" onClick={() => setShowFortuneModal(false)} style={{ color: '#fff', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+              </div>
+
+              <div className="modal-body" style={{ padding: '30px', textAlign: 'center' }}>
+                {/* Fortune Level Badge */}
+                <div style={{ marginBottom: '20px' }}>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '6px 20px',
+                    borderRadius: '999px',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    letterSpacing: '0.15em',
+                    border: '2px solid',
+                    ...(currentFortune.level === '隱藏版'
+                      ? { background: CONFIG.BRAND_COLORS.moonYellow, color: '#000', borderColor: '#000' }
+                      : currentFortune.level === '大吉'
+                        ? { background: '#FEF2F2', color: '#991B1B', borderColor: '#FCA5A5' }
+                        : currentFortune.level === '中吉'
+                          ? { background: '#FFF7ED', color: '#C2410C', borderColor: '#FDBA74' }
+                          : { background: '#F9FAFB', color: '#4B5563', borderColor: '#D1D5DB' })
+                  }}>
+                    {currentFortune.level}
+                  </span>
+                </div>
+
+                {/* Fortune Text */}
+                <p style={{
+                  fontSize: '1.2rem',
+                  fontWeight: 'bold',
+                  lineHeight: '1.8',
+                  color: '#000',
+                  fontFamily: '"Noto Serif TC", serif',
+                  marginBottom: '15px',
+                  padding: '0 10px'
+                }}>
+                  「{currentFortune.text}」
+                </p>
+
+                <p style={{ fontSize: '0.7rem', color: '#aaa', letterSpacing: '0.15em' }}>✨ 來自 Kiwimu 的祝福 ✨</p>
+
+                {/* Divider */}
+                <div style={{ borderTop: '2px dashed #eee', margin: '20px 0' }} />
+
+                {/* Download Card CTA */}
+                <button
+                  onClick={() => {
+                    setShowFortuneModal(false);
+                    handleDownloadCard();
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    border: '2px solid #000',
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  📥 下載任務卡
+                </button>
+
+                <p style={{ fontSize: '0.7rem', color: '#bbb', marginTop: '12px' }}>每日一籤 · 明天再來試試運氣</p>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       {/* RED ENVELOPE MODAL */}
       {
