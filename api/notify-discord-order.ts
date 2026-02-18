@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
-const CHANNEL_ID = '1466020032310939823'; // 與情人節彩蛋共用頻道，之後可抽成環境變數
+const CHANNEL_ID = '1451819433432580202'; // 月島訂單通知頻道
 
 export default async function handler(
   request: VercelRequest,
