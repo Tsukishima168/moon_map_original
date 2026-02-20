@@ -2436,50 +2436,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       )}
                     </div>
 
-                    <div style={{ marginTop: '20px', marginBottom: '16px' }}>
-                      <strong style={{
-                        display: 'block',
-                        fontSize: '0.8rem',
-                        color: '#666',
-                        marginBottom: '8px',
-                        letterSpacing: '0.05em'
-                      }}>YOUR MISSION</strong>
-                      <p style={{
-                        fontSize: '0.95rem',
-                        lineHeight: '1.65',
-                        color: '#222',
-                        margin: 0,
-                        background: '#EEF2F5',
-                        padding: '12px 16px',
-                        borderRadius: '8px'
-                      }}>
-                        {STATE_DATA[selectedState].mission}
-                      </p>
-                    </div>
-
-                    {/* MBTI 測驗引流 */}
-                    <a
-                      href={mbtiMissionUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-small"
-                      onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
-                      style={{
-                        marginBottom: '20px',
-                        background: CONFIG.BRAND_COLORS.moonYellow,
-                        color: CONFIG.BRAND_COLORS.emotionBlack,
-                        border: '2px solid #000',
-                        textAlign: 'center',
-                        display: 'block',
-                        padding: '12px 20px',
-                        fontSize: '0.95rem',
-                        fontWeight: 'bold',
-                        boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                        textDecoration: 'none'
-                      }}
-                    >
-                      想更了解自己？探索你的 MBTI 甜點人格
-                    </a>
 
                     {/* 抽籤按鈕 */}
                     <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => {
@@ -3879,7 +3835,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}>
                   <p style={{ fontSize: '0.9rem', color: '#222', lineHeight: '1.6', margin: 0, fontWeight: 600 }}>
                     🎁 第一步：下載並截圖此展籤<br />
-                    📷 第二步：發布限時動態並標記 <strong style={{ color: '#60A5FA' }}>@moonisland.tw</strong><br />
+                    📷 第二步：發布限時動態並標記 <strong style={{ color: '#60A5FA' }}>@moon_moon_dessert</strong><br />
                     即可獲得「第二杯飲品半價優惠」！
                   </p>
                 </div>
