@@ -13,12 +13,13 @@ export default async function handler(
 
     const { remaining, timestamp } = request.body;
     const botToken = process.env.DISCORD_TOKEN;
+    const webhookUrl = process.env.DISCORD_WEBHOOK_VALENTINE_URL || process.env.DISCORD_WEBHOOK_URL;
 
-    if (!botToken) {
-        console.error('[DISCORD] ❌ DISCORD_TOKEN not configured');
+    if (!botToken && !webhookUrl) {
+        console.error('[DISCORD] ❌ Neither DISCORD_WEBHOOK_URL nor DISCORD_TOKEN is configured');
         return response.status(200).json({
             status: 'error',
-            message: 'Bot token not configured'
+            message: 'Discord credentials not configured'
         });
     }
 
@@ -32,12 +33,21 @@ export default async function handler(
             content: `💛 **有人找到情人節金色彩蛋！**\n\n🎫 剩餘數量：**${remaining}/50**\n⏰ 時間：${timestamp}\n\n— 來自月島甜點 🌙`,
         };
 
-        const discordRes = await fetch(`${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`, {
+        let fetchUrl = '';
+        const fetchHeaders: Record<string, string> = {
+            'Content-Type': 'application/json'
+        };
+
+        if (webhookUrl) {
+            fetchUrl = webhookUrl;
+        } else {
+            fetchUrl = `${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`;
+            fetchHeaders['Authorization'] = `Bot ${botToken}`;
+        }
+
+        const discordRes = await fetch(fetchUrl, {
             method: 'POST',
-            headers: {
-                'Authorization': `Bot ${botToken}`,
-                'Content-Type': 'application/json'
-            },
+            headers: fetchHeaders,
             body: JSON.stringify(discordPayload),
         });
 
