@@ -50,11 +50,12 @@ export default async function handler(
             'Content-Type': 'application/json'
         };
 
-        if (webhookUrl) {
-            fetchUrl = webhookUrl;
-        } else {
+        if (botToken) {
+            // Prioritize Bot Token as requested
             fetchUrl = `${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`;
             fetchHeaders['Authorization'] = `Bot ${botToken}`;
+        } else if (webhookUrl) {
+            fetchUrl = webhookUrl;
         }
 
         const discordRes = await fetch(fetchUrl, {
