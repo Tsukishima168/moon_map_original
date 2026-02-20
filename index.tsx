@@ -1311,126 +1311,258 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     img.src = url;
   };
 
-  const today = new Date();
-  const dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+  // --- MBTI PERSONALIZATION STATE ---
+  const [mbtiType, setMbtiType] = useState<string | null>(null);
+
+  // Parse MBTI from URL on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const mbti = params.get('mbti');
+      if (mbti) {
+        setMbtiType(mbti);
+      }
+    }
+  }, []);
+
+  // Auto-expand categories containing recommended items
+  useEffect(() => {
+    if (mbtiType && menuCategories.length > 0) {
+      const typeKey = mbtiType.split('-')[0]; // e.g., "INTJ-A" -> "INTJ"
+      const mapping = MBTI_DESSERT_MAPPING[typeKey];
+
+      if (mapping && mapping.recommendedItems) {
+        const recItems = mapping.recommendedItems;
+        const catsToExpand = new Set<string>();
+
+        // Find which categories have these items
+        menuCategories.forEach(cat => {
+          const hasRec = cat.items.some((item: any) => recItems.includes(item.name));
+          if (hasRec) {
+            catsToExpand.add(cat.id);
+          }
+        });
+
+        // Update collapsedCategories: remove IDs that should be expanded
+        setCollapsedCategories(prev => {
+          const next = new Set(prev);
+          catsToExpand.forEach(id => next.delete(id));
+          return next;
+        });
+      }
+    }
+  }, [mbtiType, menuCategories]);
 
   // 甜點目錄區塊（modal 與 /menu 僅目錄頁共用）
-  const menuBodyContent = menuCategories.map((cat) => {
-    const isCollapsed = collapsedCategories.has(cat.id);
-    return (
-      <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
-        <div
-          onClick={() => toggleCategory(cat.id)}
-          style={{
-            marginBottom: '15px',
-            cursor: 'pointer',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start'
-          }}
-        >
-          <div>
-            <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
-              {cat.title}
-            </h4>
-            <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
-              {cat.subtitle}
+  const menuBodyContent = (
+    <div>
+      {/* Personalized Welcome Banner */}
+      {mbtiType && MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]] && (
+        <div style={{
+          background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.creamWhite} 0%, #fff 100%)`,
+          border: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '30px',
+          boxShadow: '0 4px 15px rgba(216, 224, 56, 0.15)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div className="font-mono" style={{ fontSize: '0.75rem', color: '#888', marginBottom: '8px', letterSpacing: '1px' }}>
+              SOUL DESSERT MATCH
             </div>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: CONFIG.BRAND_COLORS.emotionBlack }}>
+              Hi, {MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]].personality} ({mbtiType}) 的朋友！
+            </h3>
+            <p style={{ fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
+              這是為你準備的<strong>靈魂甜點清單</strong>。<br />
+              {MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]].reason}
+            </p>
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
-            +
+          <div style={{
+            position: 'absolute',
+            right: '-10px',
+            bottom: '-10px',
+            fontSize: '5rem',
+            opacity: 0.1,
+            zIndex: 1,
+            pointerEvents: 'none'
+          }}>
+            ✨
           </div>
         </div>
-        {!isCollapsed && (
-          <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
-            {cat.items.map((item, idx) => (
-              <div key={idx} className="menu-item">
-                {item.image && (
-                  <div style={{
-                    width: '100%',
-                    height: '200px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    marginBottom: '12px',
-                    cursor: 'default'
-                  }}
-                  >
-                    <img
-                      src={item.image || ''}
-                      alt={item.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
-                    />
-                  </div>
-                )}
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
-                  {item.description && (
-                    <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-line' }}>
-                      {item.description}
-                    </p>
+      )}
+
+      {menuCategories.map((cat) => {
+        const isCollapsed = collapsedCategories.has(cat.id);
+
+        // Check if category has recommended items to show indicator
+        const typeKey = mbtiType ? mbtiType.split('-')[0] : null;
+        const recItems = typeKey ? MBTI_DESSERT_MAPPING[typeKey]?.recommendedItems : [];
+        const hasRecommendation = recItems?.some(rec => cat.items.some((item: any) => item.name === rec));
+
+        return (
+          <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+            <div
+              onClick={() => toggleCategory(cat.id)}
+              style={{
+                marginBottom: '15px',
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start'
+              }}
+            >
+              <div>
+                <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
+                  {cat.title}
+                  {hasRecommendation && isCollapsed && (
+                    <span style={{
+                      marginLeft: '10px',
+                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      color: 'black',
+                      fontSize: '0.7rem',
+                      padding: '2px 6px',
+                      borderRadius: '4px',
+                      verticalAlign: 'middle',
+                      opacity: 0.8
+                    }}>
+                      推薦在內
+                    </span>
                   )}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                    {cat.id === 'drinks' ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
-                        }}
-                        style={{
-                          fontSize: '0.8rem',
-                          color: '#999',
-                          fontStyle: 'italic',
-                          padding: '8px 12px',
-                          background: 'rgba(0,0,0,0.03)',
-                          border: '1px dashed #ccc',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = '#999'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#ccc'; }}
-                      >
-                        僅供店內飲用 / In-store Only
-                      </button>
-                    ) : (
-                      item.prices && item.prices.length > 0 ? (
-                        item.prices.map((p, pIdx) => {
-                          const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
-                          return (
-                            <button
-                              key={pIdx}
-                              className="font-mono"
-                              onClick={(e) => { e.stopPropagation(); addToCart(item.name, p.spec, p.price); }}
-                              style={{
-                                fontSize: '0.8rem',
-                                color: inCart ? 'white' : '#666',
-                                background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
-                                padding: '4px 10px',
-                                borderRadius: '4px',
-                                border: '1px solid transparent',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s',
-                                fontWeight: inCart ? 'bold' : 'normal'
-                              }}
-                            >
-                              {p.spec}: {p.price} {inCart ? '(已選)' : ''}
-                            </button>
-                          );
-                        })
-                      ) : (
-                        <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>暫無規格</span>
-                      )
-                    )}
-                  </div>
+                </h4>
+                <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
+                  {cat.subtitle}
                 </div>
               </div>
-            ))}
+              <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
+                +
+              </div>
+            </div>
+            {!isCollapsed && (
+              <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
+                {cat.items.map((item, idx) => {
+                  // Check if this specific item is recommended
+                  const isRecommended = recItems?.includes(item.name);
+
+                  return (
+                    <div key={idx} className="menu-item" style={{
+                      position: 'relative',
+                      border: isRecommended ? `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` : 'none',
+                      borderRadius: '8px',
+                      padding: isRecommended ? '10px' : '0',
+                      margin: isRecommended ? '-12px -12px 10px -12px' : '0', // Negative margin to compensate padding without breaking layout
+                      background: isRecommended ? 'rgba(255,255,255,0.8)' : 'transparent',
+                      boxShadow: isRecommended ? '0 4px 15px rgba(0,0,0,0.05)' : 'none'
+                    }}>
+                      {isRecommended && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-10px',
+                          right: '10px',
+                          background: CONFIG.BRAND_COLORS.emotionBlack,
+                          color: CONFIG.BRAND_COLORS.moonYellow,
+                          fontSize: '0.7rem',
+                          fontWeight: 'bold',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          zIndex: 10,
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                        }}>
+                          你的靈魂甜點
+                        </div>
+                      )}
+
+                      {item.image && (
+                        <div style={{
+                          width: '100%',
+                          height: '200px',
+                          borderRadius: '8px',
+                          overflow: 'hidden',
+                          marginBottom: '12px',
+                          cursor: 'default'
+                        }}
+                        >
+                          <img
+                            src={item.image || ''}
+                            alt={item.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
+                          />
+                        </div>
+                      )}
+                      <div>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
+                        {item.description && (
+                          <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-line' }}>
+                            {item.description}
+                          </p>
+                        )}
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                          {cat.id === 'drinks' ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
+                              }}
+                              style={{
+                                fontSize: '0.8rem',
+                                color: '#999',
+                                fontStyle: 'italic',
+                                padding: '8px 12px',
+                                background: 'rgba(0,0,0,0.03)',
+                                border: '1px dashed #ccc',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; e.currentTarget.style.borderColor = '#999'; }}
+                              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(0,0,0,0.03)'; e.currentTarget.style.borderColor = '#ccc'; }}
+                            >
+                              僅供店內飲用 / In-store Only
+                            </button>
+                          ) : (
+                            item.prices && item.prices.length > 0 ? (
+                              item.prices.map((p, pIdx) => {
+                                const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
+                                return (
+                                  <button
+                                    key={pIdx}
+                                    className="font-mono"
+                                    onClick={(e) => { e.stopPropagation(); addToCart(item.name, p.spec, p.price); }}
+                                    style={{
+                                      fontSize: '0.8rem',
+                                      color: inCart ? 'white' : '#666',
+                                      background: inCart ? CONFIG.BRAND_COLORS.islandBlue : 'rgba(0,0,0,0.03)',
+                                      padding: '4px 10px',
+                                      borderRadius: '4px',
+                                      border: '1px solid transparent',
+                                      cursor: 'pointer',
+                                      transition: 'all 0.2s',
+                                      fontWeight: inCart ? 'bold' : 'normal'
+                                    }}
+                                  >
+                                    {p.spec}: {p.price} {inCart ? '(已選)' : ''}
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>暫無規格</span>
+                            )
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    );
-  });
+        );
+      })}
+    </div>
+  );
 
   return (
     <>
@@ -2203,102 +2335,182 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
             const recommendedItems = mbtiData ? mbtiData.recommendedItems : STATE_DATA[selectedState].recommendedItems;
             return (
-              <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black' }}>
-                <div className="font-mono" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>MISSION CARD ISSUED</div>
-                <h3 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{STATE_DATA[selectedState].title}</h3>
-                <p style={{ fontSize: '0.95rem', marginBottom: '20px', fontStyle: 'italic' }}>
-                  "{STATE_DATA[selectedState].advice}"
-                </p>
+              <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black', background: 'transparent', padding: 0 }}>
+                {/* 主內容區：改為 btn-entry 風格但取消 Hover / 點擊互動功能 */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  background: '#F8F8F8',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  marginBottom: '20px',
+                  position: 'relative',
+                  textAlign: 'left'
+                }}>
+                  <div style={{ flex: 1 }}>
+                    <p style={{
+                      fontSize: '0.85rem',
+                      letterSpacing: '0.1em',
+                      color: '#666',
+                      marginBottom: '10px'
+                    }}>MISSION CARD ISSUED</p>
 
-                {/* 個人化推薦：MBTI 或心情 */}
-                <div style={{ background: '#f5f5f5', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-                  {mbtiData ? (
-                    <>
-                      <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
-                        專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
-                      </strong>
-                      <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
-                        {mbtiData.reason}
-                      </p>
-                    </>
-                  ) : (
-                    <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
-                  )}
-                  {recommendedItems.map((item, idx) => (
-                    <div key={idx} style={{ marginBottom: '8px', paddingLeft: '10px', fontSize: '0.95rem' }}>
-                      • {item}
+                    <h3 style={{
+                      fontSize: '1.4rem',
+                      fontWeight: '800',
+                      margin: '0 0 12px 0',
+                      lineHeight: '1.2',
+                    }}>{STATE_DATA[selectedState].title}</h3>
+
+                    <p style={{
+                      fontSize: '0.95rem',
+                      lineHeight: '1.6',
+                      color: '#444',
+                      fontStyle: 'italic',
+                      marginBottom: '16px',
+                      padding: '0 8px',
+                      borderLeft: '3px solid #E0E0E0'
+                    }}>
+                      "{STATE_DATA[selectedState].advice}"
+                    </p>
+
+                    <div style={{
+                      background: '#fff',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                      marginBottom: '16px'
+                    }}>
+                      {mbtiData ? (
+                        <>
+                          <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
+                            專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
+                          </strong>
+                          <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
+                            {mbtiData.reason}
+                          </p>
+                        </>
+                      ) : (
+                        <strong style={{ display: 'block', fontSize: '0.8rem', color: '#666', marginBottom: '10px' }}>為你推薦 RECOMMENDED:</strong>
+                      )}
+
+                      <ul style={{
+                        margin: 0,
+                        paddingLeft: '20px',
+                        lineHeight: '1.8',
+                        color: '#222'
+                      }}>
+                        {recommendedItems.map((item, idx) => (
+                          <li key={idx} style={{ marginBottom: '4px' }}>{item}</li>
+                        ))}
+                      </ul>
+
+                      {!mbtiData && mbtiRecommendationUrl && (
+                        <div style={{
+                          marginTop: '12px',
+                          paddingTop: '12px',
+                          borderTop: '1px solid #eee',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          textAlign: 'center'
+                        }}>
+                          <a
+                            href={mbtiRecommendationUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
+                            style={{
+                              display: 'block',
+                              backgroundColor: CONFIG.BRAND_COLORS.moonYellow,
+                              color: '#000',
+                              padding: '12px',
+                              borderRadius: '8px',
+                              textDecoration: 'none',
+                              transition: 'all 0.2s',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                            }}
+                          >
+                            完成 MBTI 測驗，獲得更精準推薦
+                          </a>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  {!mbtiData && (
+
+                    <div style={{ marginTop: '20px', marginBottom: '16px' }}>
+                      <strong style={{
+                        display: 'block',
+                        fontSize: '0.8rem',
+                        color: '#666',
+                        marginBottom: '8px',
+                        letterSpacing: '0.05em'
+                      }}>YOUR MISSION</strong>
+                      <p style={{
+                        fontSize: '0.95rem',
+                        lineHeight: '1.65',
+                        color: '#222',
+                        margin: 0,
+                        background: '#EEF2F5',
+                        padding: '12px 16px',
+                        borderRadius: '8px'
+                      }}>
+                        {STATE_DATA[selectedState].mission}
+                      </p>
+                    </div>
+
+                    {/* MBTI 測驗引流 */}
                     <a
-                      href={mbtiRecommendationUrl}
+                      href={mbtiMissionUrl}
                       target="_blank"
                       rel="noreferrer"
-                      onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
-                      style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.emotionBlack, marginTop: '10px', display: 'block', fontWeight: 'bold', borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}
+                      className="btn-small"
+                      onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
+                      style={{
+                        marginBottom: '20px',
+                        background: CONFIG.BRAND_COLORS.moonYellow,
+                        color: CONFIG.BRAND_COLORS.emotionBlack,
+                        border: '2px solid #000',
+                        textAlign: 'center',
+                        display: 'block',
+                        padding: '12px 20px',
+                        fontSize: '0.95rem',
+                        fontWeight: 'bold',
+                        boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                        textDecoration: 'none'
+                      }}
                     >
-                      完成 MBTI 測驗，獲得更精準推薦
+                      想更了解自己？探索你的 MBTI 甜點人格
                     </a>
-                  )}
+
+                    {/* 抽籤按鈕 */}
+                    <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => {
+                      const f = drawAndSaveFortune();
+                      setCurrentFortune(f);
+                      setShowFortuneModal(true);
+                      track('fortune_drawn', { level: f.level, state: selectedState });
+
+                      // Trigger Webhook
+                      if (typeof window !== 'undefined') {
+                        try {
+                          fetch('/api/notify-discord-activity', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              activityType: 'draw_fortune',
+                              level: f.level,
+                              state: STATE_DATA[selectedState].title,
+                            }),
+                          }).catch((err) => {
+                            console.error('[ACTIVITY] Failed to notify (client):', err);
+                          });
+                        } catch (err) {
+                          console.error('[ACTIVITY] Failed to notify (unexpected):', err);
+                        }
+                      }
+                    }}>
+                      抽展籤 DRAW FORTUNE SLIP
+                    </button>
+                  </div>
                 </div>
-
-                {/* MBTI 測驗引流 */}
-                <a
-                  href={mbtiMissionUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-small"
-                  onClick={() => track('click_mbti_cta', { source: 'mission_card', state: selectedState })}
-                  style={{
-                    marginBottom: '20px',
-                    background: CONFIG.BRAND_COLORS.moonYellow,
-                    color: CONFIG.BRAND_COLORS.emotionBlack,
-                    border: '2px solid #000',
-                    textAlign: 'center',
-                    display: 'block',
-                    padding: '14px 20px',
-                    fontSize: '0.95rem',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 0 rgba(0,0,0,0.2)'
-                  }}
-                >
-                  想更了解自己？探索你的 MBTI 甜點人格
-                </a>
-
-                {/* 任務 */}
-                <div style={{ marginBottom: '24px' }}>
-                  <strong style={{
-                    display: 'block',
-                    fontSize: '0.75rem',
-                    color: '#999',
-                    marginBottom: '10px',
-                    letterSpacing: '0.08em',
-                    fontFamily: 'monospace',
-                    textTransform: 'uppercase',
-                    fontWeight: 600
-                  }}>YOUR MISSION</strong>
-                  <p style={{
-                    fontSize: '0.95rem',
-                    lineHeight: '1.65',
-                    color: '#333',
-                    margin: 0
-                  }}>{STATE_DATA[selectedState].mission}</p>
-                </div>
-
-
-
-                {/* 下載按鈕 */}
-                <button className="btn-primary" onClick={() => {
-                  const f = drawAndSaveFortune();
-                  setCurrentFortune(f);
-                  setShowFortuneModal(true);
-                  track('fortune_drawn', { level: f.level, state: selectedState });
-                }}>
-                  抽展籤 DRAW FORTUNE SLIP
-                </button>
-                <button className="btn-primary" onClick={handleDownloadCard} style={{ marginTop: '10px', background: 'transparent', color: '#333', border: '1px solid #ccc' }}>
-                  下載任務卡 DOWNLOAD CARD
-                </button>
               </div>
             );
           })()}
@@ -3657,29 +3869,48 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 <p style={{ fontSize: '0.7rem', color: '#aaa', letterSpacing: '0.15em' }}>✨ 來自 Kiwimu 的祝福 ✨</p>
 
+                {/* IG Promo Message */}
+                <div style={{
+                  background: '#EEF2F5',
+                  padding: '16px',
+                  borderRadius: '12px',
+                  margin: '16px 0',
+                  textAlign: 'left'
+                }}>
+                  <p style={{ fontSize: '0.9rem', color: '#222', lineHeight: '1.6', margin: 0, fontWeight: 600 }}>
+                    🎁 第一步：下載並截圖此展籤<br />
+                    📷 第二步：發布限時動態並標記 <strong style={{ color: '#60A5FA' }}>@moonisland.tw</strong><br />
+                    即可獲得「第二杯飲品半價優惠」！
+                  </p>
+                </div>
+
                 {/* Divider */}
                 <div style={{ borderTop: '2px dashed #eee', margin: '20px 0' }} />
 
                 {/* Download Card CTA */}
                 <button
                   onClick={() => {
-                    setShowFortuneModal(false);
                     handleDownloadCard();
+                    setShowFortuneModal(false);
                   }}
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    background: '#fff',
                     border: '2px solid #000',
                     borderRadius: '8px',
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
-                    transition: 'all 0.2s'
+                    boxShadow: '4px 4px 0 #000',
+                    transition: 'transform 0.1s',
+                    color: '#000'
                   }}
+                  onMouseDown={e => e.currentTarget.style.transform = 'translate(4px, 4px)'}
+                  onMouseUp={e => e.currentTarget.style.transform = 'translate(0, 0)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'translate(0, 0)'}
                 >
-                  📥 下載任務卡
+                  下載展籤與任務卡 DOWNLOAD
                 </button>
 
                 <p style={{ fontSize: '0.7rem', color: '#bbb', marginTop: '12px' }}>每日一籤 · 明天再來試試運氣</p>
