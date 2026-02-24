@@ -26,7 +26,7 @@ const CONFIG = {
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu-mbti.vercel.app",
     spotify_url: "https://open.spotify.com/playlist/moonmoon",
-    wallpaper_url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_01.jpg",
+    wallpaper_url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg",
     easter_egg_reward_url: "#wallpaper-section",
     line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
@@ -38,14 +38,20 @@ const CONFIG = {
   }
 };
 
-// Wallpaper assets (Supabase)
+// Wallpaper assets (Cloudinary)
 const WALLPAPERS = [
-  { label: "2026.01", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_01.jpg" },
-  { label: "2026.02", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_02.jpg" },
-  { label: "Spring", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/%20New_year.jpg" },
-  { label: "Fortune", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/%20New_year-2.jpg" },
-  { label: "2026.03", url: "https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/Image_wallpaper/2026_03.jpg" }
+  { label: "2026.01", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg" },
+  { label: "2026.02", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_02_qfvg9i.jpg" },
+  { label: "Spring", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902362/New_year_ueuhsw.jpg" },
+  { label: "Fortune", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902361/New_year-2_i9e9js.jpg" },
+  { label: "2026.03", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_03_tduocw.jpg" }
 ];
+
+// In-store badge (GPS) config
+const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
+const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
+const STORE_LOCATION = { lat: 23.0473181, lng: 120.1987003 }; // 月島甜點店座標
+const STORE_RADIUS_METERS = 100; // 100 公尺範圍
 
 // -- Fortune Slip (心情展籤) System --
 const FORTUNES = [
@@ -94,6 +100,17 @@ function getMenuImageUrl(img: string | null | undefined): string | null {
   if (img.startsWith('http')) return img;
   const path = img.replace(/^\/?menu-images\/?/, '');
   return MENU_IMAGES_BASE ? `${MENU_IMAGES_BASE}/${path}` : img;
+}
+
+/** 粗略計算兩點距離（公尺） - Haversine */
+function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const toRad = (d: number) => d * Math.PI / 180;
+  const R = 6371000; // 地球半徑 (m)
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
 }
 
 // --- DATA: 狀態與任務 ---
@@ -271,6 +288,8 @@ const App = () => {
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
+  const [storeBadgeStatus, setStoreBadgeStatus] = useState<'idle' | 'checking' | 'granted' | 'denied' | 'error'>('idle');
+  const [storeDistance, setStoreDistance] = useState<number | null>(null);
 
   // Helper for LINE browser detection
   const isLineBrowser = typeof window !== 'undefined' && /Line/i.test(navigator.userAgent);
@@ -794,6 +813,64 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         return [...prev, { name: itemName, spec, price, count: 1 }];
       }
     });
+  };
+
+  // --- STORE BADGE: GPS 100m unlock ---
+  const handleStoreBadge = async () => {
+    if (storeBadgeStatus === 'checking') return;
+    setStoreBadgeStatus('checking');
+    setStoreDistance(null);
+
+    if (!('geolocation' in navigator)) {
+      alert('此裝置不支援定位，無法解鎖到店徽章');
+      setStoreBadgeStatus('error');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      const dist = distanceMeters(latitude, longitude, STORE_LOCATION.lat, STORE_LOCATION.lng);
+      setStoreDistance(dist);
+
+      if (dist <= STORE_RADIUS_METERS) {
+        // 已在範圍內，若已領取過則直接導向
+        let code = localStorage.getItem(STORE_BADGE_CODE_KEY);
+        if (!code) {
+          code = `store_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+          setRewardClaimStatus('saving');
+          try {
+            const { error } = await supabase.from('reward_claims').insert({
+              code,
+              reward_id: STORE_BADGE_REWARD_ID,
+              source: 'moon_map'
+            });
+            if (error) throw error;
+            localStorage.setItem(STORE_BADGE_CODE_KEY, code);
+            setRewardClaimStatus('saved');
+          } catch (e) {
+            console.error('Failed to create store badge claim:', e);
+            setRewardClaimStatus('error');
+            alert('兌換碼建立失敗，請稍後重試');
+            setStoreBadgeStatus('error');
+            return;
+          }
+        }
+
+        setStoreBadgeStatus('granted');
+        track('stamp_unlock', { site_id: 'moon_map', stamp_id: STORE_BADGE_REWARD_ID, method: 'gps' });
+
+        // 直接導向護照，帶上 claim_code
+        const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&utm_source=moon_map&utm_medium=reward&utm_campaign=store_badge`;
+        window.open(url, '_blank', 'noopener');
+      } else {
+        setStoreBadgeStatus('denied');
+        alert(`尚未在店內範圍內（目前距離約 ${(dist/1).toFixed(0)} 公尺），請靠近門市再試一次！`);
+      }
+    }, (err) => {
+      console.error('Geolocation error', err);
+      setStoreBadgeStatus('error');
+      alert('無法取得定位，請確認已允許位置權限');
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
   };
 
   // Renamed for clarity, though used as 'addToCart' in existing props
@@ -2186,6 +2263,25 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <span>↓</span>
           </button>
           <button className="btn-entry" onClick={() => {
+            track('click_hero_store_badge');
+            handleStoreBadge();
+          }}>
+            <div>
+              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>04 // VISIT</span><br />
+              <strong>到店解鎖徽章 (100m 內)</strong>
+              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>
+                需開啟定位；成功會跳轉護照
+              </div>
+              {storeBadgeStatus === 'checking' && (
+                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>檢查定位中...</div>
+              )}
+              {storeDistance !== null && storeBadgeStatus !== 'granted' && (
+                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
+              )}
+            </div>
+            <span>📍</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
             track('click_hero_music');
             document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }}>
@@ -2200,12 +2296,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             setShowDiscoverModal(true);
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '1rem' }}>04 // DISCOVER</span><br />
-              <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
-            </div>
-            <span>✨</span>
-          </button>
-        </header>
+              <span className="font-mono" style={{ fontSize: '1rem' }}>05 // DISCOVER</span><br />
+            <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
+          </div>
+          <span>✨</span>
+        </button>
+      </header>
 
         {/* B. EXHIBITION STORY */}
         <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
