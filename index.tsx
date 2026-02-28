@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 
@@ -524,7 +526,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   // --- CHECKOUT STATES ---
   const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
-  const [pickupDate, setPickupDate] = useState('');
+  const [pickupDate, setPickupDate] = useState<Date | null>(null);
   const [orderNote, setOrderNote] = useState('');
   // New "Smart Form" Fields
   const [customerName, setCustomerName] = useState('');
@@ -547,29 +549,27 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [showFortuneModal, setShowFortuneModal] = useState(false);
   const [currentFortune, setCurrentFortune] = useState<{ level: string; text: string } | null>(null);
 
-  // 計算最小可選日期（兩天後）
+  // 計算最小可選日期（三天前才能預訂）
   const getMinPickupDate = () => {
     const today = new Date();
-    today.setDate(today.getDate() + 2); // 兩天後
-    return today.toISOString().split('T')[0];
+    today.setHours(0, 0, 0, 0);
+    today.setDate(today.getDate() + 3);
+    return today;
   };
 
-  // 檢查日期是否為週一（公休日）
-  const isMonday = (dateString: string) => {
-    if (!dateString) return false;
-    const date = new Date(dateString + 'T00:00:00');
-    return date.getDay() === 1; // 1 = 週一
-  };
+  // 決定哪些日期不可選 (灰底)
+  const filterDate = (date: Date) => {
+    // 擋掉週一 (0 = 週日, 1 = 週一)
+    if (date.getDay() === 1) return false;
 
-  // 處理日期變更，如果選到週一則提示並清空
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = e.target.value;
-    if (isMonday(selectedDate)) {
-      alert('抱歉，週一為公休日，請選擇其他日期。\n營業時間：週二至週日 13:00-19:00');
-      setPickupDate('');
-    } else {
-      setPickupDate(selectedDate);
+    // 擋掉滿單或特休日期: 3月份 13, 14, 15
+    const m = date.getMonth(); // 0-indexed, 2 = March
+    const d = date.getDate();
+    if (m === 2 && (d === 13 || d === 14 || d === 15)) {
+      return false; // 滿單/店休
     }
+
+    return true; // 開放
   };
 
   // Store UTM params on page load (not on checkout)
@@ -864,7 +864,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         window.open(url, '_blank', 'noopener');
       } else {
         setStoreBadgeStatus('denied');
-        alert(`尚未在店內範圍內（目前距離約 ${(dist/1).toFixed(0)} 公尺），請靠近門市再試一次！`);
+        alert(`尚未在店內範圍內（目前距離約 ${(dist / 1).toFixed(0)} 公尺），請靠近門市再試一次！`);
       }
     }, (err) => {
       console.error('Geolocation error', err);
@@ -933,18 +933,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       return;
     }
 
-    // 驗證取貨日期（兩天後 + 不是週一）
-    const minDate = getMinPickupDate();
-    if (pickupDate < minDate) {
-      alert('取貨日期至少需要兩天前預訂');
-      setSubmitting(false);
-      return;
-    }
-    if (isMonday(pickupDate)) {
-      alert('週一為公休日，請選擇其他日期');
-      setSubmitting(false);
-      return;
-    }
+    // 將 Date object 轉成字串格式 'YYYY-MM-DD' 以備進 DB 和傳送通知
+    const pickupDateStr = `${pickupDate.getFullYear()}-${String(pickupDate.getMonth() + 1).padStart(2, '0')}-${String(pickupDate.getDate()).padStart(2, '0')}`;
 
     try {
       // 2. Generate Order ID (Simple Timestamp-Random)
@@ -966,7 +956,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           customer_phone: customerPhone,
           customer_email: user?.email || null,
           total_amount: totalAmount,
-          pickup_date: pickupDate,
+          pickup_date: pickupDateStr,
           order_note: orderNote || null,
           user_id: user?.id || null,
           payment_status: 'pending',
@@ -1042,13 +1032,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       let msg = `【月島甜點訂單確認】\n`;
       msg += `訂單編號：${orderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
+      msg += `手機號碼：${customerPhone}\n`;
       msg += `總金額：$${totalAmount}\n`;
-      msg += `取貨日期：${pickupDate}\n`;
+      msg += `取貨日期：${pickupDateStr}\n`;
+      if (orderNote) msg += `備註：${orderNote}\n`;
       msg += `\n訂購內容：\n`;
       cart.forEach(item => {
         msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
       });
-      if (orderNote) msg += `\n備註：${orderNote}`;
       msg += `\n\n付款方式：\n`;
       msg += `LINE Bank (824) 連線商業銀行\n`;
       msg += `帳號：111007479473\n`;
@@ -2297,11 +2288,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <div>
               <span className="font-mono" style={{ fontSize: '1rem' }}>05 // DISCOVER</span><br />
-            <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
-          </div>
-          <span>✨</span>
-        </button>
-      </header>
+              <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
+            </div>
+            <span>✨</span>
+          </button>
+        </header>
 
         {/* B. EXHIBITION STORY */}
         <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
@@ -3516,17 +3507,38 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
-                  <input
-                    type="date"
+                  <DatePicker
+                    selected={pickupDate}
+                    onChange={(date: Date | null) => setPickupDate(date)}
+                    minDate={getMinPickupDate()}
+                    filterDate={filterDate}
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText="請點擊選擇日期"
+                    className="custom-datepicker"
                     required
-                    min={getMinPickupDate()}
-                    value={pickupDate}
-                    onChange={handleDateChange}
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
                   />
+                  <style>{`
+                    .custom-datepicker {
+                      width: 100%;
+                      padding: 12px;
+                      border-radius: 8px;
+                      border: 1px solid #ddd;
+                      font-size: 1rem;
+                      box-sizing: border-box;
+                    }
+                    /* Add style overrides for datepicker to make disabled dates look greyed out */
+                    .react-datepicker-wrapper {
+                      width: 100%;
+                    }
+                    .react-datepicker__day--disabled {
+                      color: #ccc !important;
+                      background-color: #f9f9f9 !important;
+                      text-decoration: line-through;
+                    }
+                  `}</style>
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
-                    最快取貨日期：兩天後 | 週一公休<br />
+                    最快取貨日期：三天後 | 灰色為滿單或公休日<br />
                     營業時間：週二至週日 13:00-19:00
                   </p>
                 </div>
