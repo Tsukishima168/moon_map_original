@@ -541,6 +541,39 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [showVipModal, setShowVipModal] = useState(false);
   const [showHiddenMenu, setShowHiddenMenu] = useState(false);
 
+  // --- DYNAMIC BLOCKED DATES ---
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
+
+  useEffect(() => {
+    async function fetchBlockedDates() {
+      try {
+        const { data, error } = await supabase
+          .from('business_settings')
+          .select('setting_value')
+          .eq('setting_key', 'daily_capacity')
+          .single();
+
+        if (error) throw error;
+
+        if (data && data.setting_value && data.setting_value.special_dates) {
+          const specialDates = data.setting_value.special_dates;
+          // Filter out dates where capacity is 0
+          const blocked = Object.keys(specialDates).filter(date => specialDates[date] === 0);
+          setBlockedDates(blocked);
+
+          if (import.meta.env.DEV) {
+            console.log('[Date-Lock] Dynamically loaded blocked dates:', blocked);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch blocked dates', e);
+      }
+    }
+
+    // Fetch on mount
+    fetchBlockedDates();
+  }, []);
+
   // Lunar New Year Eggs
   const [showRedEnvelopeModal, setShowRedEnvelopeModal] = useState(false);
   const [showGoldCoinModal, setShowGoldCoinModal] = useState(false);
@@ -562,10 +595,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     // 擋掉週一 (0 = 週日, 1 = 週一)
     if (date.getDay() === 1) return false;
 
-    // 擋掉滿單或特休日期: 3月份 13, 14, 15
-    const m = date.getMonth(); // 0-indexed, 2 = March
-    const d = date.getDate();
-    if (m === 2 && (d === 13 || d === 14 || d === 15)) {
+    // 將日曆渲染的日期轉換為 YYYY-MM-DD 格式，用來比對資料庫設定
+    const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+    // 擋掉滿單或特休日期 (動態從資料庫讀取)
+    if (blockedDates.includes(dateString)) {
       return false; // 滿單/店休
     }
 
