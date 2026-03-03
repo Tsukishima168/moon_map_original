@@ -157,82 +157,82 @@ const STATE_DATA: Record<string, {
 // --- MBTI PERSONALIZED RECOMMENDATIONS ---
 const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedItems: string[]; reason: string }> = {
   INTJ: {
-    personality: "建築師",
+    personality: "建築師 · 睿智巴斯貓",
     recommendedItems: ["抹茶提拉米蘇", "經典原味巴斯克", "經典十勝低糖千層"],
     reason: "你追求完美與深度，這些甜點層次豐富卻不過分張揚。"
   },
   INTP: {
-    personality: "邏輯學家",
+    personality: "邏輯學家 · 睿智巴斯貓",
     recommendedItems: ["日本柚子米蘇", "烤布丁提拉米蘇", "蜜香紅茶巴斯克"],
     reason: "你喜歡探索新組合，這些創新口味會激發你的好奇心。"
   },
   ENTJ: {
-    personality: "指揮官",
+    personality: "指揮官 · 睿智巴斯貓",
     recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇", "經典提拉米蘇"],
     reason: "你喜歡經典且有影響力的選擇，這些甜點強勁而直接。"
   },
   ENTP: {
-    personality: "辯論家",
+    personality: "辯論家 · 睿智巴斯貓",
     recommendedItems: ["日本柚子米蘇", "奶酒提拉米蘇", "抹茶提拉米蘇鐵盒(600ml)"],
     reason: "你熱愛挑戰常規，這些創新口味符合你的冒險精神。"
   },
   INFJ: {
-    personality: "提倡者",
+    personality: "提倡者 · 夢幻蛋鬼",
     recommendedItems: ["抹茶提拉米蘇", "蜜香紅茶巴斯克", "烤布丁(附焦糖液)"],
     reason: "你重視內在與意義，這些甜點含蓄而深刻。"
   },
   INFP: {
-    personality: "調停者",
+    personality: "調停者 · 夢夢幻蛋鬼",
     recommendedItems: ["烤布丁(附焦糖液)", "日本柚子米蘇", "蜜香紅茶巴斯克"],
     reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
   },
   ENFJ: {
-    personality: "主人公",
+    personality: "主人公 · 夢幻蛋鬼",
     recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇", "經典原味巴斯克"],
     reason: "你熱愛分享與連結，這些甜點適合與人共享。"
   },
   ENFP: {
-    personality: "競選者",
+    personality: "競選者 · 活力奇異鳥",
     recommendedItems: ["日本柚子米蘇", "經典十勝低糖千層", "奶酒提拉米蘇"],
     reason: "你的自由精神需要同樣有趣的甜點來搭配。"
   },
   ISTJ: {
-    personality: "物流師",
+    personality: "物流師 · 活力奇異鳥",
     recommendedItems: ["經典提拉米蘇", "經典原味巴斯克", "烤布丁(附焦糖液)"],
     reason: "你信賴經典，這些傳統甜點經得起時間考驗。"
   },
   ISFJ: {
-    personality: "守衛者",
+    personality: "守衛者 · 活力奇異鳥",
     recommendedItems: ["烤布丁(附焦糖液)", "蜜香紅茶巴斯克", "經典提拉米蘇"],
     reason: "你的細心值得同樣用心製作的甜點。"
   },
   ESTJ: {
-    personality: "總經理",
+    personality: "總經理 · 活力奇異鳥",
     recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典提拉米蘇", "經典原味巴斯克"],
     reason: "你重視效率與品質，這些經典款值得信賴。"
   },
   ESFJ: {
-    personality: "執政官",
+    personality: "執政官 · 活力奇異鳥",
     recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典原味巴斯克", "烤布丁提拉米蘇"],
     reason: "你善於照顧他人，這些甜點適合與朋友分享。"
   },
   ISTP: {
-    personality: "鑑賞家",
+    personality: "鑑賞家 · 睿智巴斯貓",
     recommendedItems: ["奶酒提拉米蘇", "日本柚子米蘇", "經典十勝低糖千層"],
     reason: "你喜歡探索新事物，這些口味會帶來驚喜。"
   },
   ISFP: {
-    personality: "探險家",
+    personality: "探險家 · 夢幻蛋鬼",
     recommendedItems: ["抹茶提拉米蘇", "日本柚子米蘇", "蜜香紅茶巴斯克"],
     reason: "你的藝術靈魂需要同樣美麗的甜點。"
   },
   ESTP: {
-    personality: "企業家",
+    personality: "企業家 · 睿智巴斯貓",
     recommendedItems: ["奶酒提拉米蘇", "經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇"],
     reason: "你的能量需要同樣強勁的甜點來匹配。"
   },
   ESFP: {
-    personality: "表演者",
+    personality: "表演者 · 活力奇異鳥",
     recommendedItems: ["日本柚子米蘇", "經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇"],
     reason: "你的熱情需要同樣歡樂的甜點來慶祝。"
   }
@@ -306,31 +306,31 @@ const App = () => {
     medium: 'profile-card',
     campaign: '2026-q1-integration',
     content: 'profile_mbti_link',
-    additionalParams: { from: 'moon-map' },
+    additionalParams: { from: 'map' },
   });
   const passportUrl = buildUtmUrl(CONFIG.LINKS.passport_url, {
     medium: 'hero-checkin',
     campaign: '2026-q1-integration',
     content: 'checkin',
-    additionalParams: { from: 'moon-map' },
+    additionalParams: { from: 'map' },
   });
   const bookingMenuUrl = buildUtmUrl(CONFIG.LINKS.booking_url, {
     medium: 'menu-section',
     campaign: '2026-q1-integration',
     content: 'order_cta',
-    additionalParams: { from: 'moon-map' },
+    additionalParams: { from: 'map' },
   });
   const mbtiRecommendationUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
     medium: 'recommendation',
     campaign: '2026-q1-integration',
     content: 'personalized',
-    additionalParams: { from: 'moon-map' },
+    additionalParams: { from: 'map' },
   });
   const mbtiMissionUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
     medium: 'mission_card',
     campaign: '2026-q1-integration',
     content: 'cross_site',
-    additionalParams: { from: 'moon-map' },
+    additionalParams: { from: 'map' },
   });
 
   useEffect(() => {
@@ -774,6 +774,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     if (typeof window !== 'undefined' && window.location.pathname === '/menu') {
       const prev = document.title;
       document.title = '月島甜點 | 甜點目錄';
+
+      // GA4 menu_view event
+      if ((window as any).gtag) {
+        (window as any).gtag('event', 'menu_view', {
+          site_id: 'moon_map',
+          page_path: '/menu',
+          utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
+          mbti: new URLSearchParams(window.location.search).get('mbti') || undefined,
+        });
+      }
+
       return () => { document.title = prev; };
     }
   }, []);
