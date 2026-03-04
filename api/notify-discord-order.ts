@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = '1467024414699819152'; // 月島訂單通知頻道
@@ -9,6 +10,10 @@ export default async function handler(
 ) {
   if (request.method !== 'POST') {
     return response.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (!authorizeDiscordNotifyRequest(request)) {
+    return response.status(401).json({ error: 'Unauthorized' });
   }
 
   const botToken = process.env.DISCORD_TOKEN;
@@ -114,4 +119,3 @@ export default async function handler(
     });
   }
 }
-

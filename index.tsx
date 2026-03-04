@@ -2290,13 +2290,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </a>
           <button className="btn-entry" onClick={() => {
             track('click_hero_pickup');
-            document.getElementById('menu-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (typeof window !== 'undefined' && window.gtag) {
+              window.gtag('event', 'order_redirect');
+            }
+            window.location.href = CONFIG.preorder_pickup_url;
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '1rem' }}>02 // PICKUP</span><br />
+              <span className="font-mono" style={{ fontSize: '1rem' }}>02 // ORDER NOW</span><br />
               <strong>我想帶走甜點 (預訂取貨)</strong>
             </div>
-            <span>↓</span>
+            <span>↗</span>
           </button>
           <button className="btn-entry" onClick={() => {
             track('click_hero_store_badge');
