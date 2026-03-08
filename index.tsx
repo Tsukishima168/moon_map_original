@@ -379,14 +379,14 @@ const App = () => {
           setRewardClaimStatus('saving');
 
           try {
-            const { error } = await supabase.from('reward_claims').insert({
-              code: claimCode,
-              reward_id: 'egg_master_2026_q1',
-              source: 'moon_map'
+            const res = await fetch('/api/rewards/claim', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: claimCode, reward_id: 'egg_master_2026_q1', source: 'moon_map' }),
             });
 
-            if (error) {
-              console.error('Failed to create reward claim:', error);
+            if (!res.ok) {
+              console.error('Failed to create reward claim:', await res.text());
               setRewardClaimStatus('error');
             } else {
               localStorage.setItem('moonmoon_egg_master_code', claimCode);
@@ -673,59 +673,32 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
 
   useEffect(() => {
+    // 憲法法條 1：禁止前端直連 DB，一律透過 API 取資料
     async function fetchMenu() {
       try {
         setLoadingMenu(true);
-        // 1. Fetch Categories
-        const { data: categories, error: catError } = await supabase
-          .from('menu_categories')
-          .select('*')
-          .order('sort_order');
+        const res = await fetch('https://shop.kiwimu.com/api/menu/categories');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || '取得菜單失敗');
 
-        if (catError) throw catError;
+        const combined = (json.data as any[]).map(cat => ({
+          id: cat.id,
+          title: cat.title,
+          subtitle: cat.subtitle,
+          hidePrice: cat.id === 'drinks',
+          items: (cat.items as any[]).map(item => ({
+            name: item.name,
+            image: getMenuImageUrl(item.image),
+            description: item.description,
+            prices: item.prices || [],
+          })),
+        }));
 
-        // 2. Fetch Items (V2: Join with variants)
-        const { data: items, error: itemError } = await supabase
-          .from('menu_items')
-          .select(`
-            *,
-            menu_variants (
-              spec,
-              price,
-              sort_order
-            )
-          `)
-          .eq('is_available', true)
-          .order('sort_order');
-
-        if (itemError) throw itemError;
-
-        // 3. Combine
-        if (categories && items) {
-          const combined = categories.map(cat => ({
-            id: cat.id,
-            title: cat.title,
-            subtitle: cat.subtitle,
-            hidePrice: cat.id === 'drinks',
-            items: items.filter(item => item.category_id === cat.id).map(item => {
-              // Sort variants by sort_order
-              const sortedVariants = item.menu_variants
-                ? item.menu_variants.sort((a: any, b: any) => a.sort_order - b.sort_order)
-                : (typeof item.prices === 'string' ? JSON.parse(item.prices) : item.prices);
-
-              return {
-                name: item.name,
-                image: getMenuImageUrl(item.image_url ?? item.image ?? item.image_path ?? item.imageUrl ?? null),
-                description: item.description, // New Description Field
-                prices: sortedVariants || []
-              };
-            })
-          }));
-          setMenuCategories(combined);
-          // 預設：從 /menu 進來則全部展開（可直接點品項）；其餘頁面則收起
-          const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
-          setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(combined.map(cat => cat.id)));
-        }
+        setMenuCategories(combined);
+        // 預設：從 /menu 進來則全部展開（可直接點品項）；其餘頁面則收起
+        const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
+        setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(combined.map(cat => cat.id)));
       } catch (error) {
         console.error('Error fetching menu:', error);
       } finally {
@@ -884,12 +857,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           code = `store_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
           setRewardClaimStatus('saving');
           try {
-            const { error } = await supabase.from('reward_claims').insert({
-              code,
-              reward_id: STORE_BADGE_REWARD_ID,
-              source: 'moon_map'
+            const res = await fetch('/api/rewards/claim', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code, reward_id: STORE_BADGE_REWARD_ID, source: 'moon_map' }),
             });
-            if (error) throw error;
+            if (!res.ok) throw new Error(await res.text());
             localStorage.setItem(STORE_BADGE_CODE_KEY, code);
             setRewardClaimStatus('saved');
           } catch (e) {
@@ -992,47 +965,48 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       const gaClientId = getGAClientId();
       const utmParams = storedUTMParams || getUTMParams();
 
-      // 3. Save to Supabase
-      const { data: order, error: orderError } = await supabase
-        .from('shop_orders')
-        .insert({
-          order_number: orderId,
-          customer_name: customerName,
-          customer_phone: customerPhone,
-          customer_email: user?.email || null,
-          total_amount: totalAmount,
-          pickup_date: pickupDateStr,
-          order_note: orderNote || null,
-          user_id: user?.id || null,
-          payment_status: 'pending',
-          source: 'website',
-          ga_client_id: gaClientId,
-          referrer: utmParams.referrer,
-          utm_source: utmParams.utm_source,
-          utm_medium: utmParams.utm_medium,
-          utm_campaign: utmParams.utm_campaign,
-          utm_content: utmParams.utm_content,
-          utm_term: utmParams.utm_term
-        })
-        .select()
-        .single();
+      // 3. Save order via API (shop_orders + shop_order_items)
+      const orderRes = await fetch('/api/map-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: {
+            order_number: orderId,
+            customer_name: customerName,
+            customer_phone: customerPhone,
+            customer_email: user?.email || null,
+            total_amount: totalAmount,
+            pickup_date: pickupDateStr,
+            order_note: orderNote || null,
+            user_id: user?.id || null,
+            payment_status: 'pending',
+            source: 'website',
+            ga_client_id: gaClientId,
+            referrer: utmParams.referrer,
+            utm_source: utmParams.utm_source,
+            utm_medium: utmParams.utm_medium,
+            utm_campaign: utmParams.utm_campaign,
+            utm_content: utmParams.utm_content,
+            utm_term: utmParams.utm_term,
+          },
+          items: cart.map(item => ({
+            item_name: item.name,
+            item_spec: item.spec,
+            unit_price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
+            quantity: item.count,
+            subtotal: parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count,
+          })),
+        }),
+      });
 
-      if (orderError) {
-        console.error('訂單儲存錯誤:', orderError);
+      if (!orderRes.ok) {
+        const err = await orderRes.json().catch(() => ({}));
+        console.error('訂單儲存錯誤:', err);
         alert('訂單建立失敗，請稍後再試');
         return;
       }
 
-      // 4. Save order items
-      const orderItems = cart.map(item => ({
-        order_id: order.id,
-        item_name: item.name,
-        item_spec: item.spec,
-        unit_price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
-        quantity: item.count,
-        subtotal: parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count
-      }));
-      await supabase.from('shop_order_items').insert(orderItems);
+      const { order } = await orderRes.json();
 
       // 5. GA4 event
       if (typeof window !== 'undefined' && (window as any).gtag) {
