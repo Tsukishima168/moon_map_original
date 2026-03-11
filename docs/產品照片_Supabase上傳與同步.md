@@ -71,7 +71,7 @@
 ### 3.3 執行上傳
 
 ```bash
-cd /Users/pensoair/Desktop/moon_map_original
+cd /Users/penstudio/Desktop/moon_map_original
 node upload-to-supabase.js
 ```
 
