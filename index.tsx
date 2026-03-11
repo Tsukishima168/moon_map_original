@@ -391,6 +391,7 @@ const App = () => {
             } else {
               localStorage.setItem('moonmoon_egg_master_code', claimCode);
               setRewardClaimStatus('saved');
+              track('reward_claimed', { reward_id: 'egg_master_2026_q1', method: 'easter_egg', site_id: 'moon_map' });
             }
           } catch (e) {
             console.error('Network error saving reward claim:', e);
@@ -865,6 +866,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             if (!res.ok) throw new Error(await res.text());
             localStorage.setItem(STORE_BADGE_CODE_KEY, code);
             setRewardClaimStatus('saved');
+            track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
           } catch (e) {
             console.error('Failed to create store badge claim:', e);
             setRewardClaimStatus('error');
