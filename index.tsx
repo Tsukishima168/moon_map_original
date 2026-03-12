@@ -768,6 +768,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     const params = getUTMParams();
     setStoredUTMParams(params);
     // UTM params stored for checkout tracking
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'map_view');
+    }
   }, []);
 
   // Collapsible state: Set containing IDs of collapsed categories.  
@@ -907,6 +910,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', 'preorder_click', {
+        item_name: cart.map(item => item.name).join(', ')
+      });
+    }
 
     // Pre-fill Name if available
     if (profile?.nickname) setCustomerName(profile.nickname);
