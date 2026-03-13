@@ -247,6 +247,15 @@ const isMobileDevice = () => {
 
 type NoticeTone = 'info' | 'success' | 'warning' | 'error';
 
+const generateOrderNumberCandidate = () => {
+  const now = new Date();
+  const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+  const timePart = `${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+  const randPart = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+
+  return `ORD${datePart}${timePart}${randPart}`;
+};
+
 // --- TRACKING (Cross-site) ---
 const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
@@ -1087,10 +1096,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
     try {
       // 2. Generate Order ID (Simple Timestamp-Random)
-      const now = new Date();
-      const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
-      const randPart = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      const orderId = `ORD${datePart}${randPart}`;
+      const proposedOrderId = generateOrderNumberCandidate();
 
       const totalAmount = calculateTotal();
       const gaClientId = getGAClientId();
@@ -1102,7 +1108,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           order: {
-            order_number: orderId,
+            order_number: proposedOrderId,
             customer_name: customerName,
             customer_phone: customerPhone,
             customer_email: user?.email || null,
@@ -1138,11 +1144,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       }
 
       const { order } = await orderRes.json();
+      const confirmedOrderId = order?.order_number || proposedOrderId;
 
       // 5. GA4 event
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'purchase', {
-          transaction_id: orderId,
+          transaction_id: confirmedOrderId,
           value: totalAmount,
           currency: 'TWD',
           items: cart.map(item => ({
@@ -1161,7 +1168,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              orderId,
+              orderId: confirmedOrderId,
               totalAmount,
               pickupDate,
               customerName,
@@ -1180,7 +1187,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
       // 7. Build LINE message
       let msg = `【月島甜點訂單確認】\n`;
-      msg += `訂單編號：${orderId}\n`;
+      msg += `訂單編號：${confirmedOrderId}\n`;
       msg += `訂購人：${customerName} (${customerPhone})\n`;
       msg += `手機號碼：${customerPhone}\n`;
       msg += `總金額：$${totalAmount}\n`;
@@ -1193,7 +1200,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       msg += `\n\n付款方式：\n`;
       msg += `LINE Bank (824) 連線商業銀行\n`;
       msg += `帳號：111007479473\n`;
-      msg += `備註欄請填寫：${orderId}\n`;
+      msg += `備註欄請填寫：${confirmedOrderId}\n`;
       msg += `\n付款完成後請回傳「後五碼」\n`;
       msg += `   （轉帳通知中的後五碼數字）`;
 
