@@ -912,6 +912,53 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       return;
     }
 
+    const passportWindow = !isMobileDevice() ? window.open('', '_blank', 'noopener') : null;
+
+    if (passportWindow) {
+      passportWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="zh-TW">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Passport 驗證中</title>
+            <style>
+              body {
+                margin: 0;
+                min-height: 100vh;
+                display: grid;
+                place-items: center;
+                background: #f8f8f8;
+                color: #111;
+                font-family: "Noto Sans TC", sans-serif;
+              }
+              .card {
+                max-width: 320px;
+                padding: 24px;
+                border-radius: 16px;
+                background: white;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+                text-align: center;
+                line-height: 1.8;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              正在驗證你是否已抵達門市，完成後會自動前往 Passport 領取徽章。
+            </div>
+          </body>
+        </html>
+      `);
+      passportWindow.document.close();
+    }
+
+    const closePassportWindow = () => {
+      if (passportWindow && !passportWindow.closed) {
+        passportWindow.close();
+      }
+    };
+
     navigator.geolocation.getCurrentPosition(async (pos) => {
       const { latitude, longitude } = pos.coords;
       const dist = distanceMeters(latitude, longitude, STORE_LOCATION.lat, STORE_LOCATION.lng);
@@ -933,6 +980,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
           } catch (e) {
             console.error('Failed to create store badge claim:', e);
+            closePassportWindow();
             setStoreBadgeMessage('兌換碼建立失敗，請稍後重試。');
             setStoreBadgeStatus('error');
             return;
@@ -945,13 +993,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
         // 直接導向護照，帶上 claim_code
         const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&utm_source=moon_map&utm_medium=reward&utm_campaign=store_badge`;
-        window.open(url, '_blank', 'noopener');
+        if (passportWindow && !passportWindow.closed) {
+          passportWindow.location.href = url;
+        } else {
+          window.location.href = url;
+        }
       } else {
+        closePassportWindow();
         setStoreBadgeStatus('denied');
         setStoreBadgeMessage(`尚未在店內範圍內（目前距離約 ${(dist / 1).toFixed(0)} 公尺），請靠近門市再試一次。`);
       }
     }, (err) => {
       console.error('Geolocation error', err);
+      closePassportWindow();
       setStoreBadgeStatus('error');
       if (err.code === err.PERMISSION_DENIED) {
         setStoreBadgeMessage('無法取得定位，請確認已允許位置權限。');
