@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -245,6 +245,8 @@ const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
+type NoticeTone = 'info' | 'success' | 'warning' | 'error';
+
 // --- TRACKING (Cross-site) ---
 const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
@@ -290,8 +292,10 @@ const App = () => {
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
+  const [uiNotice, setUiNotice] = useState<{ message: string; tone: NoticeTone } | null>(null);
   const [storeBadgeStatus, setStoreBadgeStatus] = useState<'idle' | 'checking' | 'granted' | 'denied' | 'error'>('idle');
   const [storeDistance, setStoreDistance] = useState<number | null>(null);
+  const noticeTimeoutRef = useRef<number | null>(null);
 
   // Helper for LINE browser detection
   const isLineBrowser = typeof window !== 'undefined' && /Line/i.test(navigator.userAgent);
@@ -375,6 +379,46 @@ const App = () => {
     typeof window !== 'undefined' && localStorage.getItem('moonmoon_egg_master_code') ? 'saved' : 'idle'
   );
   const [storeBadgeMessage, setStoreBadgeMessage] = useState<string | null>(null);
+
+  const showUiNotice = (message: string, tone: NoticeTone = 'info') => {
+    setUiNotice({ message, tone });
+
+    if (typeof window !== 'undefined') {
+      if (noticeTimeoutRef.current) {
+        window.clearTimeout(noticeTimeoutRef.current);
+      }
+      noticeTimeoutRef.current = window.setTimeout(() => {
+        setUiNotice(null);
+      }, 3200);
+    }
+  };
+
+  const copyTextWithNotice = async (
+    text: string,
+    successMessage: string,
+    unsupportedMessage: string,
+    errorMessage = unsupportedMessage
+  ) => {
+    if (typeof navigator === 'undefined' || !navigator.clipboard?.writeText) {
+      showUiNotice(unsupportedMessage, 'warning');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      showUiNotice(successMessage, 'success');
+    } catch {
+      showUiNotice(errorMessage, 'warning');
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (noticeTimeoutRef.current && typeof window !== 'undefined') {
+        window.clearTimeout(noticeTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Save found eggs to localStorage
   const markEggAsFound = async (eggId: number) => {
@@ -968,18 +1012,18 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
     // 1. Validation
     if (!customerName || customerName.length < 2) {
-      alert('請填寫完整姓名 (至少 2 個字)');
+      showUiNotice('請填寫完整姓名，至少需要 2 個字。', 'warning');
       setSubmitting(false);
       return;
     }
     const phoneRegex = /^09\d{8}$/;
     if (!customerPhone || !phoneRegex.test(customerPhone)) {
-      alert('請填寫有效的手機號碼 (09開頭共10碼)');
+      showUiNotice('請填寫有效的手機號碼，格式需為 09 開頭共 10 碼。', 'warning');
       setSubmitting(false);
       return;
     }
     if (!pickupDate) {
-      alert('請選擇取貨日期');
+      showUiNotice('請先選擇取貨日期。', 'warning');
       setSubmitting(false);
       return;
     }
@@ -1035,7 +1079,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       if (!orderRes.ok) {
         const err = await orderRes.json().catch(() => ({}));
         console.error('訂單儲存錯誤:', err);
-        alert('訂單建立失敗，請稍後再試');
+        showUiNotice('訂單建立失敗，請稍後再試。', 'error');
         return;
       }
 
@@ -1114,7 +1158,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       }
     } catch (error) {
       console.error('結帳錯誤:', error);
-      alert('發生錯誤，請稍後再試');
+      showUiNotice('發生錯誤，請稍後再試。', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -1188,7 +1232,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    alert('已成功登出島民身份 👋');
+    showUiNotice('已成功登出島民身份。', 'success');
   };
 
   useEffect(() => {
@@ -1400,7 +1444,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             newWindow.document.close();
           } else {
             // 如果彈窗被阻擋，使用替代方案
-            alert('任務卡已生成。\n\n請允許彈出視窗，或直接截圖保存此畫面。\n\n小提示：在瀏覽器設定中允許彈出視窗，下次就能直接顯示圖片。');
+            showUiNotice('任務卡已生成。請允許彈出視窗，或直接截圖保存此畫面。', 'info');
           }
         } else {
           // 電腦：直接下載
@@ -1411,21 +1455,21 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           link.click();
           document.body.removeChild(link);
 
-          alert('任務卡已下載到電腦。\n\n請查看下載資料夾。');
+          showUiNotice('任務卡已下載到電腦，請查看下載資料夾。', 'success');
         }
 
         URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Canvas rendering error:', error);
         URL.revokeObjectURL(url);
-        alert('圖片生成失敗。請稍後再試，或直接截圖保存。');
+        showUiNotice('圖片生成失敗，請稍後再試，或直接截圖保存。', 'error');
       }
     };
 
     img.onerror = (error) => {
       console.error('Image loading error:', error);
       URL.revokeObjectURL(url);
-      alert('圖片載入失敗。請檢查網路連線或稍後再試。');
+      showUiNotice('圖片載入失敗，請檢查網路連線或稍後再試。', 'error');
     };
 
     img.src = url;
@@ -1624,7 +1668,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                alert('飲品僅供店內飲用，不開放預訂。\n\n歡迎來店品嚐！\n營業時間：週三-週日 13:00-19:00');
+                                showUiNotice('飲品僅供店內飲用，不開放預訂。歡迎來店品嚐，營業時間為週三至週日 13:00 - 19:00。', 'info');
                               }}
                               style={{
                                 fontSize: '0.8rem',
@@ -2096,18 +2140,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           onClick={() => {
             track('click_easter_egg_progress_badge');
             if (isEasterEggComplete) {
-              alert(`🎉 你已集滿 8 顆彩蛋！ 恭喜！`);
+              showUiNotice('你已集滿 8 顆彩蛋，已為你帶到限定獎勵區。', 'success');
               document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               return;
             }
-            alert(`🥚 彩蛋收集進度
-
-已發現: ${foundEggs.length}/8
-
-提示：仔細觀察頁面中那些
-看似不起眼的小圖標...
-
-他們藏著 Kiwimu 的秘密 ✨`);
+            showUiNotice(`彩蛋收集進度：已發現 ${foundEggs.length}/8。提示：仔細觀察頁面中那些看似不起眼的小圖標，他們藏著 Kiwimu 的秘密。`, 'info');
           }}
           style={{
             position: 'fixed',
@@ -3077,15 +3114,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           </p>
                           <div
                             onClick={() => {
-                              if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-                                navigator.clipboard.writeText(eggMasterCode).then(() => {
-                                  alert('已複製兌換碼！');
-                                }).catch(() => {
-                                  alert('複製好像失敗了，請長按選取文字手動複製或截圖保存喔！');
-                                });
-                              } else {
-                                alert('目前裝置不支援一鍵複製，請長按選取文字手動複製或截圖保存喔！');
-                              }
+                              copyTextWithNotice(
+                                eggMasterCode,
+                                '已複製兌換碼。',
+                                '目前裝置不支援一鍵複製，請長按選取文字手動複製或截圖保存。',
+                                '複製失敗，請手動複製或截圖保存兌換碼。'
+                              );
                             }}
                             style={{
                               background: '#000',
@@ -3309,6 +3343,36 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           animation: 'fadeInUp 0.3s ease-out'
         }}>
           {cartToast}
+        </div>
+      )}
+
+      {uiNotice && (
+        <div
+          aria-live="polite"
+          style={{
+            position: 'fixed',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 10000,
+            width: 'min(92vw, 560px)',
+            background:
+              uiNotice.tone === 'success' ? 'rgba(42, 157, 143, 0.95)' :
+              uiNotice.tone === 'warning' ? 'rgba(216, 224, 56, 0.96)' :
+              uiNotice.tone === 'error' ? 'rgba(145, 29, 29, 0.96)' :
+              'rgba(0, 0, 0, 0.88)',
+            color: uiNotice.tone === 'warning' ? '#111' : '#fff',
+            padding: '14px 18px',
+            borderRadius: '14px',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
+            fontSize: '0.92rem',
+            lineHeight: 1.6,
+            whiteSpace: 'pre-line',
+            textAlign: 'center',
+            animation: 'fadeInUp 0.25s ease-out'
+          }}
+        >
+          {uiNotice.message}
         </div>
       )}
 
@@ -3660,11 +3724,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </div>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(orderMessage).then(() => {
-                        alert('✅ 已複製訂單訊息到剪貼簿！');
-                      }).catch(() => {
-                        alert('❌ 複製失敗，請手動複製下方訊息');
-                      });
+                      copyTextWithNotice(
+                        orderMessage,
+                        '已複製訂單訊息到剪貼簿。',
+                        '目前裝置不支援一鍵複製，請手動複製下方訂單訊息。',
+                        '複製失敗，請手動複製下方訂單訊息。'
+                      );
                     }}
                     className="btn-primary"
                     style={{
@@ -3804,8 +3869,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   {/* Code Display */}
                   <div
                     onClick={() => {
-                      navigator.clipboard.writeText('KIWIMU KISS');
-                      alert('已複製通關密語！');
+                      copyTextWithNotice(
+                        'KIWIMU KISS',
+                        '已複製通關密語。',
+                        '目前裝置不支援一鍵複製，請手動複製通關密語。',
+                        '複製失敗，請手動複製通關密語。'
+                      );
                     }}
                     style={{
                       background: '#000',
