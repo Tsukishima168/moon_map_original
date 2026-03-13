@@ -13,8 +13,6 @@ const TARGET_SITE_BY_HOST: Record<string, string> = {
   'kiwimu.com': 'mbti_lab',
   'kiwimu-mbti.vercel.app': 'mbti_lab',
   'passport.kiwimu.com': 'passport',
-  'passport.kiwimu.com': 'passport',
-  'shop.kiwimu.com': 'dessert_booking',
   'shop.kiwimu.com': 'dessert_booking',
 };
 

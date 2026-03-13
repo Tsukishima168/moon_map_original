@@ -300,6 +300,9 @@ const App = () => {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
   const [foundEggs, setFoundEggs] = useState<number[]>([]);
+  const [eggMasterCode, setEggMasterCode] = useState<string | null>(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('moonmoon_egg_master_code') : null
+  );
   const isEasterEggComplete = foundEggs.length >= 8;
   const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
   const mbtiLabUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
@@ -345,11 +348,19 @@ const App = () => {
     const storedMonth = localStorage.getItem(EGGS_RENEW_KEY);
     if (storedMonth !== monthKey) {
       localStorage.removeItem('moonmoon_found_eggs');
+      localStorage.removeItem('moonmoon_egg_master_code');
       localStorage.setItem(EGGS_RENEW_KEY, monthKey);
       setFoundEggs([]);
+      setEggMasterCode(null);
+      setRewardClaimStatus('idle');
       return;
     }
     const saved = localStorage.getItem('moonmoon_found_eggs');
+    const savedEggCode = localStorage.getItem('moonmoon_egg_master_code');
+    setEggMasterCode(savedEggCode);
+    if (savedEggCode) {
+      setRewardClaimStatus('saved');
+    }
     if (saved) {
       try {
         setFoundEggs(JSON.parse(saved));
@@ -360,7 +371,10 @@ const App = () => {
   }, []);
 
   // Reward claim saving state
-  const [rewardClaimStatus, setRewardClaimStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [rewardClaimStatus, setRewardClaimStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(() =>
+    typeof window !== 'undefined' && localStorage.getItem('moonmoon_egg_master_code') ? 'saved' : 'idle'
+  );
+  const [storeBadgeMessage, setStoreBadgeMessage] = useState<string | null>(null);
 
   // Save found eggs to localStorage
   const markEggAsFound = async (eggId: number) => {
@@ -387,19 +401,23 @@ const App = () => {
 
             if (!res.ok) {
               console.error('Failed to create reward claim:', await res.text());
+              localStorage.removeItem('moonmoon_egg_master_code');
+              setEggMasterCode(null);
               setRewardClaimStatus('error');
             } else {
               localStorage.setItem('moonmoon_egg_master_code', claimCode);
+              setEggMasterCode(claimCode);
               setRewardClaimStatus('saved');
               track('reward_claimed', { reward_id: 'egg_master_2026_q1', method: 'easter_egg', site_id: 'moon_map' });
             }
           } catch (e) {
             console.error('Network error saving reward claim:', e);
+            localStorage.removeItem('moonmoon_egg_master_code');
+            setEggMasterCode(null);
             setRewardClaimStatus('error');
-            // Still save locally as fallback
-            localStorage.setItem('moonmoon_egg_master_code', claimCode);
           }
         } else {
+          setEggMasterCode(existingCode);
           setRewardClaimStatus('saved');
         }
 
@@ -842,9 +860,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     if (storeBadgeStatus === 'checking') return;
     setStoreBadgeStatus('checking');
     setStoreDistance(null);
+    setStoreBadgeMessage(null);
 
     if (!('geolocation' in navigator)) {
-      alert('此裝置不支援定位，無法解鎖到店徽章');
+      setStoreBadgeMessage('此裝置不支援定位，無法解鎖到店徽章。');
       setStoreBadgeStatus('error');
       return;
     }
@@ -859,7 +878,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         let code = localStorage.getItem(STORE_BADGE_CODE_KEY);
         if (!code) {
           code = `store_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-          setRewardClaimStatus('saving');
           try {
             const res = await fetch('/api/rewards/claim', {
               method: 'POST',
@@ -868,18 +886,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             });
             if (!res.ok) throw new Error(await res.text());
             localStorage.setItem(STORE_BADGE_CODE_KEY, code);
-            setRewardClaimStatus('saved');
             track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
           } catch (e) {
             console.error('Failed to create store badge claim:', e);
-            setRewardClaimStatus('error');
-            alert('兌換碼建立失敗，請稍後重試');
+            setStoreBadgeMessage('兌換碼建立失敗，請稍後重試。');
             setStoreBadgeStatus('error');
             return;
           }
         }
 
         setStoreBadgeStatus('granted');
+        setStoreBadgeMessage('驗證成功，正在開啟 Passport 領取到店徽章...');
         track('stamp_unlock', { site_id: 'moon_map', stamp_id: STORE_BADGE_REWARD_ID, method: 'gps' });
 
         // 直接導向護照，帶上 claim_code
@@ -887,12 +904,18 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         window.open(url, '_blank', 'noopener');
       } else {
         setStoreBadgeStatus('denied');
-        alert(`尚未在店內範圍內（目前距離約 ${(dist / 1).toFixed(0)} 公尺），請靠近門市再試一次！`);
+        setStoreBadgeMessage(`尚未在店內範圍內（目前距離約 ${(dist / 1).toFixed(0)} 公尺），請靠近門市再試一次。`);
       }
     }, (err) => {
       console.error('Geolocation error', err);
       setStoreBadgeStatus('error');
-      alert('無法取得定位，請確認已允許位置權限');
+      if (err.code === err.PERMISSION_DENIED) {
+        setStoreBadgeMessage('無法取得定位，請確認已允許位置權限。');
+      } else if (err.code === err.TIMEOUT) {
+        setStoreBadgeMessage('定位逾時，請確認 GPS 與網路已開啟後再重試。');
+      } else {
+        setStoreBadgeMessage('無法取得定位，請稍後再試。');
+      }
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
   };
 
@@ -2277,7 +2300,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             if (typeof window !== 'undefined' && window.gtag) {
               window.gtag('event', 'order_redirect');
             }
-            window.location.href = CONFIG.preorder_pickup_url;
+            window.location.href = CONFIG.LINKS.preorder_pickup_url;
           }}>
             <div>
               <span className="font-mono" style={{ fontSize: '1rem' }}>02 // ORDER NOW</span><br />
@@ -2300,6 +2323,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               )}
               {storeDistance !== null && storeBadgeStatus !== 'granted' && (
                 <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
+              )}
+              {storeBadgeMessage && (
+                <div
+                  style={{
+                    fontSize: '0.7rem',
+                    color: storeBadgeStatus === 'granted' ? '#2A9D8F' : '#c2410c',
+                    marginTop: '6px',
+                    lineHeight: 1.5,
+                    fontWeight: 600,
+                  }}
+                >
+                  {storeBadgeMessage}
+                </div>
               )}
             </div>
             <span>📍</span>
@@ -3017,18 +3053,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                   {/* Reward Claim Code Display */}
                   {(() => {
-                    const code = localStorage.getItem('moonmoon_egg_master_code');
                     if (rewardClaimStatus === 'saving') {
                       return (
                         <p style={{ fontSize: '0.85rem', color: '#999' }}>正在產生兌換碼...</p>
                       );
                     }
-                    if (rewardClaimStatus === 'error' && !code) {
+                    if (rewardClaimStatus === 'error' && !eggMasterCode) {
                       return (
                         <p style={{ fontSize: '0.85rem', color: '#c00' }}>兌換碼產生失敗，請重新整理頁面或聯繫客服。</p>
                       );
                     }
-                    if (code) {
+                    if (eggMasterCode) {
                       return (
                         <div style={{
                           background: '#f9f9f9',
@@ -3043,7 +3078,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           <div
                             onClick={() => {
                               if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-                                navigator.clipboard.writeText(code).then(() => {
+                                navigator.clipboard.writeText(eggMasterCode).then(() => {
                                   alert('已複製兌換碼！');
                                 }).catch(() => {
                                   alert('複製好像失敗了，請長按選取文字手動複製或截圖保存喔！');
@@ -3065,7 +3100,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               wordBreak: 'break-all'
                             }}
                           >
-                            {code}
+                            {eggMasterCode}
                             <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px' }}>
                               TAP TO COPY
                             </div>
@@ -3077,29 +3112,31 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   })()}
 
                   {/* Passport Badge Button */}
-                  <a
-                    href={`${CONFIG.LINKS.passport_url}?claim_code=${localStorage.getItem('moonmoon_egg_master_code') || ''}&reward=egg_master_2026_q1&utm_source=moon_map&utm_medium=reward&utm_campaign=egg_master`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-block',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
-                      color: CONFIG.BRAND_COLORS.emotionBlack,
-                      border: '2px solid #000',
-                      padding: '10px 20px',
-                      borderRadius: '999px',
-                      fontWeight: 'bold',
-                      fontSize: '0.9rem',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                      width: '100%',
-                      maxWidth: '300px',
-                      textDecoration: 'none',
-                      textAlign: 'center'
-                    }}
-                  >
-                    🏅 前往護照領取限定徽章
-                  </a>
+                  {eggMasterCode && (
+                    <a
+                      href={`${CONFIG.LINKS.passport_url}?claim_code=${eggMasterCode}&reward=egg_master_2026_q1&utm_source=moon_map&utm_medium=reward&utm_campaign=egg_master`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: 'inline-block',
+                        background: CONFIG.BRAND_COLORS.moonYellow,
+                        color: CONFIG.BRAND_COLORS.emotionBlack,
+                        border: '2px solid #000',
+                        padding: '10px 20px',
+                        borderRadius: '999px',
+                        fontWeight: 'bold',
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                        width: '100%',
+                        maxWidth: '300px',
+                        textDecoration: 'none',
+                        textAlign: 'center'
+                      }}
+                    >
+                      🏅 前往護照領取限定徽章
+                    </a>
+                  )}
                 </div>
               )}
             </div>
