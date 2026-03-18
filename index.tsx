@@ -1281,6 +1281,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const handleOAuthLogin = async (provider: 'line' | 'google') => {
+    if (provider === 'google') {
+      // 統一走 Passport 登入中心（SSO）
+      const redirectTo = encodeURIComponent(window.location.origin);
+      window.location.href = `https://passport.kiwimu.com?redirect_to=${redirectTo}`;
+      return;
+    }
     setLoginMessage(`Redirecting to ${provider}...`);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: provider as any,
