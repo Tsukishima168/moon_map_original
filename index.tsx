@@ -1254,6 +1254,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+        supabase.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
       } else {
         setProfile(null);
       }
