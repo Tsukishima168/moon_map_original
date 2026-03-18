@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
+import { trackUserEvent } from './lib/eventTracker';
 
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
@@ -999,6 +1000,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         setStoreBadgeStatus('granted');
         setStoreBadgeMessage('驗證成功，正在開啟 Passport 領取到店徽章...');
         track('stamp_unlock', { site_id: 'moon_map', stamp_id: STORE_BADGE_REWARD_ID, method: 'gps' });
+        trackUserEvent('map_checkin', { method: 'gps', reward_id: STORE_BADGE_REWARD_ID });
 
         // 直接導向護照，帶上 claim_code
         const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&utm_source=moon_map&utm_medium=reward&utm_campaign=store_badge`;
