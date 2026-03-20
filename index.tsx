@@ -743,6 +743,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // --- SUPABASE MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
+  const [menuError, setMenuError] = useState(false); // true = API 失敗，使用 static fallback
   const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
 
   useEffect(() => {
@@ -750,6 +751,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     async function fetchMenu() {
       try {
         setLoadingMenu(true);
+        setMenuError(false);
         const res = await fetch('https://shop.kiwimu.com/api/menu/categories');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
@@ -773,7 +775,32 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
         setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(combined.map(cat => cat.id)));
       } catch (error) {
-        console.error('Error fetching menu:', error);
+        console.error('Error fetching menu, falling back to static data:', error);
+        // --- Fallback：從本地 menu.json 靜態資料顯示 ---
+        setMenuError(true);
+        try {
+          const staticRes = await fetch('/menu.json');
+          if (staticRes.ok) {
+            const staticData = await staticRes.json();
+            const fallback = (staticData as any[]).map((cat: any) => ({
+              id: cat.id,
+              title: cat.title,
+              subtitle: cat.subtitle,
+              hidePrice: cat.id === 'drinks',
+              items: (cat.items as any[]).map((item: any) => ({
+                name: item.name,
+                image: item.image || null,
+                description: item.description,
+                prices: item.prices || [],
+              })),
+            }));
+            setMenuCategories(fallback);
+            const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
+            setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(fallback.map((cat: any) => cat.id)));
+          }
+        } catch (fallbackErr) {
+          console.error('Static menu fallback also failed:', fallbackErr);
+        }
       } finally {
         setLoadingMenu(false);
       }
@@ -2196,13 +2223,76 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             padding: '20px',
             paddingBottom: '120px'
           }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>月島甜點 | 甜點目錄</h1>
               <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
             </header>
-            <div>
-              {menuBodyContent}
-            </div>
+
+            {/* API 失敗 fallback 提示 */}
+            {menuError && (
+              <div style={{
+                background: '#fffbe6',
+                border: '1px solid #f0c040',
+                borderRadius: '8px',
+                padding: '10px 14px',
+                marginBottom: '16px',
+                fontSize: '0.82rem',
+                color: '#7a5f00',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <span>⚠️</span>
+                <span>目前使用離線菜單（正式版菜單暫時無法連線）。如需預訂，請透過 LINE 聯絡我們。</span>
+                <a href={CONFIG.LINKS.line_url} target="_blank" rel="noopener noreferrer"
+                  style={{ marginLeft: 'auto', whiteSpace: 'nowrap', color: '#06C755', fontWeight: 700, textDecoration: 'none' }}
+                >LINE →</a>
+              </div>
+            )}
+
+            {/* Loading 狀態 */}
+            {loadingMenu && (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+                <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🌙</div>
+                <p style={{ fontSize: '0.9rem' }}>菜單載入中…</p>
+              </div>
+            )}
+
+            {/* 菜單完全空白（API + fallback 都失敗）*/}
+            {!loadingMenu && menuCategories.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🍰</div>
+                <h2 style={{ fontSize: '1.1rem', marginBottom: '12px' }}>菜單暫時無法載入</h2>
+                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '24px', lineHeight: 1.7 }}>
+                  系統正在維護中，菜單資料暫時無法取得。<br />
+                  請透過 LINE 官方帳號查詢最新商品。
+                </p>
+                <a
+                  href={CONFIG.LINKS.line_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-block',
+                    background: '#06C755',
+                    color: 'white',
+                    padding: '12px 28px',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    textDecoration: 'none',
+                  }}
+                >
+                  LINE 查詢菜單
+                </a>
+              </div>
+            )}
+
+            {/* 正常或 fallback 菜單內容 */}
+            {!loadingMenu && menuCategories.length > 0 && (
+              <div>
+                {menuBodyContent}
+              </div>
+            )}
           </div>
         )}
 
