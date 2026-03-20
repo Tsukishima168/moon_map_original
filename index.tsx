@@ -1131,49 +1131,58 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       const gaClientId = getGAClientId();
       const utmParams = storedUTMParams || getUTMParams();
 
-      // 3. Save order via API (shop_orders + shop_order_items)
-      const orderRes = await fetch('/api/map-order', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order: {
-            order_number: proposedOrderId,
-            customer_name: customerName,
-            customer_phone: customerPhone,
-            customer_email: user?.email || null,
-            total_amount: totalAmount,
-            pickup_date: pickupDateStr,
-            order_note: orderNote || null,
-            user_id: user?.id || null,
-            payment_status: 'pending',
-            source: 'website',
-            ga_client_id: gaClientId,
-            referrer: utmParams.referrer,
-            utm_source: utmParams.utm_source,
-            utm_medium: utmParams.utm_medium,
-            utm_campaign: utmParams.utm_campaign,
-            utm_content: utmParams.utm_content,
-            utm_term: utmParams.utm_term,
-          },
-          items: cart.map(item => ({
-            item_name: item.name,
-            item_spec: item.spec,
-            unit_price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
-            quantity: item.count,
-            subtotal: parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count,
-          })),
-        }),
-      });
+      let confirmedOrderId = proposedOrderId;
+      let orderSuccess = false;
 
-      if (!orderRes.ok) {
-        const err = await orderRes.json().catch(() => ({}));
-        console.error('訂單儲存錯誤:', err);
-        showUiNotice('訂單建立失敗，請稍後再試。', 'error');
-        return;
+      // 3. Save order via API (shop_orders + shop_order_items)
+      try {
+        const orderRes = await fetch('/api/map-order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order: {
+              order_number: proposedOrderId,
+              customer_name: customerName,
+              customer_phone: customerPhone,
+              customer_email: user?.email || null,
+              total_amount: totalAmount,
+              pickup_date: pickupDateStr,
+              order_note: orderNote || null,
+              user_id: user?.id || null,
+              payment_status: 'pending',
+              source: 'website',
+              ga_client_id: gaClientId,
+              referrer: utmParams.referrer,
+              utm_source: utmParams.utm_source,
+              utm_medium: utmParams.utm_medium,
+              utm_campaign: utmParams.utm_campaign,
+              utm_content: utmParams.utm_content,
+              utm_term: utmParams.utm_term,
+            },
+            items: cart.map(item => ({
+              item_name: item.name,
+              item_spec: item.spec,
+              unit_price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
+              quantity: item.count,
+              subtotal: parseInt(item.price.replace(/[^\d]/g, ''), 10) * item.count,
+            })),
+          }),
+        });
+
+        if (orderRes.ok) {
+          const { order } = await orderRes.json();
+          confirmedOrderId = order?.order_number || proposedOrderId;
+          orderSuccess = true;
+        } else {
+          console.error('訂單儲存錯誤 (API):', await orderRes.text().catch(() => ''));
+        }
+      } catch (err) {
+        console.error('訂單 API 網路錯誤:', err);
       }
 
-      const { order } = await orderRes.json();
-      const confirmedOrderId = order?.order_number || proposedOrderId;
+      if (!orderSuccess) {
+        console.warn('Fallback: DB API failed, but proceeding to LINE redirect anyway.');
+      }
 
       // 5. GA4 event
       if (typeof window !== 'undefined' && (window as any).gtag) {
