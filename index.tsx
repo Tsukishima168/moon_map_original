@@ -2237,7 +2237,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
             </header>
 
-            {/* API 失敗 fallback 提示 */}
+            {/* API 失敗 fallback 提示 (客製化要求：移除離線菜單警告標語) */}
+            {/*
             {menuError && (
               <div style={{
                 background: '#fffbe6',
@@ -2258,6 +2259,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 >LINE →</a>
               </div>
             )}
+            */}
 
             {/* Loading 狀態 */}
             {loadingMenu && (
