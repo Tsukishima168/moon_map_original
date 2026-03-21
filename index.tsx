@@ -105,6 +105,43 @@ function getMenuImageUrl(img: string | null | undefined): string | null {
   return MENU_IMAGES_BASE ? `${MENU_IMAGES_BASE}/${path}` : img;
 }
 
+const VERIFIED_MENU_IMAGE_KEYS: Record<string, string | null> = {
+  "經典提拉米蘇": "classic_tiramisu.webp",
+  "烤焦糖布丁摩卡米蘇": "pudding_mocha_tiramisu.webp",
+  "小山園抹茶米蘇": "matcha_tiramisu.webp",
+  "日本柚子蘋果乳酪米蘇": "yuzu_apple_cheese_tiramisu.webp",
+  "莓果提拉米蘇": null,
+  "奶酒提拉米蘇": "baileys_tiramisu.webp",
+  "原味巴斯克": "classic_basque.webp",
+  "檸檬巴斯克": "lemon_basque.webp",
+  "鹹蛋黃巴斯克": "saltedegg_basque.webp",
+  "莓果巧克力戚風蛋糕": "berry_chocolate_chiffon.webp",
+  "烤焦糖布丁戚風蛋糕": "caramel_pudding_chiffon.webp",
+  "伯爵綠葡萄戚風蛋糕": null,
+  "巧克力草莓莓果戚風蛋糕": "strawberry_chocolate_berry_chiffon.webp",
+  "十勝草莓莓果戚風蛋糕": "strawberry_berry_chiffon.webp",
+  "北海道十勝低糖原味千層": "lowsugar_original_millecrepe.webp",
+  "法芙娜巧克力布朗尼千層": "chocolate_brownie_millecrepe.webp",
+  "特濃抹茶千層": "rich_matcha_millecrepe.webp",
+  "伯爵茶千層": "earlgrey_milkfoam_millecrepe.webp",
+  "檸檬日本柚子千層": "lemon_yuzu_millecrepe.webp",
+  "蜜香紅茶拿鐵千層": "honey_blacktea_latte_millecrepe.webp",
+  "焙茶拿鐵千層": "rich_hojicha_latte_millecrepe.webp",
+  "卡士達十勝草莓千層": "custard_strawberry_millecrepe.webp",
+  "十勝低糖水果森林千層": "fruit_party_millecrepe.webp",
+  "十勝低糖原味莓果草莓千層": "hokkaido_berry_strawberry_millecrepe.webp",
+  "巧克力莓果草莓千層": "chocolate_berry_strawberry_millecrepe.webp",
+  "檸檬日本柚子草莓千層": "lemon_yuzu_strawberry_millecrepe.webp",
+  "布丁": "classic_pudding.webp",
+};
+
+function resolveMenuItemImage(name: string, img: string | null | undefined): string | null {
+  const verifiedImageKey = VERIFIED_MENU_IMAGE_KEYS[name];
+  if (verifiedImageKey === null) return null;
+  if (verifiedImageKey) return getMenuImageUrl(verifiedImageKey);
+  return getMenuImageUrl(img);
+}
+
 /** 粗略計算兩點距離（公尺） - Haversine */
 function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (d: number) => d * Math.PI / 180;
@@ -740,67 +777,35 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     };
   };
 
-  // --- SUPABASE MENU & USER DATA ---
+  // --- MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<any[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
-  const [menuError, setMenuError] = useState(false); // true = API 失敗，使用 static fallback
   const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
 
   useEffect(() => {
-    // 憲法法條 1：禁止前端直連 DB，一律透過 API 取資料
     async function fetchMenu() {
       try {
         setLoadingMenu(true);
-        setMenuError(false);
-        const res = await fetch('https://shop.kiwimu.com/api/menu/categories');
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-        if (!json.success) throw new Error(json.message || '取得菜單失敗');
-
-        const combined = (json.data as any[]).map(cat => ({
+        const staticRes = await fetch('/menu.json');
+        if (!staticRes.ok) throw new Error(`HTTP ${staticRes.status}`);
+        const staticData = await staticRes.json();
+        const categories = (staticData as any[]).map((cat: any) => ({
           id: cat.id,
           title: cat.title,
           subtitle: cat.subtitle,
           hidePrice: cat.id === 'drinks',
-          items: (cat.items as any[]).map(item => ({
+          items: (cat.items as any[]).map((item: any) => ({
             name: item.name,
-            image: getMenuImageUrl(item.image),
+            image: resolveMenuItemImage(item.name, item.image),
             description: item.description,
             prices: item.prices || [],
           })),
         }));
-
-        setMenuCategories(combined);
-        // 預設：從 /menu 進來則全部展開（可直接點品項）；其餘頁面則收起
+        setMenuCategories(categories);
         const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
-        setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(combined.map(cat => cat.id)));
-      } catch (error) {
-        console.error('Error fetching menu, falling back to static data:', error);
-        // --- Fallback：從本地 menu.json 靜態資料顯示 ---
-        setMenuError(true);
-        try {
-          const staticRes = await fetch('/menu.json');
-          if (staticRes.ok) {
-            const staticData = await staticRes.json();
-            const fallback = (staticData as any[]).map((cat: any) => ({
-              id: cat.id,
-              title: cat.title,
-              subtitle: cat.subtitle,
-              hidePrice: cat.id === 'drinks',
-              items: (cat.items as any[]).map((item: any) => ({
-                name: item.name,
-                image: item.image || null,
-                description: item.description,
-                prices: item.prices || [],
-              })),
-            }));
-            setMenuCategories(fallback);
-            const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
-            setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(fallback.map((cat: any) => cat.id)));
-          }
-        } catch (fallbackErr) {
-          console.error('Static menu fallback also failed:', fallbackErr);
-        }
+        setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat: any) => cat.id)));
+      } catch (err) {
+        console.error('Failed to load menu.json:', err);
       } finally {
         setLoadingMenu(false);
       }
@@ -1719,10 +1724,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   return (
                     <div key={idx} className="menu-item" style={{
                       position: 'relative',
-                      border: isRecommended ? `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` : 'none',
+                      outline: isRecommended ? `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` : 'none',
                       borderRadius: '8px',
-                      padding: isRecommended ? '10px' : '0',
-                      margin: isRecommended ? '-12px -12px 10px -12px' : '0', // Negative margin to compensate padding without breaking layout
                       background: isRecommended ? 'rgba(255,255,255,0.8)' : 'transparent',
                       boxShadow: isRecommended ? '0 4px 15px rgba(0,0,0,0.05)' : 'none'
                     }}>
@@ -1747,17 +1750,18 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       {item.image && (
                         <div style={{
                           width: '100%',
-                          height: '200px',
+                          aspectRatio: '1 / 1',
                           borderRadius: '8px',
                           overflow: 'hidden',
                           marginBottom: '12px',
-                          cursor: 'default'
+                          cursor: 'default',
+                          background: '#f7f3ec'
                         }}
                         >
                           <img
                             src={item.image || ''}
                             alt={item.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                             onError={(e) => { e.currentTarget.parentElement!.style.display = 'none'; }}
                           />
                         </div>
@@ -2236,30 +2240,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>月島甜點 | 甜點目錄</h1>
               <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
             </header>
-
-            {/* API 失敗 fallback 提示 (客製化要求：移除離線菜單警告標語) */}
-            {/*
-            {menuError && (
-              <div style={{
-                background: '#fffbe6',
-                border: '1px solid #f0c040',
-                borderRadius: '8px',
-                padding: '10px 14px',
-                marginBottom: '16px',
-                fontSize: '0.82rem',
-                color: '#7a5f00',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <span>⚠️</span>
-                <span>目前使用離線菜單（正式版菜單暫時無法連線）。如需預訂，請透過 LINE 聯絡我們。</span>
-                <a href={CONFIG.LINKS.line_url} target="_blank" rel="noopener noreferrer"
-                  style={{ marginLeft: 'auto', whiteSpace: 'nowrap', color: '#06C755', fontWeight: 700, textDecoration: 'none' }}
-                >LINE →</a>
-              </div>
-            )}
-            */}
 
             {/* Loading 狀態 */}
             {loadingMenu && (
@@ -2928,7 +2908,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             <div style={{ fontWeight: 800, fontSize: '1rem', color: '#333' }}>{item.name}</div>
                             {item.description && <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px' }}>{item.description}</div>}
                             <div style={{ marginTop: '8px', color: '#8b6b23', fontWeight: 'bold' }}>
-                              {item.prices && item.prices.length > 0 ? `$${item.prices[0].price}` : '時價'}
+                              {item.prices && item.prices.length > 0 ? item.prices[0].price : '時價'}
                             </div>
                           </div>
                         ))}
