@@ -1,6 +1,8 @@
 # BOOT.md — Moon Map (map.kiwimu.com) · 交接快照
 
-> 每次新開對話，先讀這份文件，快速掌握本專案 (moon_map_original) 的最新狀態。
+> 每次新開對話，先讀這份文件，快速掌握本專案的最新狀態。
+> 本機 canonical repo 路徑：`/Users/pensoair/Desktop/Web-Projects/sites/map-kiwimu-com`
+> GitHub remote 目前仍為：`Tsukishima168/moon_map_original`
 
 ---
 

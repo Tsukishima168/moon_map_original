@@ -90,8 +90,8 @@ vercel --prod
 
 ## 📂 Project Structure
 
-```
-moon_map_original/
+``` 
+map-kiwimu-com/
 ├── index.html          # HTML entry with SEO meta tags
 ├── index.tsx           # Main React app with inline styles
 ├── package.json        # Dependencies & scripts
@@ -104,6 +104,14 @@ moon_map_original/
     │   └── favicon.png          # Site icon
     └── robots.txt               # SEO crawling rules
 ```
+
+## 📍 Canonical Local Path
+
+```bash
+/Users/pensoair/Desktop/Web-Projects/sites/map-kiwimu-com
+```
+
+GitHub remote 目前仍為 `Tsukishima168/moon_map_original`，本次只做本地 canonical path 搬遷。
 
 ## 🌈 Design System
 

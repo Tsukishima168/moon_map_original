@@ -1,6 +1,6 @@
 # Project Overview
 
-Project: Kiwimu ecosystem (moon_map_original)
+Project: Kiwimu ecosystem (local canonical repo: map-kiwimu-com; GitHub repo: moon_map_original)
 
 Sites:
 - MBTI Lab (kiwimu.com)
