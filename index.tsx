@@ -71,6 +71,26 @@ const FORTUNES = [
 ];
 const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
 const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
+
+function buildBlockedDateRange(startDate: string, endDate: string): string[] {
+  const [startYear, startMonth, startDay] = startDate.split('-').map(Number);
+  const [endYear, endMonth, endDay] = endDate.split('-').map(Number);
+  const current = new Date(startYear, startMonth - 1, startDay);
+  const end = new Date(endYear, endMonth - 1, endDay);
+  const dates: string[] = [];
+
+  while (current <= end) {
+    dates.push(
+      `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`
+    );
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+
+const MANUAL_BLOCKED_DATES = buildBlockedDateRange('2026-04-12', '2026-04-19');
+
 function getTodayKey(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -652,7 +672,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   const [showHiddenMenu, setShowHiddenMenu] = useState(false);
 
   // --- DYNAMIC BLOCKED DATES ---
-  const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [blockedDates, setBlockedDates] = useState<string[]>(MANUAL_BLOCKED_DATES);
 
   useEffect(() => {
     async function fetchBlockedDates() {
@@ -669,10 +689,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           const specialDates = data.setting_value.special_dates;
           // Filter out dates where capacity is 0
           const blocked = Object.keys(specialDates).filter(date => specialDates[date] === 0);
-          setBlockedDates(blocked);
+          setBlockedDates(Array.from(new Set([...MANUAL_BLOCKED_DATES, ...blocked])).sort());
 
           if (import.meta.env.DEV) {
-            console.log('[Date-Lock] Dynamically loaded blocked dates:', blocked);
+            console.log('[Date-Lock] Loaded blocked dates:', Array.from(new Set([...MANUAL_BLOCKED_DATES, ...blocked])).sort());
           }
         }
       } catch (e) {
