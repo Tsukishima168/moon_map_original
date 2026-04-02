@@ -2159,6 +2159,28 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           position: sticky; top: 0; background: rgba(255,255,255,0.95); z-index: 10;
         }
         .modal-body { padding: 24px; }
+        .btn-checkout-loading {
+          position: relative;
+          color: transparent !important;
+          pointer-events: none;
+          cursor: wait;
+        }
+        .btn-checkout-loading::after {
+          content: "";
+          position: absolute;
+          width: 20px;
+          height: 20px;
+          top: 50%;
+          left: 50%;
+          margin: -10px 0 0 -10px;
+          border: 2px solid rgba(255,255,255,0.3);
+          border-top-color: #fff;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
         .menu-grid {
           display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 30px;
         }
@@ -3839,10 +3861,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
                 <button
                   onClick={confirmAndSend}
-                  className="btn-primary"
+                  disabled={submitting}
+                  className={`btn-primary ${submitting ? 'btn-checkout-loading' : ''}`}
                   style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonYellow }}
                 >
-                  確認並傳送至 LINE ➔
+                  {submitting ? '傳送中...' : '確認並傳送至 LINE ➔'}
                 </button>
               </div>
             </div>
@@ -4078,7 +4101,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <button
                     onClick={confirmAndSend}
                     disabled={submitting}
-                    className="checkout-btn"
+                    className={`checkout-btn ${submitting ? 'btn-checkout-loading' : ''}`}
                     style={{
                       width: '100%',
                       padding: '16px',
