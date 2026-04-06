@@ -221,44 +221,6 @@
                         "price": "$1,980"
                     }
                 ]
-            },
-            {
-                "name": "巧克力草莓莓果戚風蛋糕",
-                "description": "濃郁巧克力與甜美草莓的經典組合，每一層都是幸福的味道。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
-                "prices": [
-                    {
-                        "spec": "四吋",
-                        "price": "$690"
-                    },
-                    {
-                        "spec": "六吋",
-                        "price": "$1,350"
-                    },
-                    {
-                        "spec": "八吋",
-                        "price": "$2,250"
-                    }
-                ]
-            },
-            {
-                "name": "十勝草莓莓果戚風蛋糕",
-                "description": "北海道十勝鮮奶油與季節草莓，呈現極致綿密的奢華口感。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
-                "prices": [
-                    {
-                        "spec": "四吋",
-                        "price": "$690"
-                    },
-                    {
-                        "spec": "六吋",
-                        "price": "$1,350"
-                    },
-                    {
-                        "spec": "八吋",
-                        "price": "$2,250"
-                    }
-                ]
             }
         ]
     },
@@ -345,53 +307,9 @@
                 ]
             },
             {
-                "name": "卡士達十勝草莓千層",
-                "description": "綿密卡士達醬與北海道鮮奶油的雙重奢華，點綴季節草莓。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
-                "prices": [
-                    {
-                        "spec": "九吋",
-                        "price": "$2,500"
-                    }
-                ]
-            },
-            {
                 "name": "十勝低糖水果森林千層",
                 "description": "繽紛水果與低糖鮮奶油的清爽組合，如漫步森林般的自然甜美。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
-                "prices": [
-                    {
-                        "spec": "九吋",
-                        "price": "$2,500"
-                    }
-                ]
-            },
-            {
-                "name": "十勝低糖原味莓果草莓千層",
-                "description": "原味千層搭配新鮮莓果，簡單卻完美的經典配方。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
-                "prices": [
-                    {
-                        "spec": "九吋",
-                        "price": "$2,500"
-                    }
-                ]
-            },
-            {
-                "name": "巧克力莓果草莓千層",
-                "description": "巧克力的濃郁與莓果的酸甜，創造味蕾的多層次饗宴。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
-                "prices": [
-                    {
-                        "spec": "九吋",
-                        "price": "$2,500"
-                    }
-                ]
-            },
-            {
-                "name": "檸檬日本柚子草莓千層",
-                "description": "三重果香的交織，酸甜平衡，清爽宜人的春日滋味。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
                 "prices": [
                     {
                         "spec": "九吋",
