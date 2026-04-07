@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
+import { buildMenuFromSharedCategories, type SharedMenuCategory, type StaticMenuCategory } from './lib/menu-shared';
 
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
@@ -22,9 +23,9 @@ const CONFIG = {
     grayLine: '#E0E0E0',
   },
   LINKS: {
-    preorder_pickup_url: "https://shop.kiwimu.com",
-    delivery_url: "https://shop.kiwimu.com",
-    booking_url: "https://shop.kiwimu.com",
+    preorder_pickup_url: "https://map.kiwimu.com/menu",
+    delivery_url: "https://map.kiwimu.com/menu",
+    booking_url: "https://map.kiwimu.com/menu",
     passport_url: "https://passport.kiwimu.com",
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu.com",
@@ -160,6 +161,21 @@ function resolveMenuItemImage(name: string, img: string | null | undefined): str
   if (verifiedImageKey === null) return null;
   if (verifiedImageKey) return getMenuImageUrl(verifiedImageKey);
   return getMenuImageUrl(img);
+}
+
+function normalizeMenuCategories(categories: StaticMenuCategory[]) {
+  return categories.map((cat) => ({
+    id: cat.id,
+    title: cat.title,
+    subtitle: cat.subtitle,
+    hidePrice: cat.hidePrice ?? cat.id === 'drinks',
+    items: cat.items.map((item) => ({
+      name: item.name,
+      image: resolveMenuItemImage(item.name, item.image),
+      description: item.description,
+      prices: item.prices || [],
+    })),
+  }));
 }
 
 /** 粗略計算兩點距離（公尺） - Haversine */
@@ -808,19 +824,29 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         setLoadingMenu(true);
         const staticRes = await fetch('/menu.json');
         if (!staticRes.ok) throw new Error(`HTTP ${staticRes.status}`);
-        const staticData = await staticRes.json();
-        const categories = (staticData as any[]).map((cat: any) => ({
-          id: cat.id,
-          title: cat.title,
-          subtitle: cat.subtitle,
-          hidePrice: cat.id === 'drinks',
-          items: (cat.items as any[]).map((item: any) => ({
-            name: item.name,
-            image: resolveMenuItemImage(item.name, item.image),
-            description: item.description,
-            prices: item.prices || [],
-          })),
-        }));
+        const staticData = await staticRes.json() as StaticMenuCategory[];
+
+        let categories = normalizeMenuCategories(staticData);
+
+        try {
+          const liveRes = await fetch('/api/menu');
+          if (!liveRes.ok) throw new Error(`HTTP ${liveRes.status}`);
+
+          const livePayload = await liveRes.json();
+          if (!Array.isArray(livePayload?.data)) {
+            throw new Error('Invalid shared menu payload');
+          }
+
+          const mergedCategories = normalizeMenuCategories(
+            buildMenuFromSharedCategories(staticData, livePayload.data as SharedMenuCategory[])
+          );
+          if (mergedCategories.some((category) => category.items.length > 0)) {
+            categories = mergedCategories;
+          }
+        } catch (liveErr) {
+          console.warn('Failed to load shared menu source, falling back to menu.json:', liveErr);
+        }
+
         setMenuCategories(categories);
         const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
         setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat: any) => cat.id)));
@@ -2530,7 +2556,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             if (typeof window !== 'undefined' && window.gtag) {
               window.gtag('event', 'order_redirect');
             }
-            window.location.href = CONFIG.LINKS.preorder_pickup_url;
+            window.location.href = bookingMenuUrl;
           }}>
             <div>
               <span className="font-mono" style={{ fontSize: '1rem' }}>02 // ORDER NOW</span><br />

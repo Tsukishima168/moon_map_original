@@ -6,35 +6,37 @@
 
 ---
 
-## 交接快照 · 2026-03-21
+## 交接快照 · 2026-04-07
 
 ### 專案狀態
 - **架構：** 純 Vite + React SPA（`index.tsx` 約 5,000 行），無框架。
 - **部署：** Vercel，`main` 分支自動部署，網域 `map.kiwimu.com`。
 - **訂單 API：** `api/map-order.ts`（Vercel Function，直連 moonisland Supabase）。
-- **菜單資料：** `public/menu.json`（靜態，與 shop DB 完全解耦）。
+- **菜單資料：** `/api/menu`（proxy 到 `shop.kiwimu.com/api/menu/categories`）優先，`public/menu.json` 作為 fallback。
 
-### 菜單架構（2026-03-21 完成解耦）
-`/menu` 現在直接讀取本機的 `public/menu.json`，**不再依賴 `shop.kiwimu.com`**。
-- shop 掛掉 → map/menu 完全不受影響
-- 菜單要更新 → 改 `public/menu.json` → commit → push → Vercel 自動部署
+### 菜單架構（2026-04-07 起）
+`/menu` 現在會先讀同域的 `api/menu`，再由該 endpoint proxy 到 `shop.kiwimu.com/api/menu/categories`。
+- live 商品、價格、上下架狀態以 `shop` 為主
+- `public/menu.json` 仍保留，作為 fallback 與 map 顯示層 metadata（名稱、描述、圖片 key、分類文案）來源
+- 如果 shared source 失敗，前端仍會回退到 `public/menu.json`
+- 菜單整合尚未完全收斂，**不能把 `public/menu.json` 當作唯一真相，也還不能直接刪**
 
 ### Git 狀態
 - branch: `main`
-- HEAD: `1bddb2b`（fix(menu): decouple from shop API）
-- working_tree: clean
-- origin: in sync
+- HEAD: 以當前 `git rev-parse --short HEAD` 為準
+- working_tree: 不保證乾淨，先看 `git status`
+- origin: 不保證同步，先看 `git status -sb`
 
-### 已修復的 Bug（2026-03-21）
-1. 拿掉 `shop.kiwimu.com/api/menu/categories` 依賴
-2. 推薦商品 negative margin 破版 → 改用 `outline`
-3. 隱藏菜單 `$$160` 雙符號 bug
-4. 圖片比例 `height: 200px` → `aspectRatio: 1/1`
-5. 加入 `resolveMenuItemImage`（已驗證圖片 key 對照表）
+### 菜單整合現況
+1. `map/menu` 已切成 shared source + fallback
+2. `map` 現在走 `shop /api/menu/categories` 這條 grouped display contract；`shop /api/menu` 仍保留給 commerce 自己的平面商品流
+3. `public/menu.json` 仍是必要依賴，因為 map 仍用它承載展示層 metadata
+4. 根目錄重複的 `menu.json` 已退役，不再保留第二份靜態真相
 
 ### 結帳流程（2026-03-20 已完成）
 即使 `api/map-order` 寫入 DB 失敗，**前端依舊強制跳 LINE**，不漏接任何訂單。
 
 ### 待辦
-- 菜單有異動時手動更新 `public/menu.json` + commit
+- 把 `map` 需要的 display contract 正式從 shared source 提供，不再散落在前端常數與 `public/menu.json`
+- 等 parity 檢查完成後，再決定 `public/menu.json` 是否退役
 - `index.tsx` 技術債（巨石架構，未來可拆元件）
