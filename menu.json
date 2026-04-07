@@ -202,25 +202,6 @@
                         "price": "$1,650"
                     }
                 ]
-            },
-            {
-                "name": "伯爵綠葡萄戚風蛋糕",
-                "description": "伯爵茶的優雅茶香融入青葡萄的清新，品味英式午茶的浪漫。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
-                "prices": [
-                    {
-                        "spec": "四吋",
-                        "price": "$650"
-                    },
-                    {
-                        "spec": "六吋",
-                        "price": "$1,150"
-                    },
-                    {
-                        "spec": "八吋",
-                        "price": "$1,980"
-                    }
-                ]
             }
         ]
     },
