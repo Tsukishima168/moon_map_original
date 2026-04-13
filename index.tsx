@@ -1393,10 +1393,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   useEffect(() => {
-    if (!onlyMenuView) {
-      document.title = 'Moon Map | Member Entry';
-    }
-  }, [onlyMenuView]);
+    document.title = `${CONFIG.STORE_NAME_EN} | Island Landing`;
+  }, []);
 
   const handleStateSelect = (stateKey: string) => {
     // Toggle: if clicking the same state, close it
@@ -1886,20 +1884,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     </div>
   );
 
-  const memberDisplayName = profile?.nickname || user?.email?.split('@')[0] || '島民';
-  const memberMbtiData = profile?.mbti_type ? MBTI_DESSERT_MAPPING[profile.mbti_type] : null;
-  const memberStatusCopy = user
-    ? profile?.mbti_type
-      ? '你的跨站身份已啟用，現在可以直接進護照、查看 MBTI 歷史與領取任務獎勵。'
-      : '你的跨站身份已啟用。下一步建議先同步 MBTI 測驗，讓會員入口能顯示更精準推薦。'
-    : 'Moon Map 這一版先把品牌首頁重排成真正的會員入口。先登入，之後你的護照、MBTI、獎勵與跨站足跡都會從這裡開始。';
-  const memberPrimaryRecommendation = memberMbtiData?.recommendedItems?.[0] || (user ? '前往護照查看本季任務' : '登入後顯示專屬甜點處方');
-
-  const scrollToSection = (sectionId: string, eventName: string) => {
-    track(eventName);
-    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
   return (
     <>
       <style>{`
@@ -2030,147 +2014,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             padding: 24px;
           }
         }
-
-        .member-status-strip {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 18px;
-          flex-wrap: wrap;
-          position: relative;
-          z-index: 10;
-        }
-
-        .member-entry-shell {
-          display: grid;
-          gap: 16px;
-          margin-bottom: 16px;
-        }
-
-        .member-entry-main,
-        .member-entry-aside,
-        .member-note-card {
-          background: rgba(255, 255, 255, 0.84);
-          border: 1px solid rgba(255, 255, 255, 0.65);
-          border-radius: 24px;
-          box-shadow: var(--shadow-glass);
-          backdrop-filter: blur(18px) saturate(180%);
-        }
-
-        .member-entry-main {
-          padding: 28px;
-          display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-
-        .member-entry-aside {
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-        }
-
-        .member-entry-title {
-          font-size: clamp(2.25rem, 7vw, 3.75rem);
-          line-height: 0.98;
-          letter-spacing: -0.05em;
-          margin: 0;
-        }
-
-        .member-entry-copy {
-          font-size: 1rem;
-          line-height: 1.8;
-          color: #555;
-          max-width: 34rem;
-        }
-
-        .member-chip-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-
-        .member-chip {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 6px 12px;
-          border-radius: 999px;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          background: rgba(255, 255, 255, 0.82);
-          font-size: 0.8rem;
-          font-weight: 700;
-          color: #333;
-        }
-
-        .member-primary-actions {
-          display: grid;
-          gap: 12px;
-        }
-
-        .member-inline-actions {
-          display: grid;
-          gap: 12px;
-        }
-
-        .member-summary-list {
-          display: grid;
-          gap: 10px;
-          margin: 4px 0 10px;
-        }
-
-        .member-summary-item {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 12px;
-          padding-bottom: 10px;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-          font-size: 0.92rem;
-          line-height: 1.5;
-        }
-
-        .member-summary-item strong {
-          text-align: right;
-          max-width: 55%;
-        }
-
-        .member-secondary-grid {
-          display: grid;
-          gap: 12px;
-        }
-
-        .member-secondary-grid .btn-entry {
-          margin-bottom: 0;
-          height: 100%;
-        }
-
-        .member-note-card {
-          margin-top: 16px;
-          padding: 22px 24px;
-          background: #fff6be;
-          border: 1px solid rgba(0, 0, 0, 0.08);
-          box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.08);
-        }
-
-        @media (min-width: 768px) {
-          .member-entry-shell {
-            grid-template-columns: minmax(0, 1.45fr) minmax(250px, 0.95fr);
-            align-items: stretch;
-          }
-
-          .member-inline-actions,
-          .member-secondary-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-
-          .member-entry-main {
-            padding: 34px;
-          }
-        }
-
+        
         .btn-primary {
           display: block; width: 100%; text-align: center;
           background: var(--c-blue);
@@ -2523,7 +2367,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}
           style={{
             position: 'fixed',
-            top: '92px',
+            top: '16px',
             left: '16px',
             zIndex: 2000,
             display: onlyMenuView ? 'none' : undefined,
@@ -2550,7 +2394,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             }}
             style={{
               position: 'fixed',
-              top: '136px',
+              top: '60px',
               left: '16px',
               zIndex: 2000,
               background: '#000',
@@ -2573,6 +2417,23 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
         {/* A. HERO */}
         <header style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
+          {/* CURRENT EXHIBITION BANNER - Moved to Top */}
+          <div style={{
+            marginBottom: '30px',
+            padding: '20px',
+            background: CONFIG.BRAND_COLORS.moonYellow,
+            border: '2px solid black',
+            fontSize: '0.9rem',
+            boxShadow: '4px 4px 0 rgba(0,0,0,0.1)',
+            position: 'relative'
+          }}>
+            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q1</span>
+            <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
+
+            {/* Gold Coin Egg (Hidden in Yellow Background) */}
+            {/* REMOVED: Moved to 'Fortune' (New_year-2.jpg) wallpaper based on user feedback */}
+          </div>
+
           <div
             className={`header-bird ${showEasterEgg ? 'modal-open' : ''}`}
             onClick={(e) => {
@@ -2586,8 +2447,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" style={{ width: '100%', height: 'auto' }} />
           </div>
-          <div className="member-status-strip font-mono" style={{ fontSize: '0.8rem' }}>
-            <span>MOON MAP MEMBER ENTRY</span>
+          <div className="font-mono" style={{
+            marginBottom: '10px',
+            fontSize: '0.8rem',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            position: 'relative',
+            zIndex: 10
+          }}>
+            <span>WELCOME TO MOON ISLAND</span>
             {user ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button
@@ -2638,270 +2507,119 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   boxShadow: '0 4px 0 black'
                 }}
               >
-                登入 / 啟用會員入口
+                領取島民狀態 STATUS
               </button>
             )}
           </div>
 
-          <div className="member-entry-shell">
-            <section className="member-entry-main">
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-                <span className="font-mono" style={{ fontSize: '0.72rem', letterSpacing: '0.12em', opacity: 0.72 }}>
-                  PHASE 1 / TRUE ENTRY HUB
-                </span>
-                <span className="member-chip">{user ? '島民已登入' : '訪客模式'}</span>
+          {/* Logo Integration */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
+              Island Landing
+            </h1>
+          </div>
+
+          <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px', position: 'relative' }}>
+            {CONFIG.TAGLINE}
+            {/* Easter Egg #5 - 島主筆記 */}
+            <img
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              alt=""
+              className={`easter-egg-icon ${foundEggs.includes(5) ? 'found' : ''}`}
+              onClick={() => openEasterEgg(5)}
+              style={{
+                display: 'inline-block',
+                marginLeft: '8px',
+                width: '18px',
+                height: '18px',
+                opacity: 0.25,
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                verticalAlign: 'middle'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3) rotate(10deg)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+            />
+          </p>
+
+          <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
+            <div>
+              <span className="font-mono text-blue" style={{ fontSize: '1rem' }}>01 // INTERACT</span><br />
+              <strong>我想登島互動 (Check-in)</strong>
+              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>*將開啟護照外部網頁</div>
+            </div>
+            <span>↗</span>
+          </a>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_pickup');
+            if (typeof window !== 'undefined' && window.gtag) {
+              window.gtag('event', 'order_redirect');
+            }
+            window.location.href = bookingMenuUrl;
+          }}>
+            <div>
+              <span className="font-mono" style={{ fontSize: '1rem' }}>02 // ORDER NOW</span><br />
+              <strong>我想帶走甜點 (預訂取貨)</strong>
+            </div>
+            <span>↗</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_store_badge');
+            handleStoreBadge();
+          }}>
+            <div>
+              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>04 // VISIT</span><br />
+              <strong>到店解鎖徽章 (100m 內)</strong>
+              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>
+                需開啟定位；成功會跳轉護照
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" style={{ maxWidth: '240px', height: 'auto', filter: 'brightness(0)' }} />
-                <h1 className="member-entry-title">Moon Map 會員中心入口</h1>
-                <p className="member-entry-copy">{memberStatusCopy}</p>
-                <div style={{ color: CONFIG.BRAND_COLORS.grayText, fontSize: '0.92rem', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <span>{CONFIG.TAGLINE}</span>
-                  <img
-                    src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
-                    alt=""
-                    className={`easter-egg-icon ${foundEggs.includes(5) ? 'found' : ''}`}
-                    onClick={() => openEasterEgg(5)}
-                    style={{
-                      width: '18px',
-                      height: '18px',
-                      opacity: 0.25,
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      verticalAlign: 'middle'
-                    }}
-                    onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.3) rotate(10deg)'; }}
-                    onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
-                  />
-                </div>
-              </div>
-
-              <div className="member-chip-row">
-                <span className="member-chip">SSO {user ? '已啟用' : '跨站登入'}</span>
-                <span className="member-chip">{profile?.mbti_type ? `MBTI ${profile.mbti_type}` : 'MBTI 待同步'}</span>
-                <span className="member-chip">彩蛋 {foundEggs.length}/8</span>
-                <span className="member-chip">{storeBadgeStatus === 'granted' ? '到店徽章已解鎖' : '到店徽章任務待完成'}</span>
-              </div>
-
-              <div className="member-primary-actions">
-                {user ? (
-                  <a
-                    href={passportUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-primary"
-                    onClick={() => {
-                      track('click_member_entry_primary', { destination: 'passport' });
-                      trackOutboundClick(passportUrl, 'member_entry_primary_passport');
-                    }}
-                  >
-                    打開我的護照與任務
-                  </a>
-                ) : (
-                  <button
-                    className="btn-primary"
-                    onClick={() => {
-                      track('open_member_entry_login');
-                      setShowLogin(true);
-                    }}
-                  >
-                    登入並啟用會員入口
-                  </button>
-                )}
-
-                <div className="member-inline-actions">
-                  {user ? (
-                    <>
-                      <button
-                        className="btn-small"
-                        onClick={() => {
-                          track('open_profile_from_member_entry');
-                          setShowProfile(true);
-                        }}
-                      >
-                        查看同步狀態
-                      </button>
-                      <a
-                        href={mbtiLabUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-small"
-                        onClick={() => trackOutboundClick(mbtiLabUrl, 'member_entry_mbti_history')}
-                      >
-                        查看 MBTI 歷史
-                      </a>
-                    </>
-                  ) : (
-                    <>
-                      <a
-                        href={mbtiLabUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="btn-small"
-                        onClick={() => trackOutboundClick(mbtiLabUrl, 'member_entry_mbti_start')}
-                      >
-                        先做 MBTI 測驗
-                      </a>
-                      <button
-                        className="btn-small"
-                        onClick={() => scrollToSection('story-section', 'click_member_story_overview')}
-                      >
-                        先看本季展區
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <aside className="member-entry-aside">
-              <div className="font-mono" style={{ fontSize: '0.72rem', letterSpacing: '0.12em', opacity: 0.68 }}>
-                RESIDENT STATUS
-              </div>
-              <h2 style={{ fontSize: '1.45rem', lineHeight: 1.15, margin: 0 }}>
-                {user ? `Hi, ${memberDisplayName}` : '把品牌首頁改成會員入口'}
-              </h2>
-              <p style={{ fontSize: '0.95rem', lineHeight: 1.8, color: '#555' }}>
-                {user
-                  ? `目前以 ${memberDisplayName} 身份進站，入口已準備好把你送往護照、MBTI 與訂購動線。`
-                  : '這一階段先不新增 schema，也不做後端聚合 API，直接用現有 session 與 profile 把入口做對。'}
-              </p>
-
-              <div className="member-summary-list">
-                <div className="member-summary-item">
-                  <span>身份</span>
-                  <strong>{user ? '島民已啟用' : '訪客模式'}</strong>
-                </div>
-                <div className="member-summary-item">
-                  <span>MBTI</span>
-                  <strong>{profile?.mbti_type || '未同步'}</strong>
-                </div>
-                <div className="member-summary-item">
-                  <span>入口推薦</span>
-                  <strong>{memberPrimaryRecommendation}</strong>
-                </div>
-              </div>
-
-              {user ? (
-                <button
-                  className="btn-entry"
-                  style={{ marginBottom: 0 }}
-                  onClick={() => {
-                    track('open_profile_summary_from_member_entry');
-                    setShowProfile(true);
+              {storeBadgeStatus === 'checking' && (
+                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>檢查定位中...</div>
+              )}
+              {storeDistance !== null && storeBadgeStatus !== 'granted' && (
+                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
+              )}
+              {storeBadgeMessage && (
+                <div
+                  style={{
+                    fontSize: '0.7rem',
+                    color: storeBadgeStatus === 'granted' ? '#2A9D8F' : '#c2410c',
+                    marginTop: '6px',
+                    lineHeight: 1.5,
+                    fontWeight: 600,
                   }}
                 >
-                  <div>
-                    <span className="font-mono" style={{ fontSize: '0.9rem' }}>MEMBER PROFILE</span><br />
-                    <strong>查看島民檔案與同步狀態</strong>
-                  </div>
-                  <span>→</span>
-                </button>
-              ) : (
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  <div className="member-chip" style={{ justifyContent: 'center', width: '100%' }}>
-                    登入後可同步護照 / MBTI / 獎勵
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: '#555', lineHeight: 1.7 }}>
-                    這次 PR 先完成入口與導流，不碰新後端聚合 API，確保 phase 能安全上線。
-                  </div>
+                  {storeBadgeMessage}
                 </div>
               )}
-            </aside>
-          </div>
-
-          <div className="member-secondary-grid">
-            <button className="btn-entry" onClick={() => {
-              track('click_member_entry_pickup');
-              if (typeof window !== 'undefined' && window.gtag) {
-                window.gtag('event', 'order_redirect');
-              }
-              window.location.href = bookingMenuUrl;
-            }}>
-              <div>
-                <span className="font-mono" style={{ fontSize: '1rem' }}>01 // ORDER NOW</span><br />
-                <strong>我想帶走甜點 (預訂取貨)</strong>
-              </div>
-              <span>↗</span>
-            </button>
-
-            <button className="btn-entry" onClick={() => {
-              track('click_member_entry_store_badge');
-              handleStoreBadge();
-            }}>
-              <div>
-                <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>02 // VISIT</span><br />
-                <strong>到店解鎖徽章 (100m 內)</strong>
-                <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>
-                  需開啟定位；成功會跳轉護照
-                </div>
-                {storeBadgeStatus === 'checking' && (
-                  <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>檢查定位中...</div>
-                )}
-                {storeDistance !== null && storeBadgeStatus !== 'granted' && (
-                  <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
-                )}
-                {storeBadgeMessage && (
-                  <div
-                    style={{
-                      fontSize: '0.7rem',
-                      color: storeBadgeStatus === 'granted' ? '#2A9D8F' : '#c2410c',
-                      marginTop: '6px',
-                      lineHeight: 1.5,
-                      fontWeight: 600,
-                    }}
-                  >
-                    {storeBadgeMessage}
-                  </div>
-                )}
-              </div>
-              <span>📍</span>
-            </button>
-
-            <a
-              href={mbtiLabUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-entry"
-              onClick={() => trackOutboundClick(mbtiLabUrl, 'member_entry_quick_mbti')}
-            >
-              <div>
-                <span className="font-mono text-blue" style={{ fontSize: '1rem' }}>03 // MBTI</span><br />
-                <strong>{user ? '查看測驗歷史與人格甜點' : '同步你的 MBTI 角色甜點'}</strong>
-              </div>
-              <span>↗</span>
-            </a>
-
-            <button className="btn-entry" onClick={() => scrollToSection('story-section', 'click_member_entry_story_and_music')}>
-              <div>
-                <span className="font-mono" style={{ fontSize: '1rem' }}>04 // EXPLORE</span><br />
-                <strong>往下看展區、音樂與品牌故事</strong>
-              </div>
-              <span>↓</span>
-            </button>
-          </div>
-
-          <div className="member-note-card">
-            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.72rem', letterSpacing: '0.12em' }}>
-              CURRENT EXHIBITION / 2026 Q1
-            </span>
-            <strong style={{ fontSize: '1.15rem' }}>{CONFIG.CURRENT_SEASON}</strong>
-            <p style={{ color: '#555', marginTop: '10px', marginBottom: '14px', lineHeight: 1.7 }}>
-              會員入口先處理身份、任務與跨站導流；本季展覽與心情策展仍保留在下方，作為第二層體驗。
-            </p>
-            <button
-              className="btn-small"
-              style={{ maxWidth: '240px' }}
-              onClick={() => scrollToSection('story-section', 'click_member_exhibition_note')}
-            >
-              往下看本季展區
-            </button>
-          </div>
+            </div>
+            <span>📍</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_music');
+            document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}>
+            <div>
+              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>03 // MUSIC</span><br />
+              <strong>聽這一季音樂 (島嶼靜默)</strong>
+            </div>
+            <span>♫</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_easter_egg_progress');
+            setShowDiscoverModal(true);
+          }}>
+            <div>
+              <span className="font-mono" style={{ fontSize: '1rem' }}>05 // DISCOVER</span><br />
+              <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
+            </div>
+            <span>✨</span>
+          </button>
         </header>
 
         {/* B. EXHIBITION STORY */}
-        <section id="story-section" className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
+        <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
           <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
 
           {/* Season Story */}
@@ -4764,15 +4482,15 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
               <div className="modal-header">
-                <h3 className="font-mono">登入島民身份 / 啟用會員入口</h3>
+                <h3 className="font-mono">登島手續：領取島民狀態</h3>
                 <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
               </div>
               <div className="modal-body" style={{ textAlign: 'center' }}>
                 <div style={{ marginBottom: '25px', padding: '0 10px' }}>
                   <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
-                    <strong>「成為月島島民，從會員入口開始跨站旅程。」</strong><br />
-                    登入後可同步您的護照、MBTI 與會員狀態，<br />
-                    從這裡直接前往任務、獎勵與甜點入口。
+                    <strong>「成為月島島民，記錄你的數位足跡。」</strong><br />
+                    登入後可同步您的 MBTI 測驗結果，<br />
+                    解鎖專屬甜點處方，並獲取島嶼導覽優先權。
                   </p>
                 </div>
                 <button
@@ -4853,7 +4571,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="modal-overlay" onClick={() => setShowProfile(false)} style={{ zIndex: 2000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
               <div className="modal-header">
-                <h3 className="font-mono">🌙 島民會員檔案 MEMBER PROFILE</h3>
+                <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
                 <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
               </div>
               <div className="modal-body">
