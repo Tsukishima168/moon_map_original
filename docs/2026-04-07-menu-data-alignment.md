@@ -1,5 +1,11 @@
 # 2026-04-07 Menu Data Alignment
 
+> 2026-04-18 更新：本文件保留為對齊盤點快照，但 runtime 已不是「純靜態 menu」。
+> 當前真實行為是 `map/menu` 先讀同域 `/api/menu`，由它優先讀 Supabase canonical menu，失敗時才回退 `shop /api/menu/categories`，並在 server 端完成 display metadata merge；最後才回退 `public/menu.json`。
+> `MBTI` 商品指向也已改由同域 `/api/mbti-dessert` 讀 Supabase `mbti_menu_links` + `menu_items`；本地常數只保留人格文案與 fallback 順序。
+> 另已新增 opt-in 的 Supabase display config schema（`site_category_configs` / `site_item_configs`），但預設關閉，不影響目前上線站點。
+> 以架構真相而言，請優先參考 `api/menu.ts`、`index.tsx` 與 `docs/2026-04-07-backend-data-flow-inventory.md`。
+
 ## 今日原則
 
 - 不改動目前前端 runtime 行為。
@@ -11,17 +17,17 @@
 
 | 入口 | 現在讀什麼 | 資料來源 | 備註 |
 | --- | --- | --- | --- |
-| `map.kiwimu.com/menu` | 靜態菜單 | `public/menu.json` | 不是 live DB |
+| `map.kiwimu.com/menu` | canonical menu + fallback | Supabase `menu_categories` + `menu_items` + `menu_variants` -> `shop /api/menu/categories` -> `public/menu.json` | 商品主資料現在以 Supabase 為主；`public/menu.json` 仍承載 fallback 與展示層 metadata |
 | `shop.kiwimu.com` | live 商品資料 | `menu_categories` + `menu_items` + `menu_variants` | 目前最接近商品主源 |
-| `kiwimu.com` MBTI 結果甜點 | MBTI 配對內容 | `mbti_dessert_mappings` / `mbti_results` / 常數 fallback | 不是 `shop menu_items` |
+| `kiwimu.com` MBTI 結果甜點 | MBTI 配對內容 | Supabase `mbti_menu_links` + `menu_items`（經由 `map` 的 `/api/mbti-dessert` 消費） | 商品指向已回到 canonical DB；人格文案仍留在前端 |
 | 月島會員同步 | 會員 MBTI | `profiles` | 共用的是會員資料，不是商品資料 |
 
 ## 今日結論
 
-1. `shop` 已有給外站吃的穩定接口：`GET /api/menu/categories`
-2. `map/menu` 目前仍是靜態快照，和 `shop` live 商品表未對齊
-3. `MBTI` 最後甜點頁目前已經導向 `map/menu`，今天不需要改
-4. 明天若開始真正整合，應以 `shop /api/menu/categories` 作為共用 contract，而不是讓各站直連 DB
+1. `map/menu` 商品主資料已優先改由 Supabase canonical tables 提供
+2. `map/menu` runtime 仍保留 `shop /api/menu/categories` 與 `public/menu.json` fallback；目前不影響既有訂購流程
+3. `MBTI` 商品指向已改走 `/api/mbti-dessert`，回到 Supabase `mbti_menu_links`
+4. 目前仍未完全收斂的是 display metadata，不是商品主資料
 
 ## Map Static vs Shop Live
 
@@ -129,9 +135,9 @@
 - 它已經套用草莓季節性隱藏規則
 - 可避免 `map` / `MBTI` 直接耦合 raw DB schema
 
-## 明天建議順序
+## 後續建議順序
 
 1. 先決定 `shop` 是否正式成為唯一商品主源
-2. 把 `MBTI dessert name` 對到 `shop menu_item_id`，不要再只靠名稱字串
-3. 再把 `map/menu` 從靜態 `menu.json` 改成讀 `shop /api/menu/categories`
+2. 讓 upstream shared menu payload 直接帶出 `shop menu_item_id`，取代目前 map repo 的本地穩定 id 過渡層
+3. 把 `map` 需要的 display metadata 收斂到 shared contract，減少對 `public/menu.json` 的依賴
 4. 最後才清理舊命名、舊靜態檔與重複 mapping

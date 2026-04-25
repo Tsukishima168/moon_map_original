@@ -4,9 +4,33 @@ import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
+import { buildPassportLoginUrl } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
-import { buildMenuFromSharedCategories, type SharedMenuCategory, type StaticMenuCategory } from './lib/menu-shared';
+import {
+  attachMenuItemIds,
+  getMenuCatalogEntry,
+  hasRenderableMenu,
+  type MenuCategory,
+  type MenuItemId,
+} from './lib/menu-shared';
+
+type MbtiApiRecommendation = {
+  mbtiType: string;
+  primaryItemId: string | null;
+  primaryItemName: string | null;
+  primaryItemDbId: string | null;
+  primaryItemDescription: string | null;
+  soulDessertName: string | null;
+  linkageType: string | null;
+};
+
+type MbtiDisplayRecommendation = {
+  personality: string;
+  recommendedItemIds: string[];
+  reason: string;
+  primaryItemId: string | null;
+};
 
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
@@ -163,13 +187,14 @@ function resolveMenuItemImage(name: string, img: string | null | undefined): str
   return getMenuImageUrl(img);
 }
 
-function normalizeMenuCategories(categories: StaticMenuCategory[]) {
+function normalizeMenuCategories(categories: MenuCategory[]) {
   return categories.map((cat) => ({
     id: cat.id,
     title: cat.title,
     subtitle: cat.subtitle,
     hidePrice: cat.hidePrice ?? cat.id === 'drinks',
     items: cat.items.map((item) => ({
+      id: item.id ?? null,
       name: item.name,
       image: resolveMenuItemImage(item.name, item.image),
       description: item.description,
@@ -194,122 +219,190 @@ const STATE_DATA: Record<string, {
   title: string;
   advice: string;
   mission: string;
-  recommendedItems: string[];
+  recommendedItemIds: MenuItemId[];
 }> = {
   calm: {
     title: "需要平靜 / CALM",
     advice: "世界太吵的時候，允許自己關上門。靜默不是空無一物，而是為了聽見自己。",
     mission: "找個角落坐下，直到喝完這杯茶前，不看手機。",
-    recommendedItems: ["烤布丁(附焦糖液)", "經典提拉米蘇", "經典原味巴斯克"]
+    recommendedItemIds: ['pudding_classic', 'tiramisu_classic', 'basque_classic']
   },
   anxious: {
     title: "有點焦慮 / ANXIOUS",
     advice: "焦慮是海浪，會來也會走。你不需要現在就解決所有問題。",
     mission: "深呼吸三次，拍一張天空的照片傳給自己。",
-    recommendedItems: ["烤布丁(附焦糖液)", "烤布丁提拉米蘇", "蜜香紅茶巴斯克"]
+    recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'basque_honey_black_tea']
   },
   hopeful: {
     title: "充滿希望 / HOPEFUL",
     advice: "保持這份光亮，並試著把它分享給下一個遇見的人。",
     mission: "將這份甜點分享給朋友，或記錄下現在的想法。",
-    recommendedItems: ["日本柚子米蘇", "經典提拉米蘇鐵盒(600ml)", "經典十勝低糖千層"]
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_classic', 'mille_crepe_classic']
   },
   thinking: {
     title: "在思考中 / THINKING",
     advice: "答案通常不在想破頭的瞬間出現，而是在放空的時候浮現。",
     mission: "在紙巾或筆記本上寫下目前卡住你的一個關鍵字。",
-    recommendedItems: ["抹茶提拉米蘇", "抹茶提拉米蘇鐵盒(600ml)", "經典原味巴斯克"]
+    recommendedItemIds: ['tiramisu_matcha', 'mille_crepe_matcha', 'basque_classic']
   },
   create: {
     title: "想要創作 / CREATIVE",
     advice: "靈感是調皮的精靈。別抓它，用甜點誘捕它。",
     mission: "用 5 分鐘隨意塗鴉，不需要畫得像任何東西。",
-    recommendedItems: ["奶酒提拉米蘇", "經典十勝低糖千層", "日本柚子米蘇"]
+    recommendedItemIds: ['tiramisu_baileys', 'mille_crepe_classic', 'tiramisu_yuzu_apple_cheese']
   }
 };
 
 // --- MBTI PERSONALIZED RECOMMENDATIONS ---
-const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedItems: string[]; reason: string }> = {
+const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedItemIds: MenuItemId[]; reason: string }> = {
   INTJ: {
     personality: "建築師 · 睿智巴斯貓",
-    recommendedItems: ["抹茶提拉米蘇", "經典原味巴斯克", "經典十勝低糖千層"],
+    recommendedItemIds: ['tiramisu_matcha', 'basque_classic', 'mille_crepe_classic'],
     reason: "你追求完美與深度，這些甜點層次豐富卻不過分張揚。"
   },
   INTP: {
     personality: "邏輯學家 · 睿智巴斯貓",
-    recommendedItems: ["日本柚子米蘇", "烤布丁提拉米蘇", "蜜香紅茶巴斯克"],
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_pudding_mocha', 'basque_honey_black_tea'],
     reason: "你喜歡探索新組合，這些創新口味會激發你的好奇心。"
   },
   ENTJ: {
     personality: "指揮官 · 睿智巴斯貓",
-    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇", "經典提拉米蘇"],
+    recommendedItemIds: ['tiramisu_classic', 'tiramisu_baileys', 'mille_crepe_classic'],
     reason: "你喜歡經典且有影響力的選擇，這些甜點強勁而直接。"
   },
   ENTP: {
     personality: "辯論家 · 睿智巴斯貓",
-    recommendedItems: ["日本柚子米蘇", "奶酒提拉米蘇", "抹茶提拉米蘇鐵盒(600ml)"],
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_baileys', 'tiramisu_matcha'],
     reason: "你熱愛挑戰常規，這些創新口味符合你的冒險精神。"
   },
   INFJ: {
     personality: "提倡者 · 夢幻蛋鬼",
-    recommendedItems: ["抹茶提拉米蘇", "蜜香紅茶巴斯克", "烤布丁(附焦糖液)"],
+    recommendedItemIds: ['tiramisu_matcha', 'basque_honey_black_tea', 'pudding_classic'],
     reason: "你重視內在與意義，這些甜點含蓄而深刻。"
   },
   INFP: {
     personality: "調停者 · 夢夢幻蛋鬼",
-    recommendedItems: ["烤布丁(附焦糖液)", "日本柚子米蘇", "蜜香紅茶巴斯克"],
+    recommendedItemIds: ['pudding_classic', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
     reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
   },
   ENFJ: {
     personality: "主人公 · 夢幻蛋鬼",
-    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇", "經典原味巴斯克"],
+    recommendedItemIds: ['tiramisu_classic', 'tiramisu_yuzu_apple_cheese', 'basque_classic'],
     reason: "你熱愛分享與連結，這些甜點適合與人共享。"
   },
   ENFP: {
     personality: "競選者 · 活力奇異鳥",
-    recommendedItems: ["日本柚子米蘇", "經典十勝低糖千層", "奶酒提拉米蘇"],
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'mille_crepe_classic', 'tiramisu_baileys'],
     reason: "你的自由精神需要同樣有趣的甜點來搭配。"
   },
   ISTJ: {
     personality: "物流師 · 活力奇異鳥",
-    recommendedItems: ["經典提拉米蘇", "經典原味巴斯克", "烤布丁(附焦糖液)"],
+    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'pudding_classic'],
     reason: "你信賴經典，這些傳統甜點經得起時間考驗。"
   },
   ISFJ: {
     personality: "守衛者 · 活力奇異鳥",
-    recommendedItems: ["烤布丁(附焦糖液)", "蜜香紅茶巴斯克", "經典提拉米蘇"],
+    recommendedItemIds: ['pudding_classic', 'basque_honey_black_tea', 'tiramisu_classic'],
     reason: "你的細心值得同樣用心製作的甜點。"
   },
   ESTJ: {
     personality: "總經理 · 活力奇異鳥",
-    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典提拉米蘇", "經典原味巴斯克"],
+    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'mille_crepe_classic'],
     reason: "你重視效率與品質，這些經典款值得信賴。"
   },
   ESFJ: {
     personality: "執政官 · 活力奇異鳥",
-    recommendedItems: ["經典提拉米蘇鐵盒(600ml)", "經典原味巴斯克", "烤布丁提拉米蘇"],
+    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'tiramisu_pudding_mocha'],
     reason: "你善於照顧他人，這些甜點適合與朋友分享。"
   },
   ISTP: {
     personality: "鑑賞家 · 睿智巴斯貓",
-    recommendedItems: ["奶酒提拉米蘇", "日本柚子米蘇", "經典十勝低糖千層"],
+    recommendedItemIds: ['tiramisu_baileys', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic'],
     reason: "你喜歡探索新事物，這些口味會帶來驚喜。"
   },
   ISFP: {
     personality: "探險家 · 夢幻蛋鬼",
-    recommendedItems: ["抹茶提拉米蘇", "日本柚子米蘇", "蜜香紅茶巴斯克"],
+    recommendedItemIds: ['tiramisu_matcha', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
     reason: "你的藝術靈魂需要同樣美麗的甜點。"
   },
   ESTP: {
     personality: "企業家 · 睿智巴斯貓",
-    recommendedItems: ["奶酒提拉米蘇", "經典提拉米蘇鐵盒(600ml)", "日本柚子米蘇"],
+    recommendedItemIds: ['tiramisu_baileys', 'tiramisu_classic', 'tiramisu_yuzu_apple_cheese'],
     reason: "你的能量需要同樣強勁的甜點來匹配。"
   },
   ESFP: {
     personality: "表演者 · 活力奇異鳥",
-    recommendedItems: ["日本柚子米蘇", "經典提拉米蘇鐵盒(600ml)", "奶酒提拉米蘇"],
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_classic', 'tiramisu_baileys'],
     reason: "你的熱情需要同樣歡樂的甜點來慶祝。"
   }
+};
+
+const getMbtiTypeKey = (mbtiValue: string | null | undefined) => mbtiValue?.split('-')[0] ?? null;
+
+const buildDbBackedMbtiItemIds = (
+  menuCategories: MenuCategory[],
+  primaryItemId: string | null,
+  fallbackItemIds: string[]
+) => {
+  const orderedActiveIds: string[] = [];
+  const categoryItemIdsByItemId = new Map<string, string[]>();
+
+  menuCategories.forEach((category) => {
+    const categoryItemIds = category.items
+      .map((item) => item.id)
+      .filter((itemId): itemId is string => Boolean(itemId));
+
+    categoryItemIds.forEach((itemId) => {
+      orderedActiveIds.push(itemId);
+      categoryItemIdsByItemId.set(itemId, categoryItemIds);
+    });
+  });
+
+  const activeIds = new Set(orderedActiveIds);
+  const recommendedIds: string[] = [];
+
+  const pushItemId = (itemId: string | null | undefined) => {
+    if (!itemId || !activeIds.has(itemId) || recommendedIds.includes(itemId)) return;
+    recommendedIds.push(itemId);
+  };
+
+  pushItemId(primaryItemId);
+
+  if (primaryItemId) {
+    (categoryItemIdsByItemId.get(primaryItemId) ?? []).forEach(pushItemId);
+  }
+
+  fallbackItemIds.forEach(pushItemId);
+  orderedActiveIds.forEach(pushItemId);
+
+  return recommendedIds.slice(0, 3);
+};
+
+const resolveMbtiDisplayRecommendation = (
+  mbtiValue: string | null | undefined,
+  menuCategories: MenuCategory[],
+  canonicalRecommendation: MbtiApiRecommendation | null
+): MbtiDisplayRecommendation | null => {
+  const mbtiKey = getMbtiTypeKey(mbtiValue);
+  const fallbackRecommendation = mbtiKey ? MBTI_DESSERT_MAPPING[mbtiKey] : null;
+
+  if (!fallbackRecommendation) return null;
+
+  const recommendedItemIds = buildDbBackedMbtiItemIds(
+    menuCategories,
+    canonicalRecommendation?.primaryItemId ?? null,
+    fallbackRecommendation.recommendedItemIds
+  );
+
+  return {
+    personality: fallbackRecommendation.personality,
+    reason: fallbackRecommendation.reason,
+    recommendedItemIds:
+      recommendedItemIds.length > 0
+        ? recommendedItemIds
+        : fallbackRecommendation.recommendedItemIds,
+    primaryItemId: canonicalRecommendation?.primaryItemId ?? null,
+  };
 };
 
 // --- UTILITIES ---
@@ -362,7 +455,6 @@ const App = () => {
   const [user, setUser] = useState<any>(null);
   const [cart, setCart] = useState<{ name: string, spec: string, price: string, count: number }[]>([]);
   const [showLogin, setShowLogin] = useState(false);
-  const [email, setEmail] = useState('');
   const [loginMessage, setLoginMessage] = useState('');
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -814,51 +906,96 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   // --- MENU & USER DATA ---
-  const [menuCategories, setMenuCategories] = useState<any[]>([]);
+  const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
   const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
+  const [menuMbtiApiRecommendation, setMenuMbtiApiRecommendation] = useState<MbtiApiRecommendation | null>(null);
+  const [profileMbtiApiRecommendation, setProfileMbtiApiRecommendation] = useState<MbtiApiRecommendation | null>(null);
+  const [mbtiType] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return new URLSearchParams(window.location.search).get('mbti');
+  });
 
   useEffect(() => {
     async function fetchMenu() {
       try {
         setLoadingMenu(true);
-        const staticRes = await fetch('/menu.json');
-        if (!staticRes.ok) throw new Error(`HTTP ${staticRes.status}`);
-        const staticData = await staticRes.json() as StaticMenuCategory[];
-
-        let categories = normalizeMenuCategories(staticData);
+        let categories: MenuCategory[] = [];
+        const normalizedMbtiType = getMbtiTypeKey(mbtiType);
+        const menuApiUrl = normalizedMbtiType
+          ? `/api/menu?mbti=${encodeURIComponent(normalizedMbtiType)}`
+          : '/api/menu';
 
         try {
-          const liveRes = await fetch('/api/menu');
-          if (!liveRes.ok) throw new Error(`HTTP ${liveRes.status}`);
+          const menuRes = await fetch(menuApiUrl);
+          if (!menuRes.ok) throw new Error(`HTTP ${menuRes.status}`);
 
-          const livePayload = await liveRes.json();
-          if (!Array.isArray(livePayload?.data)) {
-            throw new Error('Invalid shared menu payload');
+          const menuPayload = await menuRes.json();
+          if (!Array.isArray(menuPayload?.data)) {
+            throw new Error('Invalid merged menu payload');
           }
 
-          const mergedCategories = normalizeMenuCategories(
-            buildMenuFromSharedCategories(staticData, livePayload.data as SharedMenuCategory[])
-          );
-          if (mergedCategories.some((category) => category.items.length > 0)) {
-            categories = mergedCategories;
+          categories = normalizeMenuCategories(menuPayload.data as MenuCategory[]);
+          if (!hasRenderableMenu(categories)) {
+            throw new Error('Merged menu payload was empty');
           }
-        } catch (liveErr) {
-          console.warn('Failed to load shared menu source, falling back to menu.json:', liveErr);
+        } catch (menuErr) {
+          console.warn('Failed to load merged menu contract, falling back to menu.json:', menuErr);
+
+          const staticRes = await fetch('/menu.json');
+          if (!staticRes.ok) throw new Error(`HTTP ${staticRes.status}`);
+
+          const staticData = attachMenuItemIds(await staticRes.json() as MenuCategory[]);
+          categories = normalizeMenuCategories(staticData);
+          if (!hasRenderableMenu(categories)) {
+            throw new Error('Fallback menu.json was empty');
+          }
         }
 
         setMenuCategories(categories);
         const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
-        setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat: any) => cat.id)));
+        setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat) => cat.id)));
       } catch (err) {
-        console.error('Failed to load menu.json:', err);
+        console.error('Failed to load menu categories:', err);
+        setMenuCategories([]);
       } finally {
         setLoadingMenu(false);
       }
     }
 
     fetchMenu();
-  }, []);
+  }, [mbtiType]);
+
+  const findMenuItemById = (itemId: string) => {
+    for (const category of menuCategories) {
+      const matchedItem = category.items.find((item) => item.id === itemId);
+      if (matchedItem) return matchedItem;
+    }
+    return null;
+  };
+
+  const resolveRecommendedItemNames = (itemIds: string[]) => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+
+    for (const itemId of itemIds) {
+      const matchedItem = findMenuItemById(itemId);
+      const fallbackLabel = getMenuCatalogEntry(itemId)?.label;
+      const displayName = matchedItem?.name ?? fallbackLabel ?? itemId;
+
+      if (seen.has(displayName)) continue;
+      seen.add(displayName);
+      names.push(displayName);
+    }
+
+    return names;
+  };
+
+  const profileMbtiRecommendation = resolveMbtiDisplayRecommendation(
+    profile?.mbti_type,
+    menuCategories,
+    profileMbtiApiRecommendation
+  );
 
   // Random Header Image
   useEffect(() => {
@@ -1354,27 +1491,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoginMessage('Sending magic link...');
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-
-    if (error) {
-      setLoginMessage('Error: ' + error.message);
-    } else {
-      setLoginMessage('Check your email for the login link!');
-      // Optional: Auto close modal after delay or keep it open to show success
-    }
+    setLoginMessage('前往 Passport 登入中心...');
+    window.location.href = buildPassportLoginUrl();
   };
 
   const handleOAuthLogin = async (provider: 'line' | 'google') => {
     if (provider === 'google') {
-      // 統一走 Passport 登入中心（SSO）
-      const redirectTo = encodeURIComponent(window.location.origin);
-      window.location.href = `https://passport.kiwimu.com?redirect_to=${redirectTo}`;
+      window.location.href = buildPassportLoginUrl();
       return;
     }
     setLoginMessage(`Redirecting to ${provider}...`);
@@ -1415,9 +1538,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     setTimeout(() => {
       setShowResult(true);
       track('view_mission_card', { state: stateKey });
-      const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
       track('view_recommendations', {
-        recommendation_type: mbtiData ? 'mbti' : 'mood',
+        recommendation_type: profileMbtiRecommendation ? 'mbti' : 'mood',
         mbti_type: profile?.mbti_type || null,
         mood_state: stateKey
       });
@@ -1429,8 +1551,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     track('generate_mission_card', { state: selectedState });
 
     const data = STATE_DATA[selectedState];
-    const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
-    const recommendedItemsForCard = mbtiData ? mbtiData.recommendedItems : data.recommendedItems;
+    const recommendedItemsForCard = resolveRecommendedItemNames(
+      profileMbtiRecommendation ? profileMbtiRecommendation.recommendedItemIds : data.recommendedItemIds
+    );
+    const [cardItem1 = '', cardItem2 = '', cardItem3 = ''] = recommendedItemsForCard;
 
     // 隨機展籤優惠（皆為「續杯半價」，但語氣不同）
     const commonVariants = [
@@ -1491,9 +1615,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         <line x1="40" y1="160" x2="360" y2="160" stroke="#000" stroke-width="0.5"/>
         
         <text x="40" y="195" font-family="'Inter', sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
-        <text x="40" y="225" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[0]}</text>
-        <text x="40" y="255" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[1]}</text>
-        <text x="40" y="285" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${recommendedItemsForCard[2]}</text>
+        <text x="40" y="225" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem1}</text>
+        <text x="40" y="255" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem2}</text>
+        <text x="40" y="285" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem3}</text>
         
         <line x1="40" y1="315" x2="360" y2="315" stroke="#000" stroke-width="0.5"/>
         
@@ -1632,33 +1756,90 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     img.src = url;
   };
 
-  // --- MBTI PERSONALIZATION STATE ---
-  const [mbtiType, setMbtiType] = useState<string | null>(null);
-
-  // Parse MBTI from URL on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const mbti = params.get('mbti');
-      if (mbti) {
-        setMbtiType(mbti);
-      }
+    const normalizedMbtiType = getMbtiTypeKey(mbtiType);
+
+    if (!normalizedMbtiType) {
+      setMenuMbtiApiRecommendation(null);
+      return;
     }
-  }, []);
+
+    let cancelled = false;
+
+    const loadMenuMbtiRecommendation = async () => {
+      try {
+        const res = await fetch(`/api/mbti-dessert?mbti=${encodeURIComponent(normalizedMbtiType)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const payload = await res.json();
+        if (!cancelled) {
+          setMenuMbtiApiRecommendation(payload?.data ?? null);
+        }
+      } catch (error) {
+        console.warn('Failed to load canonical MBTI menu recommendation:', error);
+        if (!cancelled) {
+          setMenuMbtiApiRecommendation(null);
+        }
+      }
+    };
+
+    loadMenuMbtiRecommendation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [mbtiType]);
+
+  useEffect(() => {
+    const normalizedMbtiType = getMbtiTypeKey(profile?.mbti_type);
+
+    if (!normalizedMbtiType) {
+      setProfileMbtiApiRecommendation(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadProfileMbtiRecommendation = async () => {
+      try {
+        const res = await fetch(`/api/mbti-dessert?mbti=${encodeURIComponent(normalizedMbtiType)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const payload = await res.json();
+        if (!cancelled) {
+          setProfileMbtiApiRecommendation(payload?.data ?? null);
+        }
+      } catch (error) {
+        console.warn('Failed to load canonical profile MBTI recommendation:', error);
+        if (!cancelled) {
+          setProfileMbtiApiRecommendation(null);
+        }
+      }
+    };
+
+    loadProfileMbtiRecommendation();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.mbti_type]);
 
   // Auto-expand categories containing recommended items
   useEffect(() => {
     if (mbtiType && menuCategories.length > 0) {
-      const typeKey = mbtiType.split('-')[0]; // e.g., "INTJ-A" -> "INTJ"
-      const mapping = MBTI_DESSERT_MAPPING[typeKey];
+      const mapping = resolveMbtiDisplayRecommendation(
+        mbtiType,
+        menuCategories,
+        menuMbtiApiRecommendation
+      );
 
-      if (mapping && mapping.recommendedItems) {
-        const recItems = mapping.recommendedItems;
+      if (mapping && mapping.recommendedItemIds) {
+        const recItemIds = mapping.recommendedItemIds;
         const catsToExpand = new Set<string>();
 
         // Find which categories have these items
         menuCategories.forEach(cat => {
-          const hasRec = cat.items.some((item: any) => recItems.includes(item.name));
+          const hasRec = cat.items.some((item) => item.id && recItemIds.includes(item.id as MenuItemId));
           if (hasRec) {
             catsToExpand.add(cat.id);
           }
@@ -1672,13 +1853,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         });
       }
     }
-  }, [mbtiType, menuCategories]);
+  }, [mbtiType, menuCategories, menuMbtiApiRecommendation]);
+
+  const menuMbtiRecommendation = resolveMbtiDisplayRecommendation(
+    mbtiType,
+    menuCategories,
+    menuMbtiApiRecommendation
+  );
 
   // 甜點目錄區塊（modal 與 /menu 僅目錄頁共用）
   const menuBodyContent = (
     <div>
       {/* Personalized Welcome Banner */}
-      {mbtiType && MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]] && (
+      {mbtiType && menuMbtiRecommendation && (
         <div style={{
           background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.creamWhite} 0%, #fff 100%)`,
           border: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
@@ -1694,11 +1881,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               SOUL DESSERT MATCH
             </div>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: CONFIG.BRAND_COLORS.emotionBlack }}>
-              Hi, {MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]].personality} ({mbtiType}) 的朋友！
+              Hi, {menuMbtiRecommendation.personality} ({mbtiType}) 的朋友！
             </h3>
             <p style={{ fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>
               這是為你準備的<strong>靈魂甜點清單</strong>。<br />
-              {MBTI_DESSERT_MAPPING[mbtiType.split('-')[0]].reason}
+              {menuMbtiRecommendation.reason}
             </p>
           </div>
           <div style={{
@@ -1719,9 +1906,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         const isCollapsed = collapsedCategories.has(cat.id);
 
         // Check if category has recommended items to show indicator
-        const typeKey = mbtiType ? mbtiType.split('-')[0] : null;
-        const recItems = typeKey ? MBTI_DESSERT_MAPPING[typeKey]?.recommendedItems : [];
-        const hasRecommendation = recItems?.some(rec => cat.items.some((item: any) => item.name === rec));
+        const recItemIds = menuMbtiRecommendation?.recommendedItemIds ?? [];
+        const hasRecommendation = recItemIds.some((recId) => cat.items.some((item) => item.id === recId));
 
         return (
           <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
@@ -1765,7 +1951,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <div className="menu-grid" style={{ animation: 'fadeIn 0.3s' }}>
                 {cat.items.map((item, idx) => {
                   // Check if this specific item is recommended
-                  const isRecommended = recItems?.includes(item.name);
+                  const isRecommended = item.id ? recItemIds.includes(item.id as MenuItemId) : false;
 
                   return (
                     <div key={idx} className="menu-item" style={{
@@ -2743,8 +2929,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
 
           {showResult && selectedState && (() => {
-            const mbtiData = profile?.mbti_type && MBTI_DESSERT_MAPPING[profile.mbti_type];
-            const recommendedItems = mbtiData ? mbtiData.recommendedItems : STATE_DATA[selectedState].recommendedItems;
+            const recommendedItems = resolveRecommendedItemNames(
+              profileMbtiRecommendation
+                ? profileMbtiRecommendation.recommendedItemIds
+                : STATE_DATA[selectedState].recommendedItemIds
+            );
             return (
               <div id="result-card" className="result-card" style={{ zIndex: 2, color: 'black', background: 'transparent', padding: 0 }}>
                 {/* 主內容區：改為 btn-entry 風格但取消 Hover / 點擊互動功能 */}
@@ -2792,13 +2981,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
                       marginBottom: '16px'
                     }}>
-                      {mbtiData ? (
+                      {profileMbtiRecommendation ? (
                         <>
                           <strong style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px' }}>
-                            專屬於 {mbtiData.personality} ({profile?.mbti_type}) 的你
+                            專屬於 {profileMbtiRecommendation.personality} ({profile?.mbti_type}) 的你
                           </strong>
                           <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '10px', fontStyle: 'italic' }}>
-                            {mbtiData.reason}
+                            {profileMbtiRecommendation.reason}
                           </p>
                         </>
                       ) : (
@@ -2816,7 +3005,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         ))}
                       </ul>
 
-                      {!mbtiData && mbtiRecommendationUrl && (
+                      {!profileMbtiRecommendation && mbtiRecommendationUrl && (
                         <div style={{
                           marginTop: '12px',
                           paddingTop: '12px',
@@ -4517,7 +4706,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
-                  使用 Google 帳號領取
+                  前往 Passport 登入
                 </button>
 
                 <div style={{ position: 'relative', marginBottom: '30px' }}>
@@ -4531,27 +4720,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     padding: '0 10px',
                     fontSize: '0.8rem',
                     color: '#999'
-                  }}>或使用 Email 登入</span>
+                  }}>統一身份中心</span>
                 </div>
 
                 <form onSubmit={handleLogin}>
-                  <input
-                    type="email"
-                    placeholder="your@email.com"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: '1px solid #ddd',
-                      marginBottom: '15px',
-                      fontSize: '1rem'
-                    }}
-                  />
                   <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
-                    {loginMessage || '寄送魔術連結'}
+                    {loginMessage || '前往 Passport 繼續'}
                   </button>
                   {loginMessage && (
                     <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>

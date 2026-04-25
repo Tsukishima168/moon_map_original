@@ -202,6 +202,17 @@
                         "price": "$1,650"
                     }
                 ]
+            },
+            {
+                "name": "母親節限定｜北海道十勝戚風千層",
+                "description": "北海道十勝鮮奶油戚風千層，母親節限定款，附三種醬料組合。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1777026248/mom-cake-2026_ghriw2.webp",
+                "prices": [
+                    {
+                        "spec": "六寸｜三種醬料組合",
+                        "price": "$1,490"
+                    }
+                ]
             }
         ]
     },
@@ -295,6 +306,17 @@
                     {
                         "spec": "九吋",
                         "price": "$2,500"
+                    }
+                ]
+            },
+            {
+                "name": "母親節限定｜北海道十勝戚風千層",
+                "description": "北海道十勝鮮奶油戚風千層，母親節限定款，附三種醬料組合。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1777026248/mom-cake-2026_ghriw2.webp",
+                "prices": [
+                    {
+                        "spec": "六寸｜三種醬料組合",
+                        "price": "$1,490"
                     }
                 ]
             }

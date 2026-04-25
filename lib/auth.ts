@@ -1,36 +1,14 @@
 /**
  * Moon Map — Supabase Auth（跨網域 cookie）
- * 讀取 .kiwimu.com cookie session（由 Booking / MBTI Lab 設定）
- * 也可以直接用 Google OAuth 從這裡登入
+ * 讀取 .kiwimu.com cookie session（由 Passport 設定）
+ * 登入入口統一導向 passport.kiwimu.com
  */
 
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
+import { buildPassportLoginUrl, createSharedAuthStorage } from './authStorage';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
-const COOKIE_DOMAIN = '.kiwimu.com';
-
-// ── Cookie helpers ────────────────────────────────────────────────────────────
-
-function getCookie(name: string): string | null {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
-}
-
-function setCookie(name: string, value: string, maxAgeSec = 60 * 60 * 24 * 365) {
-  document.cookie = [
-    `${name}=${encodeURIComponent(value)}`,
-    `domain=${COOKIE_DOMAIN}`,
-    `path=/`,
-    `max-age=${maxAgeSec}`,
-    'SameSite=Lax',
-  ].join('; ');
-}
-
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; domain=${COOKIE_DOMAIN}; path=/; max-age=0`;
-}
-
 // ── Auth Client（cookie storage，單例）───────────────────────────────────────
 
 let _authClient: SupabaseClient | null = null;
@@ -43,11 +21,7 @@ export function getAuthClient(): SupabaseClient | null {
     auth: {
       persistSession: true,
       detectSessionInUrl: true,
-      storage: {
-        getItem: (key) => getCookie(key),
-        setItem: (key, value) => setCookie(key, value),
-        removeItem: (key) => deleteCookie(key),
-      },
+      storage: createSharedAuthStorage(),
     },
   });
 
@@ -64,16 +38,9 @@ export async function getCurrentUser(): Promise<User | null> {
   return user;
 }
 
-/** Google OAuth 登入 */
+/** 統一導向 Passport 登入中心 */
 export async function signInWithGoogle(): Promise<void> {
-  const client = getAuthClient();
-  if (!client) return;
-  await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  });
+  window.location.href = buildPassportLoginUrl();
 }
 
 /** 登出 */
