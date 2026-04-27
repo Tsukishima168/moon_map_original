@@ -26,7 +26,7 @@
                 "prices": [
                     {
                         "spec": "200ml",
-                        "price": "$180"
+                        "price": "$190"
                     },
                     {
                         "spec": "鐵盒",
@@ -53,21 +53,6 @@
                 "name": "日本柚子蘋果乳酪米蘇",
                 "description": "清新柚子香氣搭配蘋果果酸，輕盈爽口的夏日版提拉米蘇。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
-                "prices": [
-                    {
-                        "spec": "200ml",
-                        "price": "$190"
-                    },
-                    {
-                        "spec": "鐵盒",
-                        "price": "$549"
-                    }
-                ]
-            },
-            {
-                "name": "莓果提拉米蘇",
-                "description": "新鮮莓果的酸甜完美中和咖啡的苦韻，視覺與味覺的雙重饗宴。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
                 "prices": [
                     {
                         "spec": "200ml",
