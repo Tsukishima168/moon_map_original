@@ -155,7 +155,6 @@ const VERIFIED_MENU_IMAGE_KEYS: Record<string, string | null> = {
   "烤焦糖布丁摩卡米蘇": "pudding_mocha_tiramisu.webp",
   "小山園抹茶米蘇": "matcha_tiramisu.webp",
   "日本柚子蘋果乳酪米蘇": "yuzu_apple_cheese_tiramisu.webp",
-  "莓果提拉米蘇": null,
   "奶酒提拉米蘇": "baileys_tiramisu.webp",
   "原味巴斯克": "classic_basque.webp",
   "檸檬巴斯克": "lemon_basque.webp",

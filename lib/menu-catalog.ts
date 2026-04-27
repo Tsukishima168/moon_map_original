@@ -20,11 +20,6 @@ export const MENU_ITEM_CATALOG = [
     aliases: ['日本柚子蘋果乳酪米蘇', '日本柚子蘋果乳酪｜提拉米蘇', '日本柚子米蘇'],
   },
   {
-    id: 'tiramisu_berry',
-    label: '莓果提拉米蘇',
-    aliases: ['莓果提拉米蘇'],
-  },
-  {
     id: 'tiramisu_baileys',
     label: '奶酒提拉米蘇',
     aliases: ['奶酒提拉米蘇', '貝里詩奶酒｜提拉米蘇'],
