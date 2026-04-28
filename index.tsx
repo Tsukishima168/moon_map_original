@@ -2787,7 +2787,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>03 // MUSIC</span><br />
-              <strong>聽這一季音樂 (島嶼靜默)</strong>
+              <strong>聽這一季音樂 (島嶼午後)</strong>
             </div>
             <span>♫</span>
           </button>
@@ -2809,19 +2809,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Season Story */}
           <div style={{ marginBottom: '40px', padding: '30px', background: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee', position: 'relative' }}>
-            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>Season 01: The Silence of Island</h3>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>Season 02: The Island at Three（島嶼・午後三點）</h3>
             <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: '#555' }}>
               <p style={{ marginBottom: '15px' }}>
-                這一季，<strong>島嶼靜默</strong>。
+                這一季，<strong>島嶼午後</strong>。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                不是無聲，而是在喧囂之外，為你保留了一個可以停下來的空間。
+                三點鐘，光從窗縫斜打進來。時間好像停了，但其實只是在等你。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                在這裡，你可以不必急著成為誰、不必急著回答什麼。只需要<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>感受此刻的自己</span>。
+                在這裡，不需要趕去哪裡。只需要<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>坐下來，讓這個下午屬於你</span>。
               </p>
               <p>
-                每一份甜點都是一張「心情處方箋」，陪你確認當下的狀態，找到屬於你的療癒節奏。
+                每一份甜點都是一幅靜物。選一個時刻，讓它成為你的。
               </p>
             </div>
             {/* Easter Egg #1 - 北海道誕生 */}
