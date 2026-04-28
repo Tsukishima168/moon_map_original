@@ -66,19 +66,20 @@ await Promise.all(
 
     await build({
       entryPoints: [file],
-      bundle: true,           // inline 所有 relative imports（_utils, lib）
-      packages: 'external',   // node_modules 保持 external（已在 server 上）
+      bundle: true,           // inline 所有 relative imports（_utils, lib）＋所有 npm 套件
+      // packages: 'external' 移除：Build Output API 的 .func 目錄沒有 node_modules，
+      // 必須把 npm 套件（@supabase/supabase-js 等）一起打進 bundle
       platform: 'node',
       target: 'node20',
-      format: 'cjs',          // CommonJS，無 extension 問題
-      outfile: join(funcDir, 'index.js'),
+      format: 'cjs',          // CommonJS format
+      outfile: join(funcDir, 'index.cjs'), // .cjs 明確告訴 Node 用 CJS，不受 package.json "type":"module" 影響
     })
 
     writeFileSync(
       join(funcDir, '.vc-config.json'),
       JSON.stringify({
         runtime: 'nodejs20.x',
-        handler: 'index.js',
+        handler: 'index.cjs',  // 對應上面的 .cjs 檔名
         launcherType: 'Nodejs',
         shouldAddHelpers: true,
       })
