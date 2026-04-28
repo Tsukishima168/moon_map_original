@@ -37,14 +37,14 @@ const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "每一季一個主題。你路過，也算參展。",
-  CURRENT_SEASON: "Season 01: The Silence of Island (島嶼靜默)",
+  CURRENT_SEASON: "Season 02: The Island at Three（島嶼・午後三點）",
   BRAND_COLORS: {
-    creamWhite: '#F8F8F8',
-    emotionBlack: '#000000',
-    moonYellow: '#D8E038',
-    islandBlue: '#2A9D8F', // Cyan-Green
-    grayText: '#666666',
-    grayLine: '#E0E0E0',
+    creamWhite: '#F5F0E8',
+    emotionBlack: '#2B2018',
+    moonYellow: '#D4A853',
+    islandBlue: '#C4745A',
+    grayText: '#7A6A5A',
+    grayLine: '#E8E0D6',
   },
   LINKS: {
     preorder_pickup_url: "https://map.kiwimu.com/menu",
@@ -220,35 +220,35 @@ const STATE_DATA: Record<string, {
   mission: string;
   recommendedItemIds: MenuItemId[];
 }> = {
-  calm: {
-    title: "需要平靜 / CALM",
-    advice: "世界太吵的時候，允許自己關上門。靜默不是空無一物，而是為了聽見自己。",
-    mission: "找個角落坐下，直到喝完這杯茶前，不看手機。",
-    recommendedItemIds: ['pudding_classic', 'tiramisu_classic', 'basque_classic']
+  noon: {
+    title: "正午之前 / 12:00",
+    advice: "太陽還在最高點，什麼都清晰得讓人有點緊張。先坐下，點一杯冷的。",
+    mission: "點一個今天最陌生的品項，試試看。",
+    recommendedItemIds: ['basque_classic', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic']
   },
-  anxious: {
-    title: "有點焦慮 / ANXIOUS",
-    advice: "焦慮是海浪，會來也會走。你不需要現在就解決所有問題。",
-    mission: "深呼吸三次，拍一張天空的照片傳給自己。",
-    recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'basque_honey_black_tea']
+  open: {
+    title: "島嶼開張 / 13:00",
+    advice: "門開了，光跟著進來。這個時刻什麼都有可能發生。",
+    mission: "和旁邊的人說一句話，或者假裝你打算這麼做。",
+    recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_honey_black_tea']
   },
-  hopeful: {
-    title: "充滿希望 / HOPEFUL",
-    advice: "保持這份光亮，並試著把它分享給下一個遇見的人。",
-    mission: "將這份甜點分享給朋友，或記錄下現在的想法。",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_classic', 'mille_crepe_classic']
+  three: {
+    title: "午後三點 / 15:00",
+    advice: "全島最慵懶的一刻。不需要有計劃，只需要有甜點。",
+    mission: "把手機螢幕朝下放，看看能撐多久。",
+    recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'mille_crepe_matcha']
   },
-  thinking: {
-    title: "在思考中 / THINKING",
-    advice: "答案通常不在想破頭的瞬間出現，而是在放空的時候浮現。",
-    mission: "在紙巾或筆記本上寫下目前卡住你的一個關鍵字。",
-    recommendedItemIds: ['tiramisu_matcha', 'mille_crepe_matcha', 'basque_classic']
+  golden: {
+    title: "斜陽時分 / 17:00",
+    advice: "光開始走了。不用追，坐著看它去就好。",
+    mission: "拍一張今天最美的光線，不修圖傳給一個朋友。",
+    recommendedItemIds: ['tiramisu_baileys', 'basque_classic', 'tiramisu_matcha']
   },
-  create: {
-    title: "想要創作 / CREATIVE",
-    advice: "靈感是調皮的精靈。別抓它，用甜點誘捕它。",
-    mission: "用 5 分鐘隨意塗鴉，不需要畫得像任何東西。",
-    recommendedItemIds: ['tiramisu_baileys', 'mille_crepe_classic', 'tiramisu_yuzu_apple_cheese']
+  closing: {
+    title: "店要關了 / 19:00",
+    advice: "今天快結束了。這杯是給自己的最後一份溫柔。",
+    mission: "寫下今天一件你做得不錯的事，寫在收據背面也算。",
+    recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
   }
 };
 
@@ -2902,26 +2902,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}></div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <h2 className="font-mono" style={{ color: 'white', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>PEAK EXPERIENCE</h2>
+            <h2 className="font-mono" style={{ color: 'white', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>ISLAND HOURS / 你幾點來的</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <button
-                className={`state-btn ${selectedState === 'calm' ? 'selected' : ''}`}
-                onClick={() => handleStateSelect('calm')}
+                className={`state-btn ${selectedState === 'noon' ? 'selected' : ''}`}
+                onClick={() => handleStateSelect('noon')}
               >
-                CALM<br />平靜
+                12:00<br />正午
               </button>
               <div className="checkin-grid">
-                <button className={`state-btn ${selectedState === 'anxious' ? 'selected' : ''}`} onClick={() => handleStateSelect('anxious')}>
-                  ANXIOUS<br />焦慮
+                <button className={`state-btn ${selectedState === 'open' ? 'selected' : ''}`} onClick={() => handleStateSelect('open')}>
+                  13:00<br />光打進來
                 </button>
-                <button className={`state-btn ${selectedState === 'hopeful' ? 'selected' : ''}`} onClick={() => handleStateSelect('hopeful')}>
-                  HOPEFUL<br />希望
+                <button className={`state-btn ${selectedState === 'three' ? 'selected' : ''}`} onClick={() => handleStateSelect('three')}>
+                  15:00<br />三點整
                 </button>
-                <button className={`state-btn ${selectedState === 'thinking' ? 'selected' : ''}`} onClick={() => handleStateSelect('thinking')}>
-                  THINKING<br />思考
+                <button className={`state-btn ${selectedState === 'golden' ? 'selected' : ''}`} onClick={() => handleStateSelect('golden')}>
+                  17:00<br />斜陽
                 </button>
-                <button className={`state-btn ${selectedState === 'create' ? 'selected' : ''}`} onClick={() => handleStateSelect('create')}>
-                  CREATIVE<br />創作
+                <button className={`state-btn ${selectedState === 'closing' ? 'selected' : ''}`} onClick={() => handleStateSelect('closing')}>
+                  19:00<br />收尾
                 </button>
               </div>
             </div>
