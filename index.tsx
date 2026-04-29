@@ -481,7 +481,7 @@ const App = () => {
   const [eggMasterCode, setEggMasterCode] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem('moonmoon_egg_master_code') : null
   );
-  const isEasterEggComplete = foundEggs.length >= 8;
+  const isEasterEggComplete = foundEggs.length >= 9;
   const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
   const mbtiLabUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
     medium: 'profile-card',
@@ -601,8 +601,8 @@ const App = () => {
       setFoundEggs(newFound);
       localStorage.setItem('moonmoon_found_eggs', JSON.stringify(newFound));
 
-      // Check if this was the 8th egg (completed all)
-      if (newFound.length === 8) {
+      // Check if this was the 9th egg (completed all)
+      if (newFound.length === 9) {
         // Check if code already exists
         const existingCode = localStorage.getItem('moonmoon_egg_master_code');
         if (!existingCode) {
@@ -668,7 +668,7 @@ const App = () => {
   // Existing unlock effect
   const [showAllCompleteModal, setShowAllCompleteModal] = useState(false); // Added this state variable
   useEffect(() => {
-    if (foundEggs.length === 8 && !showAllCompleteModal) {
+    if (foundEggs.length === 9 && !showAllCompleteModal) {
       setTimeout(() => {
         // Only show if not already shown in this session (simple check)
         setShowAllCompleteModal(true);
@@ -748,6 +748,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       content: `Kiwimu 昨天睡姿不良。
 導致那一區的鮮奶油變硬了（結塊）。
 他現在頭轉不回來，走路只能一直往左邊偏。`
+    },
+    {
+      id: 9,
+      title: '對了，我們有出貼圖',
+      content: `Kiwimu 某天決定把自己變成貼圖。
+沒有特別的理由，就是想住進你的手機裡。
+目前有幾款，他說每一款都很像他，
+但有一款連他自己都認不出來。`,
+      link: 'https://store.line.me/stickershop/product/33314326',
+      linkText: '去 LINE 貼圖店看看 ↗'
     }
   ];
 
@@ -2548,7 +2558,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               return;
             }
-            showUiNotice(`彩蛋收集進度：已發現 ${foundEggs.length}/8。提示：仔細觀察頁面中那些看似不起眼的小圖標，他們藏著 Kiwimu 的秘密。`, 'info');
+            showUiNotice(`彩蛋收集進度：已發現 ${foundEggs.length}/9。提示：仔細觀察頁面中那些看似不起眼的小圖標，他們藏著 Kiwimu 的秘密。`, 'info');
           }}
           style={{
             position: 'fixed',
@@ -2569,7 +2579,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}
           title="彩蛋收集進度"
         >
-          🥚 {foundEggs.length}/8
+          🥚 {foundEggs.length}/9
         </div>
         {isEasterEggComplete && !onlyMenuView && (
           <button
@@ -2797,7 +2807,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <div>
               <span className="font-mono" style={{ fontSize: '1rem' }}>05 // DISCOVER</span><br />
-              <strong>找尋彩蛋 ({foundEggs.length}/8)</strong>
+              <strong>找尋彩蛋 ({foundEggs.length}/9)</strong>
             </div>
             <span>✨</span>
           </button>
@@ -3374,7 +3384,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
                     找到全部 8 顆彩蛋即可解鎖<br />
                     <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
-                      目前進度：{foundEggs.length}/8
+                      目前進度：{foundEggs.length}/9
                     </strong>
                   </div>
                 </div>
@@ -3583,13 +3593,36 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
 
             {/* Theme */}
-            <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
-              <div>
-                <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>LINE STORE</span><br />
-                <strong>OFFICIAL THEME (主題)</strong>
-              </div>
-              <span>↗</span>
-            </a>
+            <div style={{ position: 'relative' }}>
+              <a href={CONFIG.LINKS.line_theme_url} target="_blank" rel="noreferrer" className="btn-entry" style={{ minHeight: '80px' }}>
+                <div>
+                  <span className="font-mono text-blue" style={{ fontSize: '0.8rem' }}>LINE STORE</span><br />
+                  <strong>OFFICIAL THEME (主題)</strong>
+                </div>
+                <span>↗</span>
+              </a>
+              {/* Easter Egg #9 - 對了，我們有出貼圖 */}
+              <img
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+                alt=""
+                className={`easter-egg-icon ${foundEggs.includes(9) ? 'found' : ''}`}
+                onClick={() => openEasterEgg(9)}
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                  width: '20px',
+                  height: '20px',
+                  opacity: 0.15,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  zIndex: 3
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'scale(1.2) rotate(8deg)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.opacity = '0.15'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
+                title="?"
+              />
+            </div>
 
             {/* Coming Soon */}
             <div style={{
@@ -3719,12 +3752,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
             <div className="modal-body" style={{ textAlign: 'center', padding: '10px 30px 40px 30px' }}>
               <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🥚</div>
-              <h3 className="font-mono" style={{ fontSize: '1.2rem', marginBottom: '15px' }}>找尋彩蛋 ({foundEggs.length}/8)</h3>
+              <h3 className="font-mono" style={{ fontSize: '1.2rem', marginBottom: '15px' }}>找尋彩蛋 ({foundEggs.length}/9)</h3>
               <div style={{ height: '8px', width: '100%', background: '#eee', borderRadius: '4px', marginBottom: '20px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${(foundEggs.length / 8) * 100}%`, background: CONFIG.BRAND_COLORS.moonYellow, transition: 'width 0.8s ease-out' }} />
+                <div style={{ height: '100%', width: `${(foundEggs.length / 9) * 100}%`, background: CONFIG.BRAND_COLORS.moonYellow, transition: 'width 0.8s ease-out' }} />
               </div>
               <p style={{ lineHeight: '1.8', color: '#555', fontSize: '0.9rem' }}>
-                目前收集到 {foundEggs.length} / 8 個彩蛋！<br />
+                目前收集到 {foundEggs.length} / 9 個彩蛋！<br />
                 仔細觀察頁面中那些看似不起眼的小圖標...<br />
                 他們藏著 Kiwimu 的秘密 ✨
               </p>
@@ -3853,7 +3886,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   fontFamily: 'monospace',
                   letterSpacing: '0.05em'
                 }}>
-                  EASTER EGG #{currentEasterEgg}/8
+                  EASTER EGG #{currentEasterEgg}/9
                 </p>
               </div>
 
@@ -3862,7 +3895,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 fontSize: '0.95rem',
                 color: '#333',
                 whiteSpace: 'pre-line',
-                marginBottom: '25px',
+                marginBottom: EASTER_EGGS[currentEasterEgg - 1]?.link ? '15px' : '25px',
                 padding: '20px',
                 background: 'rgba(248, 248, 248, 0.6)',
                 borderRadius: '12px',
@@ -3870,6 +3903,29 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               }}>
                 {EASTER_EGGS[currentEasterEgg - 1]?.content}
               </div>
+              {EASTER_EGGS[currentEasterEgg - 1]?.link && (
+                <a
+                  href={EASTER_EGGS[currentEasterEgg - 1]!.link}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    padding: '12px',
+                    marginBottom: '20px',
+                    background: '#00B900',
+                    color: '#fff',
+                    textAlign: 'center',
+                    borderRadius: '10px',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    textDecoration: 'none',
+                    letterSpacing: '0.05em'
+                  }}
+                >
+                  {EASTER_EGGS[currentEasterEgg - 1]!.linkText}
+                </a>
+              )}
 
               <div style={{
                 display: 'flex',
@@ -3884,7 +3940,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   收集進度
                 </span>
                 <strong style={{ fontSize: '1.1rem', color: CONFIG.BRAND_COLORS.emotionBlack }}>
-                  {foundEggs.length} / 8
+                  {foundEggs.length} / 9
                 </strong>
               </div>
 
