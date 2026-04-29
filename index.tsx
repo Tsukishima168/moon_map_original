@@ -1481,15 +1481,30 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-    });
-
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
         supabase.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
+        trackUserEvent('site_visited', {
+          site_id: 'moon_map',
+          source: 'initial_session',
+          path: window.location.pathname,
+        });
+      }
+    });
+
+    // 2. Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        if (event === 'SIGNED_IN') {
+          supabase.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
+          trackUserEvent('site_visited', {
+            site_id: 'moon_map',
+            source: 'auth_session',
+            path: window.location.pathname,
+          });
+        }
       } else {
         setProfile(null);
       }
@@ -1498,25 +1513,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginMessage('前往 Passport 登入中心...');
+  const handleGoogleLogin = () => {
+    setLoginMessage('前往 Google 登入...');
     window.location.href = buildPassportLoginUrl();
-  };
-
-  const handleOAuthLogin = async (provider: 'line' | 'google') => {
-    if (provider === 'google') {
-      window.location.href = buildPassportLoginUrl();
-      return;
-    }
-    setLoginMessage(`Redirecting to ${provider}...`);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: provider as any,
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-    if (error) setLoginMessage('Error: ' + error.message);
   };
 
   const handleLogout = async () => {
@@ -4738,7 +4737,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                 </div>
                 <button
-                  onClick={() => handleOAuthLogin('google')}
+                  onClick={handleGoogleLogin}
+                  disabled={!!loginMessage}
                   style={{
                     background: 'white',
                     color: '#444',
@@ -4751,7 +4751,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '10px',
-                    cursor: 'pointer',
+                    cursor: loginMessage ? 'wait' : 'pointer',
+                    opacity: loginMessage ? 0.7 : 1,
                     boxShadow: '0 4px 10px rgba(0,0,0,0.05)'
                   }}
                 >
@@ -4761,33 +4762,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
-                  前往 Passport 登入
+                  使用 Google 登入
                 </button>
 
-                <div style={{ position: 'relative', marginBottom: '30px' }}>
-                  <hr style={{ border: 'none', borderTop: '1px solid #eee' }} />
-                  <span style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    background: 'white',
-                    padding: '0 10px',
-                    fontSize: '0.8rem',
-                    color: '#999'
-                  }}>統一身份中心</span>
-                </div>
-
-                <form onSubmit={handleLogin}>
-                  <button type="submit" className="btn-primary" disabled={!!loginMessage} style={{ background: '#333' }}>
-                    {loginMessage || '前往 Passport 繼續'}
-                  </button>
-                  {loginMessage && (
-                    <p style={{ marginTop: '15px', fontSize: '0.8rem', color: loginMessage.includes('Error') ? 'red' : 'green' }}>
-                      {loginMessage}
-                    </p>
-                  )}
-                </form>
+                {loginMessage && (
+                  <p style={{ marginTop: '15px', fontSize: '0.8rem', color: 'green' }}>
+                    {loginMessage}
+                  </p>
+                )}
               </div>
             </div>
           </div>
