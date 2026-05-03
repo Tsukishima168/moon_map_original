@@ -8,6 +8,7 @@ export function trackUserEvent(
   eventType: string,
   metadata: Record<string, unknown> = {}
 ): void {
+  if (!supabase) return;
   supabase
     .rpc('insert_user_event', {
       p_event_type: eventType,

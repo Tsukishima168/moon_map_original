@@ -1464,6 +1464,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   // --- AUTH ---
   useEffect(() => {
     const fetchProfile = async (userId: string) => {
+      if (!supabase) return;
       try {
         const { data, error } = await supabase
           .from('profiles')
@@ -1478,12 +1479,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       }
     };
 
+    if (!supabase) return;
+
     // 1. Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
-        supabase.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
+        supabase!.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
         trackUserEvent('site_visited', {
           site_id: 'moon_map',
           source: 'initial_session',
@@ -1498,7 +1501,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       if (session?.user) {
         fetchProfile(session.user.id);
         if (event === 'SIGNED_IN') {
-          supabase.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
+          supabase!.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
           trackUserEvent('site_visited', {
             site_id: 'moon_map',
             source: 'auth_session',
@@ -1519,6 +1522,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
     showUiNotice('已成功登出島民身份。', 'success');
   };
