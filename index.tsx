@@ -80,6 +80,7 @@ const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
 const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
 const STORE_LOCATION = { lat: 23.0473181, lng: 120.1987003 }; // 月島甜點店座標
 const STORE_RADIUS_METERS = 100; // 100 公尺範圍
+const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
 const FORTUNES = [
@@ -567,6 +568,114 @@ const App = () => {
     }
   };
 
+  const savePendingRewardClaim = (rewardId: string, method: 'easter_egg' | 'gps') => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(PENDING_REWARD_CLAIM_KEY, JSON.stringify({
+      rewardId,
+      method,
+      createdAt: Date.now(),
+    }));
+  };
+
+  const clearPendingRewardClaim = () => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(PENDING_REWARD_CLAIM_KEY);
+  };
+
+  const getRewardClaimAccessToken = async () => {
+    if (!supabase) return null;
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
+  };
+
+  const syncEggProgress = async (eggIds: number[]) => {
+    const uniqueEggIds = Array.from(new Set(eggIds.filter((eggId) => Number.isInteger(eggId) && eggId >= 1 && eggId <= 9)));
+    if (uniqueEggIds.length === 0) return null;
+
+    const accessToken = await getRewardClaimAccessToken();
+    if (!accessToken) return null;
+
+    const res = await fetch('/api/rewards/progress', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        reward_id: 'egg_master_2026_q1',
+        source: 'moon_map',
+        egg_ids: uniqueEggIds,
+      }),
+    });
+
+    const payload = await res.json().catch(() => ({} as { count?: number; error?: string }));
+
+    if (!res.ok) {
+      throw new Error(payload.error || 'Failed to sync egg progress');
+    }
+
+    return typeof payload.count === 'number' ? payload.count : null;
+  };
+
+  const claimEggMasterReward = async (currentFoundEggs: number[]) => {
+    if (typeof window === 'undefined') return;
+
+    const existingCode = localStorage.getItem('moonmoon_egg_master_code');
+    if (existingCode) {
+      setEggMasterCode(existingCode);
+      setRewardClaimStatus('saved');
+      clearPendingRewardClaim();
+      return;
+    }
+
+    setRewardClaimStatus('saving');
+
+    try {
+      const accessToken = await getRewardClaimAccessToken();
+      if (!accessToken) {
+        savePendingRewardClaim('egg_master_2026_q1', 'easter_egg');
+        setRewardClaimStatus('idle');
+        showUiNotice('登入 Passport 後會回到地圖，替你完成限定徽章領取。', 'info');
+        window.location.href = buildPassportLoginUrl();
+        return;
+      }
+
+      const syncedEggCount = await syncEggProgress(currentFoundEggs);
+      if (typeof syncedEggCount === 'number' && syncedEggCount < 9) {
+        throw new Error('Reward claim proof is incomplete');
+      }
+
+      const res = await fetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reward_id: 'egg_master_2026_q1',
+          source: 'moon_map',
+        }),
+      });
+
+      const payload = await res.json().catch(() => ({} as { code?: string; error?: string }));
+
+      if (!res.ok || typeof payload.code !== 'string' || !payload.code) {
+        throw new Error(payload.error || 'Failed to create reward claim');
+      }
+
+      localStorage.setItem('moonmoon_egg_master_code', payload.code);
+      setEggMasterCode(payload.code);
+      setRewardClaimStatus('saved');
+      clearPendingRewardClaim();
+      track('reward_claimed', { reward_id: 'egg_master_2026_q1', method: 'easter_egg', site_id: 'moon_map' });
+    } catch (e) {
+      console.error('Failed to create reward claim:', e);
+      localStorage.removeItem('moonmoon_egg_master_code');
+      setEggMasterCode(null);
+      setRewardClaimStatus('error');
+    }
+  };
+
   const copyTextWithNotice = async (
     text: string,
     successMessage: string,
@@ -603,41 +712,7 @@ const App = () => {
 
       // Check if this was the 9th egg (completed all)
       if (newFound.length === 9) {
-        // Check if code already exists
-        const existingCode = localStorage.getItem('moonmoon_egg_master_code');
-        if (!existingCode) {
-          // Generate Reward Claim Code
-          const claimCode = `egg_master_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-          setRewardClaimStatus('saving');
-
-          try {
-            const res = await fetch('/api/rewards/claim', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code: claimCode, reward_id: 'egg_master_2026_q1', source: 'moon_map' }),
-            });
-
-            if (!res.ok) {
-              console.error('Failed to create reward claim:', await res.text());
-              localStorage.removeItem('moonmoon_egg_master_code');
-              setEggMasterCode(null);
-              setRewardClaimStatus('error');
-            } else {
-              localStorage.setItem('moonmoon_egg_master_code', claimCode);
-              setEggMasterCode(claimCode);
-              setRewardClaimStatus('saved');
-              track('reward_claimed', { reward_id: 'egg_master_2026_q1', method: 'easter_egg', site_id: 'moon_map' });
-            }
-          } catch (e) {
-            console.error('Network error saving reward claim:', e);
-            localStorage.removeItem('moonmoon_egg_master_code');
-            setEggMasterCode(null);
-            setRewardClaimStatus('error');
-          }
-        } else {
-          setEggMasterCode(existingCode);
-          setRewardClaimStatus('saved');
-        }
+        await claimEggMasterReward(newFound);
 
         // Auto scroll to wallpaper section immediately
         setTimeout(() => {
@@ -672,16 +747,17 @@ const App = () => {
       setTimeout(() => {
         // Only show if not already shown in this session (simple check)
         setShowAllCompleteModal(true);
-        track('easter_egg_complete', { count: 8 });
+        track('easter_egg_complete', { count: 9 });
       }, 1000);
     }
   }, [foundEggs, showAllCompleteModal]); // Added showAllCompleteModal to dependency array
 
-  // Add unlock_all query param for testing
+  // Add localhost-only unlock_all query param for manual testing
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('unlock_all') === 'true') {
+      const isLocalHost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      if (isLocalHost && params.get('unlock_all') === 'true') {
         const cheatEggs = [1, 2, 3, 4, 5, 6, 7, 8];
         setFoundEggs(cheatEggs);
         localStorage.setItem('moonmoon_found_eggs', JSON.stringify(cheatEggs));
@@ -766,6 +842,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     setCurrentEasterEgg(eggId);
     setShowEasterEgg(true);
     markEggAsFound(eggId);
+    void syncEggProgress([eggId]).catch((error) => {
+      console.warn('Failed to sync egg progress:', error);
+    });
     track('easter_egg_found', { egg_id: eggId });
   };
   const [liffReady, setLiffReady] = useState(false);
@@ -793,6 +872,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   useEffect(() => {
     async function fetchBlockedDates() {
+      if (!supabase) return;
+
       try {
         const { data, error } = await supabase
           .from('business_settings')
@@ -1202,15 +1283,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         // 已在範圍內，若已領取過則直接導向
         let code = localStorage.getItem(STORE_BADGE_CODE_KEY);
         if (!code) {
-          code = `store_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
           try {
+            const accessToken = await getRewardClaimAccessToken();
+            if (!accessToken) {
+              savePendingRewardClaim(STORE_BADGE_REWARD_ID, 'gps');
+              closePassportWindow();
+              setStoreBadgeStatus('idle');
+              setStoreBadgeMessage('請先登入 Passport。登入後回到地圖，再點一次到店解鎖即可領取徽章。');
+              window.location.href = buildPassportLoginUrl();
+              return;
+            }
+
             const res = await fetch('/api/rewards/claim', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ code, reward_id: STORE_BADGE_REWARD_ID, source: 'moon_map' }),
+              headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                reward_id: STORE_BADGE_REWARD_ID,
+                source: 'moon_map',
+                latitude,
+                longitude,
+              }),
             });
-            if (!res.ok) throw new Error(await res.text());
+            const payload = await res.json().catch(() => ({} as { code?: string; error?: string }));
+            if (!res.ok || typeof payload.code !== 'string' || !payload.code) {
+              throw new Error(payload.error || 'Failed to create store badge claim');
+            }
+            code = payload.code;
             localStorage.setItem(STORE_BADGE_CODE_KEY, code);
+            clearPendingRewardClaim();
             track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
           } catch (e) {
             console.error('Failed to create store badge claim:', e);
@@ -1515,6 +1618,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user || typeof window === 'undefined') return;
+
+    const pendingRaw = localStorage.getItem(PENDING_REWARD_CLAIM_KEY);
+    if (!pendingRaw) return;
+
+    try {
+      const pending = JSON.parse(pendingRaw) as { rewardId?: string; method?: string };
+
+      if (pending.rewardId === 'egg_master_2026_q1') {
+        if (localStorage.getItem('moonmoon_egg_master_code')) {
+          clearPendingRewardClaim();
+          return;
+        }
+
+        if (foundEggs.length >= 9 && !localStorage.getItem('moonmoon_egg_master_code')) {
+          void claimEggMasterReward(foundEggs);
+        }
+        return;
+      }
+
+      if (pending.rewardId === STORE_BADGE_REWARD_ID) {
+        clearPendingRewardClaim();
+        setStoreBadgeStatus('idle');
+        setStoreBadgeMessage('登入完成。請再點一次到店解鎖，完成定位後就會前往 Passport。');
+      }
+    } catch {
+      clearPendingRewardClaim();
+    }
+  }, [user, foundEggs]);
 
   const handleGoogleLogin = () => {
     setLoginMessage('前往 Google 登入...');
@@ -2557,7 +2691,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           onClick={() => {
             track('click_easter_egg_progress_badge');
             if (isEasterEggComplete) {
-              showUiNotice('你已集滿 8 顆彩蛋，已為你帶到限定獎勵區。', 'success');
+              showUiNotice('你已集滿 9 顆彩蛋，已為你帶到限定獎勵區。', 'success');
               document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               return;
             }
@@ -3385,7 +3519,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     桌布已鎖定
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
-                    找到全部 8 顆彩蛋即可解鎖<br />
+                    找到全部 9 顆彩蛋即可解鎖<br />
                     <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
                       目前進度：{foundEggs.length}/9
                     </strong>
@@ -3730,7 +3864,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </li>
                 <li style={{ marginBottom: '12px' }}>
                   <a href={CONFIG.LINKS.spotify_url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm5.59 17.357c-.214.307-.605.404-.919.228-2.553-1.423-5.714-1.748-9.457-.932-.34.07-.675-.145-.745-.485-.07-.339.145-.675.485-.745 4.091-.89 7.643-.51 10.509 1.096.31.205.41.605.227.938zm1.488-3.262c-.269.414-.81.543-1.224.274-2.885-1.774-7.295-2.288-10.71-1.252-.469.14-1.02-.128-1.16-.597-.14-.469.128-1.019.597-1.159 3.844-1.164 8.79-.571 12.115 1.503.414.27 1.54.811 1.382 1.331-.158.52-.81 1.224.274z" /></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14C9.6 9.9 15 10.56 18.72 12.84c.36.18.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.62.54.3.72 1.02.42 1.56-.3.42-1.02.6-1.56.3z" /></svg>
                     <span>Spotify Playlist</span>
                   </a>
                 </li>
@@ -3764,6 +3898,47 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 仔細觀察頁面中那些看似不起眼的小圖標...<br />
                 他們藏著 Kiwimu 的秘密 ✨
               </p>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                gap: '8px',
+                marginTop: '18px',
+                textAlign: 'left'
+              }}>
+                {EASTER_EGGS.map((egg) => {
+                  const isFound = foundEggs.includes(egg.id);
+                  return (
+                    <button
+                      key={egg.id}
+                      type="button"
+                      onClick={() => {
+                        if (!isFound) return;
+                        setCurrentEasterEgg(egg.id);
+                        setShowEasterEgg(true);
+                      }}
+                      disabled={!isFound}
+                      style={{
+                        minHeight: '76px',
+                        border: `1px solid ${isFound ? CONFIG.BRAND_COLORS.emotionBlack : 'rgba(0,0,0,0.08)'}`,
+                        borderRadius: '8px',
+                        background: isFound ? '#fff' : 'rgba(255,255,255,0.45)',
+                        color: isFound ? '#111' : '#9a9a9a',
+                        padding: '8px',
+                        cursor: isFound ? 'pointer' : 'default',
+                        textAlign: 'left',
+                        boxShadow: isFound ? '0 3px 0 rgba(0,0,0,0.16)' : 'none'
+                      }}
+                    >
+                      <div className="font-mono" style={{ fontSize: '0.7rem', marginBottom: '5px' }}>
+                        #{String(egg.id).padStart(2, '0')} {isFound ? 'FOUND' : 'LOCKED'}
+                      </div>
+                      <div style={{ fontSize: '0.76rem', fontWeight: 700, lineHeight: 1.35 }}>
+                        {isFound ? egg.title : '???'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
