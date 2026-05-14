@@ -31,6 +31,7 @@ function getAllowedOrigins(req: VercelRequest): string[] {
   const defaults = [
     'https://kiwimu.com',
     'https://www.kiwimu.com',
+    'https://map.kiwimu.com',
     'https://moonmap.kiwimu.com',
     'http://localhost:3000',
     'http://localhost:5173',
