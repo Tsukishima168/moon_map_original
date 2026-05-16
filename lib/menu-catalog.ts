@@ -169,6 +169,10 @@ export interface MenuCatalogEntry {
   aliases: readonly string[];
 }
 
+export const INACTIVE_MENU_ITEM_IDS = new Set<MenuItemId>([
+  'chiffon_mothers_day_tokachi_crepe',
+]);
+
 const normalizeMenuAlias = (value: string) => value.trim().replace(/\s+/g, ' ');
 
 const MENU_ITEM_BY_ID = new Map<MenuItemId, MenuCatalogEntry>(

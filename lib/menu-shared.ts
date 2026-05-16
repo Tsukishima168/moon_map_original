@@ -1,4 +1,4 @@
-import { resolveMenuItemId } from './menu-catalog';
+import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId, type MenuItemId } from './menu-catalog';
 
 export interface MenuPrice {
   spec?: string;
@@ -39,6 +39,11 @@ const formatPrice = (price: number | string) => {
   return `$${new Intl.NumberFormat('en-US').format(numericPrice)}`;
 };
 
+const isActiveMenuItem = (item: MenuItem) => {
+  const itemId = resolveMenuItemId(item.name) ?? item.id ?? null;
+  return !itemId || !INACTIVE_MENU_ITEM_IDS.has(itemId as MenuItemId);
+};
+
 export function attachMenuItemIds(categories: MenuCategory[]): StaticMenuCategory[] {
   return categories.map((category) => ({
     ...category,
@@ -52,7 +57,7 @@ export function attachMenuItemIds(categories: MenuCategory[]): StaticMenuCategor
         spec: variant.spec ?? '標準',
         price: formatPrice(variant.price),
       })),
-    })),
+    })).filter(isActiveMenuItem),
   }));
 }
 
@@ -89,6 +94,7 @@ export function buildMenuFromSharedCategories(
     if (!sharedCategory) return staticCategory;
 
     const mergedItems = (sharedCategory.items ?? [])
+      .filter(isActiveMenuItem)
       .map((item, index) => {
         const resolvedId = resolveMenuItemId(item.name) ?? item.id ?? null;
         const staticItem = (resolvedId && staticItemById.get(resolvedId)) || staticItemByName.get(normalizeLookupKey(item.name));
