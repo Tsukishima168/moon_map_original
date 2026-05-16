@@ -163,3 +163,38 @@ DROP POLICY IF EXISTS reward_claim_progress_public_select ON public.reward_claim
 DROP POLICY IF EXISTS reward_claim_progress_public_update ON public.reward_claim_progress;
 
 REVOKE ALL ON TABLE public.reward_claim_progress FROM anon, authenticated;
+
+drop policy if exists "Allow insert reward claims" on public.reward_claims;
+drop policy if exists "Allow read reward claims by code" on public.reward_claims;
+drop policy if exists "Allow update reward claims" on public.reward_claims;
+
+create or replace function public.consume_reward_claim(
+  p_code text,
+  p_reward_id text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_reward_id text;
+begin
+  update public.reward_claims
+  set claimed_at = now()
+  where code = trim(p_code)
+    and reward_id = trim(p_reward_id)
+    and claimed_at is null
+    and (expires_at is null or expires_at > now())
+  returning reward_id into v_reward_id;
+
+  if v_reward_id is null then
+    return jsonb_build_object('ok', false, 'error', 'invalid_or_used');
+  end if;
+
+  return jsonb_build_object('ok', true, 'reward_id', v_reward_id);
+end;
+$$;
+
+revoke all on function public.consume_reward_claim(text, text) from public;
+grant execute on function public.consume_reward_claim(text, text) to anon, authenticated;
