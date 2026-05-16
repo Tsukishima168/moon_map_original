@@ -121,6 +121,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { error } = await adminClient.from('reward_claims').insert({
       code,
       reward_id,
+      user_id: authData.user.id,
       source,
       expires_at: buildClaimExpiry(),
     })

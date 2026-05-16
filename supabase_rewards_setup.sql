@@ -7,6 +7,7 @@
 CREATE TABLE IF NOT EXISTS public.reward_claims (
   code TEXT,
   reward_id TEXT,
+  user_id UUID,
   source TEXT,
   created_at TIMESTAMPTZ,
   claimed_at TIMESTAMPTZ,
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS public.reward_claims (
 ALTER TABLE public.reward_claims
   ADD COLUMN IF NOT EXISTS code TEXT,
   ADD COLUMN IF NOT EXISTS reward_id TEXT,
+  ADD COLUMN IF NOT EXISTS user_id UUID,
   ADD COLUMN IF NOT EXISTS source TEXT,
   ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMPTZ,
@@ -178,12 +180,18 @@ security definer
 set search_path = public
 as $$
 declare
+  v_auth_user_id uuid := auth.uid();
   v_reward_id text;
 begin
+  if v_auth_user_id is null then
+    return jsonb_build_object('ok', false, 'error', 'auth_required');
+  end if;
+
   update public.reward_claims
   set claimed_at = now()
   where code = trim(p_code)
     and reward_id = trim(p_reward_id)
+    and user_id = v_auth_user_id
     and claimed_at is null
     and (expires_at is null or expires_at > now())
   returning reward_id into v_reward_id;
