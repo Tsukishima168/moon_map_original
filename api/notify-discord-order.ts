@@ -91,7 +91,9 @@ export default async function handler(
       body: JSON.stringify(discordPayload),
     });
 
-    const responseData = await discordRes.json();
+    const responseData = discordRes.status === 204
+      ? null
+      : await discordRes.json().catch(() => null);
 
     if (!discordRes.ok) {
       console.error('[DISCORD][ORDER] ❌ Discord API error:', {
@@ -102,13 +104,13 @@ export default async function handler(
     }
 
     console.log('[DISCORD][ORDER] ✅ Order notification sent:', {
-      messageId: responseData.id,
+      messageId: responseData?.id ?? null,
       orderId,
     });
 
     return response.status(200).json({
       status: 'sent',
-      messageId: responseData.id
+      messageId: responseData?.id ?? null
     });
   } catch (error) {
     console.error('[DISCORD][ORDER] ❌ Failed to send order notification:', error);

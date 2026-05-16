@@ -60,7 +60,8 @@ DISCORD_TOKEN=your_discord_bot_token
 6. 邀請 Bot 加入你的 Discord 伺服器
 
 **訂單通知頻道 ID**：
-- 目前設定為：`1451819433432580202` (月島訂單通知頻道)
+- 目前設定為：`1467024414699819152` (月島訂單通知頻道)
+- Discord 伺服器 / Guild ID：`1451819433432580202` (Kiwimu宇宙)
 - 可在 `api/notify-discord-order.ts` 中修改 `CHANNEL_ID`
 
 ### 設置步驟

@@ -30,6 +30,48 @@ interface OrderItemPayload {
   subtotal: number
 }
 
+interface CanonicalOrderItem {
+  id: string
+  name: string
+  variant_name?: string
+  price: number
+  quantity: number
+}
+
+interface CanonicalOrderPayload {
+  order_id: string
+  customer_name: string
+  phone: string
+  email: string | null
+  pickup_time: string
+  items: CanonicalOrderItem[]
+  total_price: number
+  original_price: number
+  final_price: number
+  discount_amount: number
+  promo_code: string | null
+  payment_date: string | null
+  linepay_transaction_id: string | null
+  delivery_method: string
+  delivery_address: string | null
+  delivery_fee: number
+  delivery_notes: string | null
+  mbti_type: string | null
+  from_mbti_test: boolean
+  checkout_site: string
+  source_from: string
+  utm_source: string | null
+  utm_medium: string | null
+  utm_campaign: string | null
+  utm_content: string | null
+  utm_term: string | null
+  user_id: string | null
+  status: string
+}
+
+const MAP_SOURCE = 'moon_map'
+const MAP_CHECKOUT_SITE = 'map'
+
 const buildOrderNumber = () => {
   const now = new Date()
   const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
@@ -44,15 +86,90 @@ const isUniqueViolation = (error: { code?: string; message?: string } | null) =>
   return error.code === '23505' || /duplicate key|unique/i.test(error.message || '')
 }
 
-const insertOrderWithRetry = async (adminClient: ReturnType<typeof createAdminClient>, order: OrderPayload) => {
+const normalizePickupTime = (pickupDate: string) => {
+  const value = String(pickupDate || '').trim()
+  if (!value) return new Date().toISOString()
+  if (value.includes('T')) return value
+  return `${value} 13:00`
+}
+
+const normalizeOrderSource = (source: string | null | undefined) => {
+  const value = String(source || '').trim()
+  return value && value !== 'website' ? value : MAP_SOURCE
+}
+
+const toItemId = (item: OrderItemPayload, index: number) => {
+  const base = `${item.item_name}-${item.item_spec || 'default'}`
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+
+  return base || `map-item-${index + 1}`
+}
+
+const normalizeOrderItems = (items: OrderItemPayload[]): CanonicalOrderItem[] => {
+  return items.map((item, index) => ({
+    id: toItemId(item, index),
+    name: item.item_name,
+    variant_name: item.item_spec || undefined,
+    price: Number(item.unit_price) || 0,
+    quantity: Number(item.quantity) || 1,
+  }))
+}
+
+const toCanonicalOrder = (
+  order: OrderPayload,
+  items: OrderItemPayload[],
+  orderId: string
+): CanonicalOrderPayload => {
+  const totalAmount = Number(order.total_amount) || 0
+
+  return {
+    order_id: orderId,
+    customer_name: order.customer_name,
+    phone: order.customer_phone,
+    email: order.customer_email || null,
+    pickup_time: normalizePickupTime(order.pickup_date),
+    items: normalizeOrderItems(items),
+    total_price: totalAmount,
+    original_price: totalAmount,
+    final_price: totalAmount,
+    discount_amount: 0,
+    promo_code: null,
+    payment_date: null,
+    linepay_transaction_id: null,
+    delivery_method: 'pickup',
+    delivery_address: null,
+    delivery_fee: 0,
+    delivery_notes: order.order_note || null,
+    mbti_type: null,
+    from_mbti_test: false,
+    checkout_site: MAP_CHECKOUT_SITE,
+    source_from: normalizeOrderSource(order.source),
+    utm_source: order.utm_source || null,
+    utm_medium: order.utm_medium || null,
+    utm_campaign: order.utm_campaign || null,
+    utm_content: order.utm_content || null,
+    utm_term: order.utm_term || null,
+    user_id: order.user_id || null,
+    status: order.payment_status || 'pending',
+  }
+}
+
+const insertOrderWithRetry = async (
+  adminClient: ReturnType<typeof createAdminClient>,
+  order: OrderPayload,
+  items: OrderItemPayload[]
+) => {
   const maxAttempts = 4
   let nextOrderNumber = order.order_number || buildOrderNumber()
   let lastError: { code?: string; message?: string } | null = null
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const canonicalOrder = toCanonicalOrder(order, items, nextOrderNumber)
     const { data, error } = await adminClient
-      .from('shop_orders')
-      .insert({ ...order, order_number: nextOrderNumber } as OrderPayload)
+      .from('orders')
+      .insert(canonicalOrder)
       .select()
       .single()
 
@@ -74,7 +191,7 @@ const insertOrderWithRetry = async (adminClient: ReturnType<typeof createAdminCl
 
 /**
  * POST /api/map-order
- * 建立訂單（shop_orders + shop_order_items）
+ * 建立訂單（canonical orders）
  * Body: { order: OrderPayload, items: OrderItemPayload[] }
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -95,39 +212,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const adminClient = createAdminClient()
 
-    // 1. 建立訂單
-    const { data: createdOrder, error: orderError } = await insertOrderWithRetry(adminClient, order as OrderPayload)
+    const { data: createdOrder, error: orderError } = await insertOrderWithRetry(
+      adminClient,
+      order as OrderPayload,
+      items as OrderItemPayload[]
+    )
 
     if (orderError) {
-      console.error('[map-order] shop_orders insert error:', orderError)
+      console.error('[map-order] orders insert error:', orderError)
       return res.status(500).json({ error: orderError.message })
     }
 
-    // 2. 建立訂單項目（order_id 由 API 層注入）
-    const orderItems = (items as OrderItemPayload[]).map((item) => ({
-      ...item,
-      order_id: createdOrder.id,
-    }))
-
-    const { error: itemsError } = await adminClient
-      .from('shop_order_items')
-      .insert(orderItems)
-
-    if (itemsError) {
-      console.error('[map-order] shop_order_items insert error:', itemsError)
-      const { error: rollbackError } = await adminClient
-        .from('shop_orders')
-        .delete()
-        .eq('id', createdOrder.id)
-
-      if (rollbackError) {
-        console.error('[map-order] rollback shop_orders error:', rollbackError)
-      }
-
-      return res.status(500).json({ error: itemsError.message })
-    }
-
-    return res.status(200).json({ success: true, order: createdOrder })
+    return res.status(200).json({
+      success: true,
+      order: {
+        ...createdOrder,
+        order_number: createdOrder.order_id,
+      },
+    })
   } catch (err) {
     console.error('[map-order] Unexpected error:', err)
     return res.status(500).json({ error: 'Internal server error' })

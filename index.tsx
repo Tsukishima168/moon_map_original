@@ -570,16 +570,24 @@ const App = () => {
 
   const savePendingRewardClaim = (rewardId: string, method: 'easter_egg' | 'gps') => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(PENDING_REWARD_CLAIM_KEY, JSON.stringify({
-      rewardId,
-      method,
-      createdAt: Date.now(),
-    }));
+    try {
+      localStorage.setItem(PENDING_REWARD_CLAIM_KEY, JSON.stringify({
+        rewardId,
+        method,
+        createdAt: Date.now(),
+      }));
+    } catch {
+      // localStorage can be unavailable in private browsing.
+    }
   };
 
   const clearPendingRewardClaim = () => {
     if (typeof window === 'undefined') return;
-    localStorage.removeItem(PENDING_REWARD_CLAIM_KEY);
+    try {
+      localStorage.removeItem(PENDING_REWARD_CLAIM_KEY);
+    } catch {
+      // ignore
+    }
   };
 
   const getRewardClaimAccessToken = async () => {
@@ -1289,7 +1297,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               savePendingRewardClaim(STORE_BADGE_REWARD_ID, 'gps');
               closePassportWindow();
               setStoreBadgeStatus('idle');
-              setStoreBadgeMessage('請先登入 Passport。登入後回到地圖，再點一次到店解鎖即可領取徽章。');
+              setStoreBadgeMessage('請先登入島民身份，回來後再點一次定位即可領徽章。');
               window.location.href = buildPassportLoginUrl();
               return;
             }
@@ -1364,8 +1372,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const clearCart = () => setCart([]);
 
+  const notifyDiscordOrder = async (payload: Record<string, unknown>) => {
+    if (typeof window === 'undefined') return;
 
+    const body = JSON.stringify(payload);
+    const request = fetch('/api/notify-discord-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: body.length < 60000,
+    })
+      .then(async (res) => {
+        const result = await res.json().catch(() => null);
+        if (!res.ok || result?.status === 'error') {
+          console.error('[DISCORD][ORDER] Failed to notify:', {
+            status: res.status,
+            result,
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('[DISCORD][ORDER] Failed to notify (client):', err);
+      });
 
+    // 手機跳 LINE 時可能取消未完成的 fetch，先給通知請求一小段時間送出。
+    if (isMobileDevice()) {
+      await Promise.race([
+        request,
+        new Promise<void>((resolve) => window.setTimeout(resolve, 1200)),
+      ]);
+    }
+  };
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
@@ -1450,7 +1487,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               order_note: orderNote || null,
               user_id: user?.id || null,
               payment_status: 'pending',
-              source: 'website',
+              source: 'moon_map',
               ga_client_id: gaClientId,
               referrer: utmParams.referrer,
               utm_source: utmParams.utm_source,
@@ -1499,29 +1536,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         });
       }
 
-      // 6. Discord 通知（非同步，不影響使用者流程）
-      if (typeof window !== 'undefined') {
-        try {
-          fetch('/api/notify-discord-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              orderId: confirmedOrderId,
-              totalAmount,
-              pickupDate,
-              customerName,
-              customerPhone,
-              orderNote,
-              items: cart,
-              source: 'moon_map_menu',
-            }),
-          }).catch((err) => {
-            console.error('[DISCORD][ORDER] Failed to notify (client):', err);
-          });
-        } catch (err) {
-          console.error('[DISCORD][ORDER] Failed to notify (unexpected):', err);
-        }
-      }
+      // 6. Discord 通知（避免手機跳 LINE 時取消請求）
+      await notifyDiscordOrder({
+        orderId: confirmedOrderId,
+        totalAmount,
+        pickupDate: pickupDateStr,
+        customerName,
+        customerPhone,
+        orderNote,
+        items: cart,
+        source: 'moon_map_menu',
+      });
 
       // 7. Build LINE message
       let msg = `【月島甜點訂單確認】\n`;
