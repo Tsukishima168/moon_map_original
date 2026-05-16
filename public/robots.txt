@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /api/
 
-# Sitemap (update with your actual domain)
-Sitemap: https://your-domain.vercel.app/sitemap.xml
+# Sitemap
+Sitemap: https://map.kiwimu.com/sitemap.xml
