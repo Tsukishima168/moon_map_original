@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { randomBytes } from 'crypto'
-import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest'
-import { createAdminClient } from '../_utils/supabase-admin'
+import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
+import { createAdminClient } from '../_utils/supabase-admin.js'
 
 const REWARD_IDS = {
   eggMaster: 'egg_master_2026_q1',

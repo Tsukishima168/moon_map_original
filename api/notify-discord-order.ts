@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest';
+import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = '1467024414699819152'; // 月島訂單通知頻道

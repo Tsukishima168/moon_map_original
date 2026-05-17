@@ -1,6 +1,6 @@
-import { resolveMenuItemId } from '../../lib/menu-catalog'
-import type { SharedMenuCategory, MenuPrice } from '../../lib/menu-shared'
-import { createAdminClient } from './supabase-admin'
+import { resolveMenuItemId } from '../../lib/menu-catalog.js'
+import type { SharedMenuCategory, MenuPrice } from '../../lib/menu-shared.js'
+import { createAdminClient } from './supabase-admin.js'
 
 interface DbMenuCategoryRow {
   id: string
@@ -154,10 +154,12 @@ export async function fetchCanonicalMbtiRecommendation(
       .from('menu_items')
       .select('id,category_id,name,image,description,sort_order,is_available')
       .eq('id', link.menu_item_id)
+      .eq('is_available', true)
       .maybeSingle()
 
     if (itemError) throw itemError
     linkedItem = (itemRow as DbMenuItemRow | null) ?? null
+    if (!linkedItem) return null
   }
 
   const resolvedPrimaryItemId = linkedItem

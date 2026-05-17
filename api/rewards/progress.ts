@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest'
-import { createAdminClient } from '../_utils/supabase-admin'
+import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
+import { createAdminClient } from '../_utils/supabase-admin.js'
 
 const EGG_MASTER_REWARD_ID = 'egg_master_2026_q1'
 const VALID_EGG_IDS = new Set(Array.from({ length: 9 }, (_, index) => index + 1))

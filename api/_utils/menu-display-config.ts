@@ -1,6 +1,6 @@
-import { createAdminClient } from './supabase-admin'
-import { resolveMenuItemId } from '../../lib/menu-catalog'
-import type { StaticMenuCategory } from '../../lib/menu-shared'
+import { createAdminClient } from './supabase-admin.js'
+import { resolveMenuItemId } from '../../lib/menu-catalog.js'
+import type { StaticMenuCategory } from '../../lib/menu-shared.js'
 
 interface DbSiteCategoryConfigRow {
   category_id: string

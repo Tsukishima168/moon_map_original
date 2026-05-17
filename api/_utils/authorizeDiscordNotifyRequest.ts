@@ -1,6 +1,6 @@
 import type { VercelRequest } from '@vercel/node';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { verifyTrustedRequest } from './verifyTrustedRequest';
+import { verifyTrustedRequest } from './verifyTrustedRequest.js';
 
 const MAX_SIGNATURE_AGE_MS = Number(process.env.DISCORD_NOTIFY_MAX_SIGNATURE_AGE_MS || 5 * 60 * 1000);
 const replayGuard = new Map<string, number>();

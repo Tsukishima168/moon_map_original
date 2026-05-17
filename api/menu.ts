@@ -4,18 +4,18 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   fetchCanonicalMenuSnapshot,
   type CanonicalMbtiRecommendation,
-} from './_utils/menu-source'
+} from './_utils/menu-source.js'
 import {
   fetchSiteMenuDisplayConfig,
   getDisplayConfigFlagName,
-} from './_utils/menu-display-config'
+} from './_utils/menu-display-config.js'
 import {
   attachMenuItemIds,
   buildMenuFromSharedCategories,
   hasRenderableMenu,
   type SharedMenuCategory,
   type StaticMenuCategory,
-} from '../lib/menu-shared'
+} from '../lib/menu-shared.js'
 
 const SHOP_MENU_API_URL =
   process.env.SHOP_MENU_API_URL || 'https://shop.kiwimu.com/api/menu/categories'

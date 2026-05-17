@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { verifyTrustedRequest } from './_utils/verifyTrustedRequest'
-import { createAdminClient } from './_utils/supabase-admin'
+import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
+import { createAdminClient } from './_utils/supabase-admin.js'
 
 interface OrderPayload {
   order_number: string
