@@ -1,4 +1,4 @@
-import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId, type MenuItemId } from './menu-catalog';
+import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId, type MenuItemId } from './menu-catalog.js';
 
 export interface MenuPrice {
   spec?: string;
@@ -135,4 +135,4 @@ export function hasRenderableMenu(categories: MenuCategory[]) {
   return categories.some((category) => (category.items ?? []).length > 0);
 }
 
-export { getMenuCatalogEntry, type MenuItemId } from './menu-catalog';
+export { getMenuCatalogEntry, type MenuItemId } from './menu-catalog.js';
