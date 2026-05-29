@@ -1,6 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /*?*
 
 # Sitemap
 Sitemap: https://map.kiwimu.com/sitemap.xml
