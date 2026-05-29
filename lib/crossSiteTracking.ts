@@ -20,6 +20,7 @@ const TARGET_SITE_BY_HOST: Record<string, string> = {
   'kiwimu-mbti.vercel.app': 'mbti_lab',
   'passport.kiwimu.com': 'passport',
   'shop.kiwimu.com': 'dessert_booking',
+  'gacha.kiwimu.com': 'gacha',
 };
 
 function compactUtmParams(params: UtmParams): Record<string, string> {
