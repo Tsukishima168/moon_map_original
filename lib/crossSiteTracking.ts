@@ -9,6 +9,12 @@ export type UtmParams = {
   utm_term?: string;
 };
 
+declare global {
+  interface Window {
+    __MOON_MAP_INITIAL_SEARCH__?: string;
+  }
+}
+
 const TARGET_SITE_BY_HOST: Record<string, string> = {
   'kiwimu.com': 'mbti_lab',
   'kiwimu-mbti.vercel.app': 'mbti_lab',
@@ -74,8 +80,9 @@ export function trackEvent(eventName: string, params: Record<string, any> = {}) 
   });
 }
 
-export function trackUtmLanding() {
-  const utmParams = getUtmParamsFromUrl();
+export function trackUtmLanding(input?: string) {
+  const initialSearch = input || (typeof window !== 'undefined' ? window.__MOON_MAP_INITIAL_SEARCH__ : undefined);
+  const utmParams = getUtmParamsFromUrl(initialSearch);
   if (!Object.values(utmParams).some(Boolean)) return;
 
   trackEvent('utm_landing', compactUtmParams(utmParams));

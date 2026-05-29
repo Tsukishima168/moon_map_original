@@ -32,6 +32,18 @@ type MbtiDisplayRecommendation = {
   primaryItemId: string | null;
 };
 
+type MoonMapWindow = Window & {
+  __MOON_MAP_INITIAL_SEARCH__?: string;
+};
+
+const getInitialUrlSearch = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  return (window as MoonMapWindow).__MOON_MAP_INITIAL_SEARCH__ || window.location.search;
+};
+
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
@@ -516,7 +528,7 @@ const App = () => {
   });
 
   useEffect(() => {
-    trackUtmLanding();
+    trackUtmLanding(getInitialUrlSearch());
   }, []);
 
   // 彩蛋每月 renew：每月 1 號起用新月份 key，自動清空讓大家重新找
@@ -1136,11 +1148,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
       // GA4 menu_view event
       if ((window as any).gtag) {
+        const initialParams = new URLSearchParams(getInitialUrlSearch());
         (window as any).gtag('event', 'menu_view', {
           site_id: 'moon_map',
           page_path: '/menu',
-          utm_source: new URLSearchParams(window.location.search).get('utm_source') || undefined,
-          mbti: new URLSearchParams(window.location.search).get('mbti') || undefined,
+          utm_source: initialParams.get('utm_source') || undefined,
+          mbti: initialParams.get('mbti') || undefined,
         });
       }
 
