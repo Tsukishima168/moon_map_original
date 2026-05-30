@@ -1,5 +1,29 @@
+# Kiwimu Map (Moon Map) - robots.txt
+# Public discovery policy:
+# - Allow search crawlers and OAI-SearchBot to read the public brand map + menu.
+# - Disallow GPTBot for model-training crawl while still allowing ChatGPT Search.
+
+User-agent: OAI-SearchBot
+Allow: /
+Allow: /menu
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /*?*
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /menu
+Allow: /llms.txt
+Disallow: /api/
+Disallow: /*?*
+
 User-agent: *
 Allow: /
+Allow: /menu
+Allow: /llms.txt
 Disallow: /api/
 Disallow: /*?*
 
