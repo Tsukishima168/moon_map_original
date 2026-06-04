@@ -6,6 +6,41 @@
 
 ---
 
+## 現況覆寫摘要 · 2026-06-04
+
+以下內容優先於 2026-04-18 快照：
+
+- Current branch: `main`
+- Latest checked commit: `9f96ebe fix(menu): align product images and quantity ordering`
+- Current role: Moon Map brand/store/menu entry, `/menu` public catalog, lightweight LINE preorder handoff, canonical menu consumer
+- Build command: `npm run build`
+- Vercel build command: `npm run vercel-build`
+- Verification doc: `VERIFY.md`
+- Current state doc: `CURRENT.md`
+
+First read order for a new agent:
+
+1. `CURRENT.md`
+2. `VERIFY.md`
+3. `README.md`
+4. `package.json`
+5. `index.tsx`
+6. `api/menu.ts`
+7. `api/map-order.ts`
+8. `api/mbti-dessert.ts`
+9. `api/_utils/menu-source.ts`
+10. `lib/menu-shared.ts`
+11. `lib/menu-catalog.ts`
+12. `public/menu.json`
+
+Operational boundary:
+
+- Map may show menu, cart, and LINE preorder handoff.
+- Shop owns formal checkout, payment status, LINE Pay rollout, and order operations.
+- Do not expand Map into a second full checkout system unless the five-site architecture document is updated first.
+
+---
+
 ## 交接快照 · 2026-04-18
 
 ### 專案狀態
