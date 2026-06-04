@@ -36,6 +36,13 @@ type MoonMapWindow = Window & {
   __MOON_MAP_INITIAL_SEARCH__?: string;
 };
 
+type CartItem = {
+  name: string;
+  spec: string;
+  price: string;
+  count: number;
+};
+
 const getInitialUrlSearch = () => {
   if (typeof window === 'undefined') {
     return '';
@@ -465,7 +472,7 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 
 const App = () => {
   const [user, setUser] = useState<any>(null);
-  const [cart, setCart] = useState<{ name: string, spec: string, price: string, count: number }[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [showLogin, setShowLogin] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -1188,50 +1195,37 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   // --- CART FUNCTIONS ---
-  // MODIFIED UX: Toggle behavior (Click once to add, click again to remove)
-  const toggleCartItem = (itemName: string, spec: string, price: string) => {
+  const addCartItem = (itemName: string, spec: string, price: string) => {
+    const priceValue = parseInt(price.replace(/[^\d]/g, ''), 10) || 0;
+
     setCart(prev => {
       const existingIndex = prev.findIndex(i => i.name === itemName && i.spec === spec);
 
+      track('add_to_cart', {
+        currency: 'TWD',
+        value: priceValue,
+        items: [{
+          item_name: itemName,
+          item_variant: spec,
+          price: priceValue,
+          quantity: 1
+        }]
+      });
+
       if (existingIndex >= 0) {
-        // If exists, remove it (Toggle Off)
         const newCart = [...prev];
-        newCart.splice(existingIndex, 1);
-
-        // GA4: Track remove from cart
-        track('remove_from_cart', {
-          currency: 'TWD',
-          value: parseInt(price.replace(/[^\d]/g, ''), 10),
-          items: [{
-            item_name: itemName,
-            item_variant: spec,
-            price: parseInt(price.replace(/[^\d]/g, ''), 10),
-            quantity: 1
-          }]
-        });
-
-        return newCart;
-      } else {
-        // If not exists, add it (Toggle On)
-
-        // GA4: Track add to cart
-        track('add_to_cart', {
-          currency: 'TWD',
-          value: parseInt(price.replace(/[^\d]/g, ''), 10),
-          items: [{
-            item_name: itemName,
-            item_variant: spec,
-            price: parseInt(price.replace(/[^\d]/g, ''), 10),
-            quantity: 1
-          }]
-        });
-
-        // UI Feedback: Toast
-        setCartToast(`已加入：${itemName}`);
+        newCart[existingIndex] = {
+          ...newCart[existingIndex],
+          count: newCart[existingIndex].count + 1,
+        };
+        setCartToast(`已加 1 份：${itemName}`);
         setTimeout(() => setCartToast(null), 2500);
-
-        return [...prev, { name: itemName, spec, price, count: 1 }];
+        return newCart;
       }
+
+      setCartToast(`已加入：${itemName}`);
+      setTimeout(() => setCartToast(null), 2500);
+      return [...prev, { name: itemName, spec, price, count: 1 }];
     });
   };
 
@@ -1376,8 +1370,42 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
   };
 
-  // Renamed for clarity, though used as 'addToCart' in existing props
-  const addToCart = toggleCartItem;
+  const addToCart = addCartItem;
+
+  const changeCartItemCount = (itemName: string, spec: string, delta: number) => {
+    setCart(prev => {
+      const existingItem = prev.find(i => i.name === itemName && i.spec === spec);
+      if (!existingItem) return prev;
+
+      const priceValue = parseInt(existingItem.price.replace(/[^\d]/g, ''), 10) || 0;
+      const nextCount = existingItem.count + delta;
+
+      track(delta > 0 ? 'add_to_cart' : 'remove_from_cart', {
+        currency: 'TWD',
+        value: priceValue,
+        items: [{
+          item_name: existingItem.name,
+          item_variant: existingItem.spec,
+          price: priceValue,
+          quantity: 1
+        }]
+      });
+
+      if (nextCount <= 0) {
+        const nextCart = prev.filter(i => !(i.name === itemName && i.spec === spec));
+        if (nextCart.length === 0) {
+          setShowCheckoutConfirm(false);
+        }
+        return nextCart;
+      }
+
+      return prev.map(i =>
+        i.name === itemName && i.spec === spec
+          ? { ...i, count: nextCount }
+          : i
+      );
+    });
+  };
 
   const removeFromCart = (itemName: string, spec: string) => {
     setCart(prev => prev.filter(i => !(i.name === itemName && i.spec === spec)));
@@ -1449,6 +1477,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const confirmAndSend = async () => {
+    if (cart.length === 0) {
+      showUiNotice('請先選擇至少一份甜點。', 'warning');
+      setShowCheckoutConfirm(false);
+      return;
+    }
     if (submitting) return;
     setSubmitting(true);
 
@@ -2234,7 +2267,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                                       fontWeight: inCart ? 'bold' : 'normal'
                                     }}
                                   >
-                                    {p.spec}: {p.price} {inCart ? '(已選)' : ''}
+                                    {p.spec}: {p.price} {inCart ? `(已選 x${inCart.count})` : ''}
                                   </button>
                                 );
                               })
@@ -4272,18 +4305,83 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </div>
               <div className="modal-body">
                 <div style={{ marginBottom: '20px', maxHeight: '30vh', overflowY: 'auto' }}>
-                  {cart.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #eee' }}>
-                      <div>
-                        <div style={{ fontWeight: 'bold' }}>{item.name}</div>
-                        <div style={{ fontSize: '0.85rem', color: '#666' }}>{item.spec}</div>
+                  {cart.map((item, idx) => {
+                    const unitPrice = parseInt(item.price.replace(/[^\d]/g, ''), 10) || 0;
+
+                    return (
+                      <div
+                        key={`${item.name}-${item.spec}-${idx}`}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'minmax(0, 1fr) auto',
+                          gap: '12px',
+                          alignItems: 'center',
+                          padding: '12px 0',
+                          borderBottom: '1px solid #eee'
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: 'bold', lineHeight: 1.45 }}>{item.name}</div>
+                          <div style={{ fontSize: '0.85rem', color: '#666' }}>
+                            {item.spec} / {item.price}
+                          </div>
+                        </div>
+                        <div style={{ display: 'grid', justifyItems: 'end', gap: '6px' }}>
+                          <div
+                            aria-label={`${item.name} ${item.spec} 數量`}
+                            style={{
+                              display: 'grid',
+                              gridTemplateColumns: '32px 38px 32px',
+                              alignItems: 'center',
+                              border: '1px solid #ddd',
+                              borderRadius: '999px',
+                              overflow: 'hidden',
+                              background: '#fff'
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => changeCartItemCount(item.name, item.spec, -1)}
+                              disabled={submitting}
+                              aria-label={`減少 ${item.name} ${item.spec} 數量`}
+                              style={{
+                                height: '32px',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                color: '#333',
+                                borderRight: '1px solid #eee',
+                                cursor: submitting ? 'wait' : 'pointer'
+                              }}
+                            >
+                              -
+                            </button>
+                            <span style={{ textAlign: 'center', fontWeight: 700, fontSize: '0.95rem' }}>
+                              {item.count}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => changeCartItemCount(item.name, item.spec, 1)}
+                              disabled={submitting}
+                              aria-label={`增加 ${item.name} ${item.spec} 數量`}
+                              style={{
+                                height: '32px',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                color: '#333',
+                                borderLeft: '1px solid #eee',
+                                cursor: submitting ? 'wait' : 'pointer'
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>
+                            ${unitPrice * item.count}
+                          </div>
+                        </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div>x{item.count}</div>
-                        <div style={{ fontSize: '0.9rem' }}>{item.price}</div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '20px' }}>
@@ -5129,7 +5227,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             animation: 'fadeIn 0.3s'
           }}>
             <div style={{ fontWeight: 'bold' }}>
-              已選 {cart.reduce((a, c) => a + c.count, 0)} 項甜點
+              已選 {cart.reduce((a, c) => a + c.count, 0)} 份甜點
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <button onClick={clearCart} style={{ fontSize: '0.8rem', textDecoration: 'underline', color: 'inherit', background: 'none', border: 'none', cursor: 'pointer' }}>清空</button>

@@ -41,7 +41,7 @@ insert into menu_categories (id, title, subtitle, sort_order) values
 -- Tiramisu
 insert into menu_items (category_id, name, image, prices, description) values
 ('tiramisu', '經典提拉米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp', '[{"spec": "200ml", "price": "$160"}, {"spec": "鐵盒", "price": "$350"}]', '濃郁咖啡酒香與綿密馬斯卡彭乳酪的完美平衡，層層交織的義式經典。'),
-('tiramisu', '烤焦糖布丁摩卡米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', '[{"spec": "200ml", "price": "$180"}, {"spec": "鐵盒", "price": "$499"}]', '焦糖脆片與摩卡咖啡的雙重奏鳴，帶來意想不到的層次驚喜。'),
+('tiramisu', '烤焦糖布丁摩卡米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp', '[{"spec": "200ml", "price": "$180"}, {"spec": "鐵盒", "price": "$549"}]', '焦糖脆片與摩卡咖啡的雙重奏鳴，帶來意想不到的層次驚喜。'),
 ('tiramisu', '小山園抹茶米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp', '[{"spec": "200ml", "price": "$180"}, {"spec": "鐵盒", "price": "$549"}]', '嚴選日本小山園抹茶，苦甜交融，呈現和洋融合的細膩風味。'),
 ('tiramisu', '日本柚子蘋果乳酪米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp', '[{"spec": "200ml", "price": "$190"}, {"spec": "鐵盒", "price": "$549"}]', '清新柚子香氣搭配蘋果果酸，輕盈爽口的夏日版提拉米蘇。'),
 ('tiramisu', '莓果提拉米蘇', 'https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp', '[{"spec": "200ml", "price": "$190"}, {"spec": "鐵盒", "price": "$549"}]', '新鮮莓果的酸甜完美中和咖啡的苦韻，視覺與味覺的雙重饗宴。'),

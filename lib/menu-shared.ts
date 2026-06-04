@@ -104,8 +104,8 @@ export function buildMenuFromSharedCategories(
         return {
           id: resolvedId,
           name: item.name,
-          description: staticItem?.description ?? item.description ?? '',
-          image: staticItem?.image ?? item.image ?? null,
+          description: item.description ?? staticItem?.description ?? '',
+          image: item.image ?? staticItem?.image ?? null,
           prices: (item.prices ?? [])
             .filter((variant) => Number.isFinite(toNumericPrice(variant.price)))
             .map((variant) => ({
