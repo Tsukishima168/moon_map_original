@@ -1329,7 +1329,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               throw new Error(payload.error || 'Failed to create store badge claim');
             }
             code = payload.code;
-            localStorage.setItem(STORE_BADGE_CODE_KEY, code);
+            localStorage.setItem(STORE_BADGE_CODE_KEY, payload.code);
             clearPendingRewardClaim();
             track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
           } catch (e) {
@@ -2251,12 +2251,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           ) : (
                             item.prices && item.prices.length > 0 ? (
                               item.prices.map((p, pIdx) => {
-                                const inCart = cart.find(c => c.name === item.name && c.spec === p.spec);
+                                const spec = p.spec ?? '標準';
+                                const inCart = cart.find(c => c.name === item.name && c.spec === spec);
                                 return (
                                   <button
                                     key={pIdx}
                                     className="font-mono"
-                                    onClick={(e) => { e.stopPropagation(); addToCart(item.name, p.spec, p.price); }}
+                                    onClick={(e) => { e.stopPropagation(); addToCart(item.name, spec, String(p.price)); }}
                                     style={{
                                       fontSize: '0.8rem',
                                       color: inCart ? 'white' : '#666',
