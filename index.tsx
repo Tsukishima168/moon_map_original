@@ -243,33 +243,33 @@ const STATE_DATA: Record<string, {
   recommendedItemIds: MenuItemId[];
 }> = {
   noon: {
-    title: "正午之前 / 12:00",
-    advice: "太陽還在最高點，什麼都清晰得讓人有點緊張。先坐下，點一杯冷的。",
-    mission: "點一個今天最陌生的品項，試試看。",
+    title: "還是白天 / 12:00",
+    advice: "太陽在頭頂上，一天最亮的時候。離月升還很久，先想好等等要吃什麼。",
+    mission: "點一杯冰的，跟夏天講和五分鐘。",
     recommendedItemIds: ['basque_classic', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic']
   },
   open: {
-    title: "島嶼開張 / 13:00",
-    advice: "門開了，光跟著進來。這個時刻什麼都有可能發生。",
-    mission: "和旁邊的人說一句話，或者假裝你打算這麼做。",
+    title: "開門避暑 / 13:00",
+    advice: "門開了，冷氣跟甜點都醒了。外面是夏天，裡面可以先假裝是晚上。",
+    mission: "進門先深呼吸一口涼的，再決定要坐哪。",
     recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_honey_black_tea']
   },
   three: {
-    title: "午後三點 / 15:00",
-    advice: "全島最慵懶的一刻。不需要有計劃，只需要有甜點。",
-    mission: "把手機螢幕朝下放，看看能撐多久。",
+    title: "最熱一刻 / 15:00",
+    advice: "全島最熱的一刻。不要跟太陽硬碰硬，把自己交給甜點。",
+    mission: "吃一口冰的，替 Kiwimu 感受一下不會融化的感覺。",
     recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'mille_crepe_matcha']
   },
   golden: {
-    title: "斜陽時分 / 17:00",
-    advice: "光開始走了。不用追，坐著看它去就好。",
-    mission: "拍一張今天最美的光線，不修圖傳給一個朋友。",
+    title: "天色讓步 / 17:00",
+    advice: "光開始退了，熱也是。今天最好的部分正要開始。",
+    mission: "看一眼窗外的天色，猜猜月亮幾點到。",
     recommendedItemIds: ['tiramisu_baileys', 'basque_classic', 'tiramisu_matcha']
   },
   closing: {
-    title: "店要關了 / 19:00",
-    advice: "今天快結束了。這杯是給自己的最後一份溫柔。",
-    mission: "寫下今天一件你做得不錯的事，寫在收據背面也算。",
+    title: "月亮接班 / 19:00",
+    advice: "店要關了，月亮要上班了。融化的都會重新成形，包括你。",
+    mission: "帶一份甜點回家，把這個晚上留給自己。",
     recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
   }
 };
@@ -3141,20 +3141,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 className={`state-btn ${selectedState === 'noon' ? 'selected' : ''}`}
                 onClick={() => handleStateSelect('noon')}
               >
-                12:00<br />正午
+                12:00<br />還是白天
               </button>
               <div className="checkin-grid">
                 <button className={`state-btn ${selectedState === 'open' ? 'selected' : ''}`} onClick={() => handleStateSelect('open')}>
-                  13:00<br />光打進來
+                  13:00<br />開門避暑
                 </button>
                 <button className={`state-btn ${selectedState === 'three' ? 'selected' : ''}`} onClick={() => handleStateSelect('three')}>
-                  15:00<br />三點整
+                  15:00<br />最熱一刻
                 </button>
                 <button className={`state-btn ${selectedState === 'golden' ? 'selected' : ''}`} onClick={() => handleStateSelect('golden')}>
-                  17:00<br />斜陽
+                  17:00<br />天色讓步
                 </button>
                 <button className={`state-btn ${selectedState === 'closing' ? 'selected' : ''}`} onClick={() => handleStateSelect('closing')}>
-                  19:00<br />收尾
+                  19:00<br />月亮接班
                 </button>
               </div>
             </div>
