@@ -56,7 +56,7 @@ const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "每一季一個主題。你路過，也算參展。",
-  CURRENT_SEASON: "Season 02: The Island at Three（島嶼・午後三點）",
+  CURRENT_SEASON: "Season 03: The Island After Dark（島嶼・月升之後）",
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',
     emotionBlack: '#2B2018',
@@ -64,6 +64,8 @@ const CONFIG = {
     islandBlue: '#C4745A',
     grayText: '#7A6A5A',
     grayLine: '#E8E0D6',
+    nightBlue: '#2E3A59',
+    nightBlueDeep: '#232D47',
   },
   LINKS: {
     preorder_pickup_url: "https://map.kiwimu.com/menu",
@@ -72,7 +74,7 @@ const CONFIG = {
     passport_url: "https://passport.kiwimu.com",
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu.com",
-    spotify_url: "https://open.spotify.com/playlist/moonmoon",
+    spotify_url: "https://open.spotify.com/playlist/4GvSWtZD5YiJdIu7M8e9Ei",
     wallpaper_url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg",
     easter_egg_reward_url: "#wallpaper-section",
     line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
@@ -103,16 +105,16 @@ const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
 const FORTUNES = [
-  { level: '大吉', text: '新的一年，願你的煩惱像我的工作一樣少。' },
-  { level: '中吉', text: '變胖沒關係，那是你對甜點尊重的重量。' },
-  { level: '小吉', text: '把錢變成喜歡的形狀，例如千層蛋糕。' },
-  { level: '吉', text: '今天的運氣，適合再來一顆布丁。' },
-  { level: '大吉', text: '願你的財運，像台南的糖度一樣高。' },
-  { level: '中吉', text: '工作可以低糖，但生活要全糖。' },
-  { level: '吉', text: '老闆說，轉到這張的人，今年會變漂亮。' },
-  { level: '小吉', text: '休息是為了走更長的路，吃甜點是為了不想走路。' },
-  { level: '大吉', text: '恭喜，你今年的桃花運會跟鮮奶油一樣順滑。' },
-  { level: '隱藏版', text: 'Kiwimu 覺得你今天長得很好看。' },
+  { level: '大吉', text: '今晚的月亮很圓，你的煩惱很扁。' },
+  { level: '中吉', text: '白天流的汗，晚上會變成吃甜點的正當理由。' },
+  { level: '小吉', text: '熱到融化沒關係，月升之後都會重新成形。' },
+  { level: '吉', text: '今天的運氣，適合把冷氣留給自己，把甜點留給現在。' },
+  { level: '大吉', text: '願你的桃花，像台南的夏夜一樣，又長又亮。' },
+  { level: '中吉', text: '事情可以明天再做，布丁不行，它今天最好吃。' },
+  { level: '吉', text: '老闆說，轉到這張的人，今晚會睡得特別好。' },
+  { level: '小吉', text: '月亮不趕時間，你也不用。' },
+  { level: '大吉', text: '恭喜，下半年的財運跟中秋的月亮一樣圓。' },
+  { level: '隱藏版', text: 'Kiwimu 偷偷把今晚的月亮調亮了一點，因為你來了。' },
 ];
 const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
 const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
@@ -3006,7 +3008,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>03 // MUSIC</span><br />
-              <strong>聽這一季音樂 (島嶼午後)</strong>
+              <strong>聽這一季音樂 (月升之後)</strong>
             </div>
             <span>♫</span>
           </button>
@@ -3026,21 +3028,33 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
           <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
 
-          {/* Season Story */}
-          <div style={{ marginBottom: '40px', padding: '30px', background: '#f9f9f9', borderRadius: '12px', border: '1px solid #eee', position: 'relative' }}>
-            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.emotionBlack }}>Season 02: The Island at Three（島嶼・午後三點）</h3>
-            <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: '#555' }}>
+          {/* Season Story — Season 03 夜卡：整站唯一深色區塊 */}
+          <div style={{ marginBottom: '40px', padding: '30px', background: `linear-gradient(165deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)`, borderRadius: '12px', border: '1px solid rgba(212, 168, 83, 0.35)', position: 'relative', overflow: 'hidden' }}>
+            {/* 月亮 */}
+            <div aria-hidden="true" style={{
+              position: 'absolute',
+              top: '22px',
+              right: '26px',
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              background: CONFIG.BRAND_COLORS.moonYellow,
+              boxShadow: `0 0 24px 8px rgba(212, 168, 83, 0.35)`,
+              pointerEvents: 'none'
+            }} />
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.moonYellow, paddingRight: '60px' }}>Season 03: The Island After Dark（島嶼・月升之後）</h3>
+            <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: 'rgba(245, 240, 232, 0.85)' }}>
               <p style={{ marginBottom: '15px' }}>
-                這一季，<strong>島嶼午後</strong>。
+                這一季，<strong style={{ color: CONFIG.BRAND_COLORS.creamWhite }}>月升之後</strong>。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                三點鐘，光從窗縫斜打進來。時間好像停了，但其實只是在等你。
+                白天太亮，什麼都藏不住；太熱，什麼都留不住。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                在這裡，不需要趕去哪裡。只需要<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` }}>坐下來，讓這個下午屬於你</span>。
+                所以島嶼決定，把重要的事留給晚上。<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, color: CONFIG.BRAND_COLORS.creamWhite }}>融化的，會在月升之後重新成形</span>。
               </p>
               <p>
-                每一份甜點都是一幅靜物。選一個時刻，讓它成為你的。
+                選一份甜點，陪你把今天涼下來。
               </p>
             </div>
             {/* Easter Egg #1 - 北海道誕生 */}
@@ -4800,19 +4814,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <div
                 className="modal-header"
                 style={{
-                  background: '#000',
-                  color: '#fff',
+                  background: CONFIG.BRAND_COLORS.nightBlueDeep,
+                  color: CONFIG.BRAND_COLORS.creamWhite,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '12px 20px'
                 }}
               >
-                <span style={{ fontWeight: 'bold', fontSize: '0.85rem', letterSpacing: '0.1em' }}>🎴 心情展籤</span>
+                <span style={{ fontWeight: 'bold', fontSize: '0.85rem', letterSpacing: '0.1em' }}>🌙 心情展籤</span>
                 <button className="close-btn" onClick={() => setShowFortuneModal(false)} style={{ color: '#fff', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
               </div>
 
-              <div className="modal-body" style={{ padding: '30px', textAlign: 'center' }}>
+              <div className="modal-body" style={{ padding: '30px', textAlign: 'center', background: `linear-gradient(175deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)` }}>
                 {/* Fortune Level Badge */}
                 <div style={{ marginBottom: '20px' }}>
                   <span style={{
@@ -4824,12 +4838,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     letterSpacing: '0.15em',
                     border: '2px solid',
                     ...(currentFortune.level === '隱藏版'
-                      ? { background: CONFIG.BRAND_COLORS.moonYellow, color: '#000', borderColor: '#000' }
+                      ? { background: CONFIG.BRAND_COLORS.moonYellow, color: '#000', borderColor: CONFIG.BRAND_COLORS.moonYellow, boxShadow: '0 0 18px 4px rgba(212, 168, 83, 0.45)' }
                       : currentFortune.level === '大吉'
-                        ? { background: '#FEF2F2', color: '#991B1B', borderColor: '#FCA5A5' }
+                        ? { background: 'rgba(212, 168, 83, 0.15)', color: CONFIG.BRAND_COLORS.moonYellow, borderColor: CONFIG.BRAND_COLORS.moonYellow }
                         : currentFortune.level === '中吉'
-                          ? { background: '#FFF7ED', color: '#C2410C', borderColor: '#FDBA74' }
-                          : { background: '#F9FAFB', color: '#4B5563', borderColor: '#D1D5DB' })
+                          ? { background: 'rgba(245, 240, 232, 0.12)', color: CONFIG.BRAND_COLORS.creamWhite, borderColor: 'rgba(245, 240, 232, 0.6)' }
+                          : { background: 'rgba(245, 240, 232, 0.06)', color: 'rgba(245, 240, 232, 0.75)', borderColor: 'rgba(245, 240, 232, 0.3)' })
                   }}>
                     {currentFortune.level}
                   </span>
@@ -4840,7 +4854,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   fontSize: '1.2rem',
                   fontWeight: 'bold',
                   lineHeight: '1.8',
-                  color: '#000',
+                  color: CONFIG.BRAND_COLORS.creamWhite,
                   fontFamily: '"Noto Serif TC", serif',
                   marginBottom: '15px',
                   padding: '0 10px'
@@ -4848,25 +4862,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   「{currentFortune.text}」
                 </p>
 
-                <p style={{ fontSize: '0.7rem', color: '#aaa', letterSpacing: '0.15em' }}>✨ 來自 Kiwimu 的祝福 ✨</p>
+                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.5)', letterSpacing: '0.15em' }}>🌙 月升之後 · 來自 Kiwimu 的祝福</p>
 
                 {/* IG Promo Message */}
                 <div style={{
-                  background: '#EEF2F5',
+                  background: 'rgba(245, 240, 232, 0.1)',
+                  border: '1px solid rgba(245, 240, 232, 0.15)',
                   padding: '16px',
                   borderRadius: '12px',
                   margin: '16px 0',
                   textAlign: 'left'
                 }}>
-                  <p style={{ fontSize: '0.9rem', color: '#222', lineHeight: '1.6', margin: 0, fontWeight: 600 }}>
+                  <p style={{ fontSize: '0.9rem', color: 'rgba(245, 240, 232, 0.9)', lineHeight: '1.6', margin: 0, fontWeight: 600 }}>
                     🎁 第一步：下載並截圖此展籤<br />
-                    📷 第二步：發布限時動態並標記 <strong style={{ color: '#60A5FA' }}>@moon_moon_dessert</strong><br />
+                    📷 第二步：發布限時動態並標記 <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>@moon_moon_dessert</strong><br />
                     即可獲得「第二杯飲品半價優惠」！
                   </p>
                 </div>
 
                 {/* Divider */}
-                <div style={{ borderTop: '2px dashed #eee', margin: '20px 0' }} />
+                <div style={{ borderTop: '2px dashed rgba(245, 240, 232, 0.2)', margin: '20px 0' }} />
 
                 {/* Download Card CTA */}
                 <button
@@ -4877,13 +4892,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: '#fff',
+                    background: CONFIG.BRAND_COLORS.moonYellow,
                     border: '2px solid #000',
                     borderRadius: '8px',
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '4px 4px 0 #000',
+                    boxShadow: '4px 4px 0 rgba(0, 0, 0, 0.6)',
                     transition: 'transform 0.1s',
                     color: '#000'
                   }}
@@ -4894,7 +4909,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   下載展籤與任務卡 DOWNLOAD
                 </button>
 
-                <p style={{ fontSize: '0.7rem', color: '#bbb', marginTop: '12px' }}>每日一籤 · 明天再來試試運氣</p>
+                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.4)', marginTop: '12px' }}>每日一籤 · 明晚再來試試運氣</p>
               </div>
             </div>
           </div>
