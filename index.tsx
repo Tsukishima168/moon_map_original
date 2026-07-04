@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
-import { buildPassportLoginUrl, openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
+import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
 import {
