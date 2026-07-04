@@ -1,11 +1,11 @@
 /**
  * Moon Map — Supabase Auth（跨網域 cookie）
  * 讀取 .kiwimu.com cookie session（由 Passport 設定）
- * 登入入口統一導向 passport.kiwimu.com
+ * 登入入口透過 Passport popup broker 完成，保留原站畫面
  */
 
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
-import { buildPassportLoginUrl, createSharedAuthStorage } from './authStorage';
+import { createSharedAuthStorage, openPassportLogin, type OpenPassportLoginOptions } from './authStorage';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -38,9 +38,9 @@ export async function getCurrentUser(): Promise<User | null> {
   return user;
 }
 
-/** 統一導向 Passport 登入中心 */
-export async function signInWithGoogle(): Promise<void> {
-  window.location.href = buildPassportLoginUrl();
+/** 透過 Passport popup broker 登入 */
+export async function signInWithGoogle(options: OpenPassportLoginOptions = {}): Promise<void> {
+  openPassportLogin({ ...options, intent: options.intent || 'map_login' });
 }
 
 /** 登出 */

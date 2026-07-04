@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { supabase } from './lib/supabase';
-import { buildPassportLoginUrl } from './lib/authStorage';
+import { buildPassportLoginUrl, openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
 import {
@@ -664,8 +664,11 @@ const App = () => {
       if (!accessToken) {
         savePendingRewardClaim('egg_master_2026_q1', 'easter_egg');
         setRewardClaimStatus('idle');
-        showUiNotice('登入 Passport 後會回到地圖，替你完成限定徽章領取。', 'info');
-        window.location.href = buildPassportLoginUrl();
+        showUiNotice('登入 Passport 後會替你完成限定徽章領取。', 'info');
+        openPassportLogin({
+          intent: 'map_egg_master_reward',
+          onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
+        });
         return;
       }
 
@@ -1306,8 +1309,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               savePendingRewardClaim(STORE_BADGE_REWARD_ID, 'gps');
               closePassportWindow();
               setStoreBadgeStatus('idle');
-              setStoreBadgeMessage('請先登入島民身份，回來後再點一次定位即可領徽章。');
-              window.location.href = buildPassportLoginUrl();
+              setStoreBadgeMessage('請先登入島民身份，登入完成後再點一次定位即可領徽章。');
+              openPassportLogin({
+                intent: 'map_store_badge_reward',
+                onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
+              });
               return;
             }
 
@@ -1690,7 +1696,26 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       }
     });
 
-    return () => subscription.unsubscribe();
+    const handlePassportAuthComplete = () => {
+      void supabase!.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchProfile(session.user.id);
+          supabase!.rpc('update_last_seen', { p_site: 'map' }).then(() => {});
+          trackUserEvent('site_visited', {
+            site_id: 'moon_map',
+            source: 'passport_popup',
+            path: window.location.pathname,
+          });
+        }
+      });
+    };
+    window.addEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
+
+    return () => {
+      window.removeEventListener(PASSPORT_AUTH_COMPLETE_EVENT, handlePassportAuthComplete);
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -1726,7 +1751,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   const handleGoogleLogin = () => {
     setLoginMessage('前往 Google 登入...');
-    window.location.href = buildPassportLoginUrl();
+    openPassportLogin({
+      intent: 'map_login',
+      onComplete: () => {
+        setLoginMessage('');
+        setShowLogin(false);
+      },
+      onError: (detail) => {
+        setLoginMessage('');
+        showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning');
+      },
+    });
   };
 
   const handleLogout = async () => {

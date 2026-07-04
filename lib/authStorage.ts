@@ -5,6 +5,29 @@ const MAX_COOKIE_CHUNKS = 20;
 const IPV4_HOST_PATTERN = /^\d{1,3}(?:\.\d{1,3}){3}$/;
 
 export const PASSPORT_LOGIN_URL = 'https://passport.kiwimu.com';
+export const PASSPORT_AUTH_COMPLETE_EVENT = 'kiwimu:passport-auth-complete';
+export const PASSPORT_SSO_MESSAGE_TYPE = 'kiwimu:sso:complete';
+
+export type PassportLoginPresentation = 'redirect' | 'popup';
+
+export interface PassportLoginUrlOptions {
+  presentation?: PassportLoginPresentation;
+  intent?: string;
+  sourceSite?: string;
+}
+
+export interface PassportSsoMessage {
+  type: typeof PASSPORT_SSO_MESSAGE_TYPE;
+  status: 'success' | 'error';
+  redirectTo?: string;
+  message?: string;
+}
+
+export interface OpenPassportLoginOptions extends PassportLoginUrlOptions {
+  returnTo?: string;
+  onComplete?: (message: PassportSsoMessage) => void;
+  onError?: (message: PassportSsoMessage) => void;
+}
 
 function canShareKiwimuCookies(hostname: string): boolean {
   return hostname === 'kiwimu.com' || hostname.endsWith('.kiwimu.com');
@@ -144,8 +167,117 @@ export function createSharedAuthStorage() {
   };
 }
 
-export function buildPassportLoginUrl(returnTo: string = window.location.href): string {
+export function buildPassportLoginUrl(
+  returnTo: string = window.location.href,
+  options: PassportLoginUrlOptions = {}
+): string {
   const url = new URL(PASSPORT_LOGIN_URL);
   url.searchParams.set('redirect_to', returnTo);
+  url.searchParams.set('mode', 'sso');
+  if (options.presentation) {
+    url.searchParams.set('presentation', options.presentation);
+  }
+  if (options.intent) {
+    url.searchParams.set('intent', options.intent);
+  }
+  if (options.sourceSite) {
+    url.searchParams.set('source_site', options.sourceSite);
+  }
   return url.toString();
+}
+
+function buildPopupFeatures(): string {
+  const width = 460;
+  const height = 680;
+  const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+  const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+  return [
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    'menubar=no',
+    'toolbar=no',
+    'location=no',
+    'status=no',
+    'resizable=yes',
+    'scrollbars=yes',
+  ].join(',');
+}
+
+export function openPassportLogin(options: OpenPassportLoginOptions = {}): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const returnTo = options.returnTo || window.location.href;
+  const sourceSite = options.sourceSite || 'map';
+  const fallbackUrl = buildPassportLoginUrl(returnTo, {
+    ...options,
+    sourceSite,
+    presentation: 'redirect',
+  });
+  const popupUrl = buildPassportLoginUrl(returnTo, {
+    ...options,
+    sourceSite,
+    presentation: 'popup',
+  });
+
+  const popup = window.open(popupUrl, 'kiwimu-passport-login', buildPopupFeatures());
+  if (!popup) {
+    options.onError?.({
+      type: PASSPORT_SSO_MESSAGE_TYPE,
+      status: 'error',
+      redirectTo: fallbackUrl,
+      message: '登入視窗被瀏覽器阻擋，正在改用整頁登入…',
+    });
+    // Popup blocked by the browser: fall back to a full-page redirect so the
+    // user can still complete login, instead of leaving them on an error toast.
+    window.location.href = fallbackUrl;
+    return false;
+  }
+
+  const expectedOrigin = new URL(PASSPORT_LOGIN_URL).origin;
+  let settled = false;
+  let pollTimer = 0;
+
+  const cleanup = () => {
+    window.removeEventListener('message', handleMessage);
+    if (pollTimer) {
+      window.clearInterval(pollTimer);
+    }
+  };
+
+  const handleMessage = (event: MessageEvent) => {
+    if (event.origin !== expectedOrigin) return;
+    const message = event.data as Partial<PassportSsoMessage> | null;
+    if (!message || message.type !== PASSPORT_SSO_MESSAGE_TYPE) return;
+
+    settled = true;
+    cleanup();
+    popup.close();
+
+    const detail = message as PassportSsoMessage;
+    if (detail.status === 'success') {
+      window.dispatchEvent(new CustomEvent(PASSPORT_AUTH_COMPLETE_EVENT, { detail }));
+      options.onComplete?.(detail);
+    } else {
+      options.onError?.(detail);
+    }
+  };
+
+  window.addEventListener('message', handleMessage);
+  pollTimer = window.setInterval(() => {
+    if (popup.closed && !settled) {
+      settled = true;
+      cleanup();
+      options.onError?.({
+        type: PASSPORT_SSO_MESSAGE_TYPE,
+        status: 'error',
+        message: '登入視窗已關閉，請再試一次。',
+      });
+    }
+  }, 500);
+  popup.focus();
+  return true;
 }
