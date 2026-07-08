@@ -164,9 +164,9 @@ Layer 3：技術與結構化資料（讓爬蟲/AI 怎麼讀）
   "openingHoursSpecification": [
     {
       "@type": "OpeningHoursSpecification",
-      "dayOfWeek": ["Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+      "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
       "opens": "13:00",
-      "closes": "19:00"
+      "closes": "18:00"
     }
   ],
   "priceRange": "$$",

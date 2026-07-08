@@ -81,7 +81,7 @@ const CONFIG = {
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
-    hours_text: "Tue - Sun / 13:00 - 19:00",
+    hours_text: "Tue - Sun / 13:00 - 18:00",
     liff_id: "2008848603-ANGQX0GN",
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
@@ -267,7 +267,7 @@ const STATE_DATA: Record<string, {
     recommendedItemIds: ['tiramisu_baileys', 'basque_classic', 'tiramisu_matcha']
   },
   closing: {
-    title: "月亮接班 / 19:00",
+    title: "月亮接班 / 18:00",
     advice: "店要關了，月亮要上班了。融化的都會重新成形，包括你。",
     mission: "帶一份甜點回家，把這個晚上留給自己。",
     recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
@@ -2265,7 +2265,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                showUiNotice('飲品僅供店內飲用，不開放預訂。歡迎來店品嚐，營業時間為週三至週日 13:00 - 19:00。', 'info');
+                                showUiNotice('飲品僅供店內飲用，不開放預訂。歡迎來店品嚐，營業時間為週二至週日 13:00 - 18:00。', 'info');
                               }}
                               style={{
                                 fontSize: '0.8rem',
@@ -3190,7 +3190,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   17:00<br />天色讓步
                 </button>
                 <button className={`state-btn ${selectedState === 'closing' ? 'selected' : ''}`} onClick={() => handleStateSelect('closing')}>
-                  19:00<br />月亮接班
+                  18:00<br />月亮接班
                 </button>
               </div>
             </div>
@@ -4500,7 +4500,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
-                    營業時間：週二至週日 13:00-19:00
+                    營業時間：週二至週日 13:00-18:00
                   </p>
                 </div>
 
