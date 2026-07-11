@@ -72,6 +72,143 @@ interface CanonicalOrderPayload {
 const MAP_SOURCE = 'moon_map'
 const MAP_CHECKOUT_SITE = 'map'
 
+const MAX_TOTAL_AMOUNT = 100000
+const MAX_ITEMS_COUNT = 100
+const MAX_ITEM_NAME_LENGTH = 200
+const MAX_ITEM_SPEC_LENGTH = 200
+const MAX_QUANTITY = 1000
+
+// Inferred from other Kiwimu sites' usage of the shared `orders.status` column
+// (no DB CHECK constraint / enum exists to source this from — see
+// shop-kiwimu-com/src/repositories/order.repository.ts and
+// order-status-side-effects.service.ts). map only ever sends 'pending' today;
+// this whitelist is deliberately generous to avoid blocking future admin flows.
+const ALLOWED_PAYMENT_STATUSES = new Set([
+  'pending',
+  'paid',
+  'confirmed',
+  'preparing',
+  'ready',
+  'cancelled',
+  'refunded',
+])
+
+const STRING_FIELD_MAX_LENGTHS = {
+  order_number: 64,
+  customer_name: 100,
+  customer_phone: 30,
+  customer_email: 254,
+  pickup_date: 40,
+  order_note: 1000,
+  user_id: 128,
+  payment_status: 30,
+  source: 60,
+  ga_client_id: 128,
+  referrer: 2048,
+  utm_source: 200,
+  utm_medium: 200,
+  utm_campaign: 200,
+  utm_content: 200,
+  utm_term: 200,
+} as const
+
+function isNonEmptyString(value: unknown, maxLength: number): value is string {
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength
+}
+
+function isOptionalString(value: unknown, maxLength: number): boolean {
+  if (value === null || value === undefined) return true
+  return typeof value === 'string' && value.length <= maxLength
+}
+
+function isFiniteNumberInRange(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
+}
+
+/**
+ * Validates the untrusted request body before any DB write or Discord notify.
+ * Returns a human-readable error message, or null if the payload is valid.
+ */
+function validateOrderRequestPayload(order: unknown, items: unknown): string | null {
+  if (!order || typeof order !== 'object') {
+    return 'Missing required fields: order, items'
+  }
+  if (!Array.isArray(items) || items.length === 0) {
+    return 'Missing required fields: order, items'
+  }
+
+  const o = order as Record<string, unknown>
+
+  if (!isNonEmptyString(o.customer_name, STRING_FIELD_MAX_LENGTHS.customer_name)) {
+    return 'Invalid or missing customer_name'
+  }
+  if (!isNonEmptyString(o.customer_phone, STRING_FIELD_MAX_LENGTHS.customer_phone)) {
+    return 'Invalid or missing customer_phone'
+  }
+  if (!isOptionalString(o.customer_email, STRING_FIELD_MAX_LENGTHS.customer_email)) {
+    return 'Invalid customer_email'
+  }
+  if (!isFiniteNumberInRange(o.total_amount, 0.01, MAX_TOTAL_AMOUNT)) {
+    return `Invalid total_amount: must be a finite positive number <= ${MAX_TOTAL_AMOUNT}`
+  }
+  if (!isNonEmptyString(o.pickup_date, STRING_FIELD_MAX_LENGTHS.pickup_date)) {
+    return 'Invalid or missing pickup_date'
+  }
+  if (!isOptionalString(o.order_note, STRING_FIELD_MAX_LENGTHS.order_note)) {
+    return 'Invalid order_note'
+  }
+  if (!isOptionalString(o.user_id, STRING_FIELD_MAX_LENGTHS.user_id)) {
+    return 'Invalid user_id'
+  }
+  if (typeof o.payment_status !== 'string' || !ALLOWED_PAYMENT_STATUSES.has(o.payment_status)) {
+    return `Invalid payment_status: must be one of ${Array.from(ALLOWED_PAYMENT_STATUSES).join(', ')}`
+  }
+  if (!isOptionalString(o.source, STRING_FIELD_MAX_LENGTHS.source)) {
+    return 'Invalid source'
+  }
+  if (!isOptionalString(o.ga_client_id, STRING_FIELD_MAX_LENGTHS.ga_client_id)) {
+    return 'Invalid ga_client_id'
+  }
+  if (!isOptionalString(o.referrer, STRING_FIELD_MAX_LENGTHS.referrer)) {
+    return 'Invalid referrer'
+  }
+  if (o.order_number !== undefined && !isOptionalString(o.order_number, STRING_FIELD_MAX_LENGTHS.order_number)) {
+    return 'Invalid order_number'
+  }
+  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const) {
+    if (!isOptionalString(o[key], STRING_FIELD_MAX_LENGTHS[key])) {
+      return `Invalid ${key}`
+    }
+  }
+
+  if (items.length > MAX_ITEMS_COUNT) {
+    return `Too many items: max ${MAX_ITEMS_COUNT}`
+  }
+
+  for (let index = 0; index < items.length; index += 1) {
+    const rawItem = items[index]
+    if (!rawItem || typeof rawItem !== 'object') {
+      return `Invalid item at index ${index}`
+    }
+    const item = rawItem as Record<string, unknown>
+
+    if (!isNonEmptyString(item.item_name, MAX_ITEM_NAME_LENGTH)) {
+      return `Invalid item_name at index ${index}`
+    }
+    if (!isOptionalString(item.item_spec, MAX_ITEM_SPEC_LENGTH)) {
+      return `Invalid item_spec at index ${index}`
+    }
+    if (!isFiniteNumberInRange(item.unit_price, 0, MAX_TOTAL_AMOUNT)) {
+      return `Invalid unit_price at index ${index}`
+    }
+    if (!isFiniteNumberInRange(item.quantity, 1, MAX_QUANTITY) || !Number.isInteger(item.quantity)) {
+      return `Invalid quantity at index ${index}`
+    }
+  }
+
+  return null
+}
+
 const buildOrderNumber = () => {
   const now = new Date()
   const datePart = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`
@@ -205,8 +342,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { order, items } = req.body || {}
 
-  if (!order || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'Missing required fields: order, items' })
+  const validationError = validateOrderRequestPayload(order, items)
+  if (validationError) {
+    return res.status(400).json({ error: validationError })
   }
 
   try {
