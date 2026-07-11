@@ -14,6 +14,7 @@ import {
   type MenuCategory,
   type MenuItemId,
 } from './lib/menu-shared';
+import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from './lib/store-location';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -99,8 +100,6 @@ const WALLPAPERS = [
 // In-store badge (GPS) config
 const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
 const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
-const STORE_LOCATION = { lat: 23.0473181, lng: 120.1987003 }; // 月島甜點店座標
-const STORE_RADIUS_METERS = 100; // 100 公尺範圍
 const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
@@ -222,17 +221,6 @@ function normalizeMenuCategories(categories: MenuCategory[]) {
       prices: item.prices || [],
     })),
   }));
-}
-
-/** 粗略計算兩點距離（公尺） - Haversine */
-function distanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (d: number) => d * Math.PI / 180;
-  const R = 6371000; // 地球半徑 (m)
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
 }
 
 // --- DATA: 狀態與任務 ---

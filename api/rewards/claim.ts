@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { randomBytes } from 'crypto'
 import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
 import { createAdminClient } from '../_utils/supabase-admin.js'
+import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from '../../lib/store-location.js'
 
 const REWARD_IDS = {
   eggMaster: 'egg_master_2026_q1',
@@ -9,22 +10,6 @@ const REWARD_IDS = {
 } as const
 
 const ALLOWED_REWARD_IDS = new Set<string>(Object.values(REWARD_IDS))
-const STORE_LOCATION = { lat: 23.0473181, lng: 120.1987003 }
-const STORE_RADIUS_METERS = 100
-
-const distanceMeters = (lat1: number, lng1: number, lat2: number, lng2: number) => {
-  const radius = 6371e3
-  const phi1 = lat1 * Math.PI / 180
-  const phi2 = lat2 * Math.PI / 180
-  const deltaPhi = (lat2 - lat1) * Math.PI / 180
-  const deltaLambda = (lng2 - lng1) * Math.PI / 180
-
-  const a = Math.sin(deltaPhi / 2) ** 2 +
-    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return radius * c
-}
 
 const buildClaimCode = (rewardId: string) => {
   const prefix = rewardId === REWARD_IDS.storeVisit ? 'store' : 'egg_master'
