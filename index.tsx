@@ -435,9 +435,6 @@ const generateOrderNumberCandidate = () => {
 // --- TRACKING (Cross-site) ---
 const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
-  if (import.meta.env.DEV) {
-    console.log(`[Track] ${event}`, payload);
-  }
 };
 
 // --- DATA: MENU & RANDOMIZER ---
@@ -908,10 +905,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           // Filter out dates where capacity is 0
           const blocked = Object.keys(specialDates).filter(date => specialDates[date] === 0);
           setBlockedDates(Array.from(new Set([...MANUAL_BLOCKED_DATES, ...blocked])).sort());
-
-          if (import.meta.env.DEV) {
-            console.log('[Date-Lock] Loaded blocked dates:', Array.from(new Set([...MANUAL_BLOCKED_DATES, ...blocked])).sort());
-          }
         }
       } catch (e) {
         console.error('Failed to fetch blocked dates', e);
@@ -1123,7 +1116,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     if (liff && CONFIG.LINKS.liff_id !== "YOUR_LIFF_ID") {
       liff.init({ liffId: CONFIG.LINKS.liff_id })
         .then(() => {
-          console.log('LIFF Initialized');
           setLiffReady(true);
           setIsLiff(liff.isInClient());
         })

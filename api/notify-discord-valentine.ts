@@ -28,11 +28,6 @@ export default async function handler(
         });
     }
 
-    console.log('[DISCORD] 💛 Sending Valentine egg notification:', {
-        remaining,
-        timestamp
-    });
-
     try {
         const discordPayload = {
             content: `💛 **有人找到情人節金色彩蛋！**\n\n🎫 剩餘數量：**${remaining}/50**\n⏰ 時間：${timestamp}\n\n— 來自月島甜點 🌙`,
@@ -66,11 +61,6 @@ export default async function handler(
             });
             throw new Error(`Discord API error: ${discordRes.statusText}`);
         }
-
-        console.log('[DISCORD] ✅ Valentine egg notification sent:', {
-            messageId: responseData.id,
-            remaining
-        });
 
         return response.status(200).json({
             status: 'sent',

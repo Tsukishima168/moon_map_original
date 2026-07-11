@@ -103,11 +103,6 @@ export default async function handler(
       throw new Error(`Discord API error: ${discordRes.statusText}`);
     }
 
-    console.log('[DISCORD][ORDER] ✅ Order notification sent:', {
-      messageId: responseData?.id ?? null,
-      orderId,
-    });
-
     return response.status(200).json({
       status: 'sent',
       messageId: responseData?.id ?? null

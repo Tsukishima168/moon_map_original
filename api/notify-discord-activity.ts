@@ -79,11 +79,6 @@ export default async function handler(
             throw new Error(`Discord API error: ${discordRes.statusText}`);
         }
 
-        console.log('[DISCORD][ACTIVITY] ✅ Activity notification sent:', {
-            messageId: responseData.id,
-            activityType
-        });
-
         return response.status(200).json({
             status: 'sent',
             messageId: responseData.id
