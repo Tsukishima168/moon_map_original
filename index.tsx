@@ -2168,6 +2168,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
             <div
               onClick={() => toggleCategory(cat.id)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  toggleCategory(cat.id);
+                }
+              }}
               style={{
                 marginBottom: '15px',
                 cursor: 'pointer',
@@ -2968,6 +2976,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
               alt=""
+              aria-hidden="true"
               className={`easter-egg-icon ${foundEggs.includes(5) ? 'found' : ''}`}
               onClick={() => openEasterEgg(5)}
               style={{
@@ -3097,6 +3106,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
               alt=""
+              aria-hidden="true"
               className={`easter-egg-icon ${foundEggs.includes(1) ? 'found' : ''}`}
               onClick={() => openEasterEgg(1)}
               style={{
@@ -3128,6 +3138,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
               alt=""
+              aria-hidden="true"
               className={`easter-egg-icon ${foundEggs.includes(3) ? 'found' : ''}`}
               onClick={() => openEasterEgg(3)}
               style={{
@@ -3342,6 +3353,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <img
             src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
             alt=""
+            aria-hidden="true"
             className={`easter-egg-icon ${foundEggs.includes(7) ? 'found' : ''}`}
             onClick={() => openEasterEgg(7)}
             style={{
@@ -3465,6 +3477,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <img
             src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
             alt=""
+            aria-hidden="true"
             className={`easter-egg-icon ${foundEggs.includes(6) ? 'found' : ''}`}
             onClick={() => openEasterEgg(6)}
             style={{
@@ -3569,6 +3582,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
               alt=""
+              aria-hidden="true"
               className={`easter-egg-icon ${foundEggs.includes(2) ? 'found' : ''}`}
               onClick={() => openEasterEgg(2)}
               style={{
@@ -3864,6 +3878,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <img
                 src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
                 alt=""
+                aria-hidden="true"
                 className={`easter-egg-icon ${foundEggs.includes(9) ? 'found' : ''}`}
                 onClick={() => openEasterEgg(9)}
                 style={{
@@ -3918,6 +3933,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <img
                 src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
                 alt=""
+                aria-hidden="true"
                 className={`easter-egg-icon ${foundEggs.includes(8) ? 'found' : ''}`}
                 onClick={() => openEasterEgg(8)}
                 style={{
@@ -4298,7 +4314,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             >
               <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                 <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  <img src={headerImage} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  <img src={headerImage} alt="Kiwimu" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
                 <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
                 <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
