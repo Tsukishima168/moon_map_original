@@ -62,7 +62,7 @@
 
 ### 3.2 設定 Supabase 金鑰
 
-在 `upload-to-supabase.js` 中設定 **Service Role Key**（不要提交到 Git）：
+在 `docs/legacy-scripts/upload-to-supabase.js` 中設定 **Service Role Key**（不要提交到 Git）：
 
 - 開啟 Supabase Dashboard → **Settings** → **API**
 - 複製 **service_role** key
@@ -72,7 +72,7 @@
 
 ```bash
 cd /Users/penstudio/Desktop/moon_map_original
-node upload-to-supabase.js
+node docs/legacy-scripts/upload-to-supabase.js
 ```
 
 腳本會：
@@ -143,9 +143,9 @@ https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/moon-island-as
 
 - [ ] 照片已裁成 1200×1200，檔名為英文代號（如 `xxx.webp`）
 - [ ] 檔案已放到 `~/moon-island-upload/menu-items/`
-- [ ] `upload-to-supabase.js` 已設定正確的 Service Role Key
+- [ ] `docs/legacy-scripts/upload-to-supabase.js` 已設定正確的 Service Role Key
 - [ ] Storage bucket `moon-island-assets` 已建立且為 **Public**
-- [ ] 已執行 `node upload-to-supabase.js` 且無錯誤
+- [ ] 已執行 `node docs/legacy-scripts/upload-to-supabase.js` 且無錯誤
 - [ ] 已執行 `update_menu_images.sql`（或手動更新 `menu_items.image`）
 - [ ] 重新整理 moon_map_original 網頁，確認選單圖片已更新
 
@@ -155,7 +155,7 @@ https://xlqwfaailjyvsycjnzkz.supabase.co/storage/v1/object/public/moon-island-as
 
 | 檔案 | 說明 |
 |------|------|
-| `upload-to-supabase.js` | 上傳 `menu-items` 等資料夾到 Supabase Storage |
+| `docs/legacy-scripts/upload-to-supabase.js` | 上傳 `menu-items` 等資料夾到 Supabase Storage |
 | `scripts/generate-menu-image-updates.js` | 依對照表產生更新 `menu_items.image` 的 SQL |
 | `docs/menu_item_image_mapping.csv` | Image ID ↔ 資料庫品項名稱對照（可編輯） |
 | `產品品項與檔案名稱對照表.csv` | 中文品項 ↔ 英文代號（可在桌面或專案內） |
