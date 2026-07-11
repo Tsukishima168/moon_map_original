@@ -32,7 +32,7 @@ This phase does **not** change canonical product facts:
 
 ## Rollout Order
 
-1. Create Supabase display-config tables with [`supabase_menu_display_config.sql`](/Users/pensoair/Desktop/Web-Projects/sites/map-kiwimu-com/supabase_menu_display_config.sql).
+1. Create Supabase display-config tables with [`supabase_menu_display_config.sql`](/Users/pensoair/Desktop/Web-Projects/sites/map-kiwimu-com/docs/legacy-sql/supabase_menu_display_config.sql).
 2. Generate seed SQL from current [`public/menu.json`](/Users/pensoair/Desktop/Web-Projects/sites/map-kiwimu-com/public/menu.json):
 
 ```bash
