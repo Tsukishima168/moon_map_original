@@ -22,7 +22,10 @@ function extractOrigin(req: VercelRequest): string | null {
   return null;
 }
 
-function getAllowedOrigins(req: VercelRequest): string[] {
+// Fixed allow-list only. Do NOT derive allowed origins from any request-controlled
+// value (e.g. req.headers.host) — a client can set an arbitrary Host header and
+// would otherwise be able to whitelist itself.
+function getAllowedOrigins(): string[] {
   const configured = (process.env.ALLOWED_ORIGINS || '')
     .split(',')
     .map((origin) => normalizeOrigin(origin))
@@ -37,13 +40,18 @@ function getAllowedOrigins(req: VercelRequest): string[] {
     'http://localhost:5173',
   ];
 
-  const host = req.headers.host;
-  if (host) {
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    defaults.push(`${protocol}://${host}`);
+  // Vercel preview deployments (*.vercel.app) are only allowed when explicitly
+  // configured via env var — no wildcard/pattern matching against the request.
+  const previewOrigin = process.env.ALLOWED_PREVIEW_ORIGIN
+    ? normalizeOrigin(process.env.ALLOWED_PREVIEW_ORIGIN)
+    : null;
+
+  const allowed = [...defaults, ...configured];
+  if (previewOrigin) {
+    allowed.push(previewOrigin);
   }
 
-  return Array.from(new Set([...defaults, ...configured]));
+  return Array.from(new Set(allowed));
 }
 
 export function verifyTrustedRequest(req: VercelRequest): boolean {
@@ -59,6 +67,6 @@ export function verifyTrustedRequest(req: VercelRequest): boolean {
     return false;
   }
 
-  const allowedOrigins = getAllowedOrigins(req);
+  const allowedOrigins = getAllowedOrigins();
   return allowedOrigins.includes(origin);
 }
