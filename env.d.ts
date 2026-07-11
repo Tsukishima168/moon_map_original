@@ -15,11 +15,6 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-declare module '@vercel/node' {
-  export type VercelRequest = any;
-  export type VercelResponse = any;
-}
-
 declare module 'sanity' {
   export function defineConfig(config: any): any;
   export function defineField(field: any): any;
