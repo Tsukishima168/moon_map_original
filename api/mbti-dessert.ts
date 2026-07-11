@@ -4,6 +4,13 @@ import {
   getCanonicalMbtiType,
 } from './_utils/menu-source.js'
 
+const VALID_MBTI_TYPES = new Set([
+  'INTJ', 'INTP', 'ENTJ', 'ENTP',
+  'INFJ', 'INFP', 'ENFJ', 'ENFP',
+  'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+  'ISTP', 'ISFP', 'ESTP', 'ESFP',
+])
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     return res.status(405).json({ success: false, message: 'Method not allowed', data: null })
@@ -17,6 +24,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({
       success: false,
       message: 'Missing required query param: mbti',
+      data: null,
+    })
+  }
+
+  if (!VALID_MBTI_TYPES.has(mbtiType)) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid MBTI type: ${mbtiType}`,
       data: null,
     })
   }
