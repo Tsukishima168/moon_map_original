@@ -2340,6 +2340,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           --shadow-glow-yellow: 0 0 20px rgba(216, 224, 56, 0.4);
           --shadow-stamp: 3px 3px 0 rgba(0, 0, 0, 0.2);
           --shadow-stamp-strong: 4px 4px 0 rgba(0, 0, 0, 0.6);
+
+          /* Easing */
+          --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
+          --ease-playful: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
         * { 
@@ -2444,8 +2448,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           border: 1px solid rgba(255, 255, 255, 0.5);
           box-shadow: var(--shadow-glass),
                       inset 0 1px 0 rgba(255, 255, 255, 0.6);
-          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-          border-radius: 12px; 
+          transition: all 0.4s var(--ease-ui);
+          border-radius: 12px;
           display: flex; justify-content: space-between; align-items: center;
           width: 100%; padding: 20px; margin-bottom: 12px;
           min-height: 60px;
@@ -2542,7 +2546,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           box-shadow: var(--shadow-glass);
           text-align: center; 
           font-size: 0.95rem; 
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.3s var(--ease-ui);
           min-height: 80px;
           display: flex;
           align-items: center;
@@ -3518,7 +3522,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             alignItems: 'center',
             gap: '15px',
             cursor: 'pointer',
-            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+            transition: 'all 0.4s var(--ease-playful)',
             boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
             position: 'relative',
             overflow: 'hidden'
@@ -3960,7 +3964,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   height: '24px',
                   opacity: 0.1,
                   cursor: 'pointer',
-                  transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                  transition: 'all 0.4s var(--ease-playful)',
                   filter: 'grayscale(1)'
                 }}
                 onMouseOver={(e) => {
@@ -5340,7 +5344,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         .hidden-seal-container {
           cursor: pointer;
           position: relative;
-          transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          transition: all 0.5s var(--ease-playful);
           margin-bottom: 30px;
         }
         .hidden-seal-container:hover {
