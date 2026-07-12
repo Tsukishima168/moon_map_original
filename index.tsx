@@ -61,12 +61,13 @@ const CONFIG = {
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',
     emotionBlack: '#2B2018',
-    moonYellow: '#D4A853',
+    moonSilver: '#C9CDD8',
+    moonShadow: '#5A6B8C',
     islandBlue: '#C4745A',
     grayText: '#7A6A5A',
     grayLine: '#E8E0D6',
-    nightBlue: '#2E3A59',
-    nightBlueDeep: '#232D47',
+    nightBlue: '#1B2340',
+    nightBlueDeep: '#111830',
   },
   LINKS: {
     preorder_pickup_url: "https://map.kiwimu.com/menu",
@@ -1840,7 +1841,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
         <rect width="100%" height="100%" fill="${CONFIG.BRAND_COLORS.creamWhite}"/>
         <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="8,8"/>
-        <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moonYellow}"/>
+        <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moonShadow}"/>
         
         <text x="40" y="60" font-family="'Noto Sans TC', sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#888">MOON MOON MISSION CARD</text>
         
@@ -1864,7 +1865,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <tspan x="60" dy="20">${data.mission.substring(44)}</tspan>
         </text>
         
-        <rect x="40" y="445" width="320" height="95" fill="${CONFIG.BRAND_COLORS.moonYellow}" stroke="black" stroke-width="2" rx="4"/>
+        <rect x="40" y="445" width="320" height="95" fill="${CONFIG.BRAND_COLORS.moonSilver}" stroke="black" stroke-width="2" rx="4"/>
         <text x="200" y="472" text-anchor="middle" font-family="'Noto Sans TC', sans-serif" font-weight="900" font-size="18" fill="#000">${coupon.header}</text>
         <text x="200" y="497" text-anchor="middle" font-family="serif" font-size="13" font-weight="bold" fill="#000">${coupon.line1}</text>
         <text x="200" y="517" text-anchor="middle" font-family="'Noto Sans TC', sans-serif" font-size="10" font-weight="bold" fill="#000" opacity="0.9">${coupon.line2}</text>
@@ -1927,7 +1928,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     margin: 20px 0;
                   }
                   .tip {
-                    background: ${CONFIG.BRAND_COLORS.moonYellow};
+                    background: ${CONFIG.BRAND_COLORS.moonSilver};
                     padding: 15px;
                     border-radius: 8px;
                     margin: 20px 0;
@@ -2103,7 +2104,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       {mbtiType && menuMbtiRecommendation && (
         <div style={{
           background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.creamWhite} 0%, #fff 100%)`,
-          border: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
+          border: `2px solid ${CONFIG.BRAND_COLORS.moonShadow}`,
           borderRadius: '12px',
           padding: '20px',
           marginBottom: '30px',
@@ -2165,12 +2166,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               }}
             >
               <div>
-                <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, display: 'inline-block', paddingBottom: '4px' }}>
+                <h4 style={{ fontSize: '1.1rem', margin: 0, borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonShadow}`, display: 'inline-block', paddingBottom: '4px' }}>
                   {cat.title}
                   {hasRecommendation && isCollapsed && (
                     <span style={{
                       marginLeft: '10px',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      background: CONFIG.BRAND_COLORS.moonSilver,
                       color: 'black',
                       fontSize: '0.7rem',
                       padding: '2px 6px',
@@ -2199,7 +2200,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   return (
                     <div key={idx} className="menu-item" style={{
                       position: 'relative',
-                      outline: isRecommended ? `2px solid ${CONFIG.BRAND_COLORS.moonYellow}` : 'none',
+                      outline: isRecommended ? `2px solid ${CONFIG.BRAND_COLORS.moonShadow}` : 'none',
                       borderRadius: '8px',
                       background: isRecommended ? 'rgba(255,255,255,0.8)' : 'transparent',
                       boxShadow: isRecommended ? '0 4px 15px rgba(0,0,0,0.05)' : 'none'
@@ -2210,7 +2211,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           top: '-10px',
                           right: '10px',
                           background: CONFIG.BRAND_COLORS.emotionBlack,
-                          color: CONFIG.BRAND_COLORS.moonYellow,
+                          color: CONFIG.BRAND_COLORS.moonSilver,
                           fontSize: '0.7rem',
                           fontWeight: 700,
                           padding: '4px 10px',
@@ -2323,7 +2324,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           /* Existing Colors */
           --c-cream: ${CONFIG.BRAND_COLORS.creamWhite};
           --c-black: ${CONFIG.BRAND_COLORS.emotionBlack};
-          --c-yellow: ${CONFIG.BRAND_COLORS.moonYellow};
+          --c-yellow: ${CONFIG.BRAND_COLORS.moonShadow};
+          --c-yellow-deep: ${CONFIG.BRAND_COLORS.moonSilver};
           --c-blue: ${CONFIG.BRAND_COLORS.islandBlue};
           --c-gray: ${CONFIG.BRAND_COLORS.grayText};
           --c-line: ${CONFIG.BRAND_COLORS.grayLine};
@@ -2563,7 +2565,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         .state-btn.selected {
-          background: var(--c-yellow);
+          background: var(--c-yellow-deep);
           border-color: rgba(0, 0, 0, 0.2);
           color: var(--c-black);
           box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
@@ -2830,7 +2832,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             left: '16px',
             zIndex: 2000,
             display: onlyMenuView ? 'none' : undefined,
-            background: CONFIG.BRAND_COLORS.moonYellow,
+            background: CONFIG.BRAND_COLORS.moonSilver,
             color: '#000',
             border: '2px solid #000',
             borderRadius: '999px',
@@ -2880,7 +2882,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div style={{
             marginBottom: '30px',
             padding: '20px',
-            background: CONFIG.BRAND_COLORS.moonYellow,
+            background: CONFIG.BRAND_COLORS.moonSilver,
             border: '2px solid black',
             fontSize: '0.9rem',
             boxShadow: 'var(--shadow-stamp)',
@@ -2940,7 +2942,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   {profile?.mbti_type && (
                     <span style={{
                       padding: '2px 8px',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      background: CONFIG.BRAND_COLORS.moonSilver,
                       borderRadius: '10px',
                       color: 'black',
                       fontSize: '0.65rem',
@@ -2961,7 +2963,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   borderRadius: '20px',
                   fontSize: '0.75rem',
                   fontWeight: 700,
-                  background: CONFIG.BRAND_COLORS.moonYellow,
+                  background: CONFIG.BRAND_COLORS.moonSilver,
                   cursor: 'pointer',
                   boxShadow: '0 4px 0 black'
                 }}
@@ -3084,7 +3086,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
 
           {/* Season Story — Season 03 夜卡：整站唯一深色區塊 */}
-          <div style={{ marginBottom: '40px', padding: '30px', background: `linear-gradient(165deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)`, borderRadius: '12px', border: '1px solid rgba(212, 168, 83, 0.35)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ marginBottom: '40px', padding: '30px', background: `linear-gradient(165deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)`, borderRadius: '12px', border: '1px solid rgba(201, 205, 216, 0.35)', position: 'relative', overflow: 'hidden' }}>
             {/* 月亮 */}
             <div aria-hidden="true" style={{
               position: 'absolute',
@@ -3093,11 +3095,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              background: CONFIG.BRAND_COLORS.moonYellow,
-              boxShadow: `0 0 24px 8px rgba(212, 168, 83, 0.35)`,
+              background: CONFIG.BRAND_COLORS.moonSilver,
+              boxShadow: `0 0 24px 8px rgba(201, 205, 216, 0.35)`,
               pointerEvents: 'none'
             }} />
-            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.moonYellow, paddingRight: '60px' }}>Season 03: The Island After Dark（島嶼・月升之後）</h3>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.moonSilver, paddingRight: '60px' }}>Season 03: The Island After Dark（島嶼・月升之後）</h3>
             <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: 'rgba(245, 240, 232, 0.85)' }}>
               <p style={{ marginBottom: '15px' }}>
                 這一季，<strong style={{ color: CONFIG.BRAND_COLORS.creamWhite }}>月升之後</strong>。
@@ -3106,7 +3108,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 白天太亮，什麼都藏不住；太熱，什麼都留不住。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                所以島嶼決定，把重要的事留給晚上。<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, color: CONFIG.BRAND_COLORS.creamWhite }}>融化的，會在月升之後重新成形</span>。
+                所以島嶼決定，把重要的事留給晚上。<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonSilver}`, color: CONFIG.BRAND_COLORS.creamWhite }}>融化的，會在月升之後重新成形</span>。
               </p>
               <p>
                 選一份甜點，陪你把今天涼下來。
@@ -3137,7 +3139,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
 
           {/* Moon Moon Story */}
-          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonYellow}`, position: 'relative' }}>
+          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonShadow}`, position: 'relative' }}>
             <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '15px' }}>MOON MOON 月島甜點店</h3>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666', marginBottom: '12px' }}>
               月島不只是一間甜點店，更是一個<strong>情緒展覽空間</strong>。
@@ -3314,7 +3316,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             onClick={() => track('click_mbti_cta', { source: 'recommendation_cta', state: selectedState })}
                             style={{
                               display: 'block',
-                              backgroundColor: CONFIG.BRAND_COLORS.moonYellow,
+                              backgroundColor: CONFIG.BRAND_COLORS.moonSilver,
                               color: '#000',
                               padding: '12px',
                               borderRadius: '8px',
@@ -3549,13 +3551,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.6, letterSpacing: '0.2em' }}>EXPLORE THE FLAVORS</div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
               ISLAND MENU
-              <span style={{ color: CONFIG.BRAND_COLORS.moonYellow, marginLeft: '10px' }}>↗</span>
+              <span style={{ color: CONFIG.BRAND_COLORS.moonSilver, marginLeft: '10px' }}>↗</span>
             </div>
             <p style={{ fontSize: '0.9rem', opacity: 0.7, maxWidth: '300px', fontWeight: 400, margin: '0 0 10px 0' }}>
               探索本季甜點處方與過往收藏項目
             </p>
             <div style={{
-              background: CONFIG.BRAND_COLORS.moonYellow,
+              background: CONFIG.BRAND_COLORS.moonSilver,
               color: 'black',
               padding: '8px 20px',
               borderRadius: '20px',
@@ -3582,7 +3584,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div style={{ textAlign: 'center', marginBottom: '60px' }}>
             <p style={{ marginBottom: '20px' }}>
               這不只是一次選擇，而是一場狀態的確認。<br />
-              選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonYellow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
+              選一個關鍵字，交換一份<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonShadow}`, paddingBottom: '2px' }}>甜點處方箋</span>。
             </p>
           </div>
           {/* END OF SECTIONS */}
@@ -3676,7 +3678,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </div>
                   <div style={{ fontSize: '0.8rem', color: '#666', lineHeight: '1.6' }}>
                     找到全部 9 顆彩蛋即可解鎖<br />
-                    <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
+                    <strong style={{ color: CONFIG.BRAND_COLORS.moonSilver, background: '#000', padding: '2px 8px', borderRadius: '4px', display: 'inline-block', marginTop: '8px' }}>
                       目前進度：{foundEggs.length}/9
                     </strong>
                   </div>
@@ -3833,7 +3835,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             }}
                             style={{
                               background: '#000',
-                              color: CONFIG.BRAND_COLORS.moonYellow,
+                              color: CONFIG.BRAND_COLORS.moonSilver,
                               padding: '12px',
                               borderRadius: '8px',
                               fontFamily: 'monospace',
@@ -3863,7 +3865,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       rel="noopener noreferrer"
                       style={{
                         display: 'inline-block',
-                        background: CONFIG.BRAND_COLORS.moonYellow,
+                        background: CONFIG.BRAND_COLORS.moonSilver,
                         color: CONFIG.BRAND_COLORS.emotionBlack,
                         border: '2px solid #000',
                         padding: '10px 20px',
@@ -4053,7 +4055,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🥚</div>
               <h3 className="font-mono" style={{ fontSize: '1.2rem', marginBottom: '15px' }}>找尋彩蛋 ({foundEggs.length}/9)</h3>
               <div style={{ height: '8px', width: '100%', background: '#eee', borderRadius: '4px', marginBottom: '20px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${(foundEggs.length / 9) * 100}%`, background: CONFIG.BRAND_COLORS.moonYellow, transition: 'width 0.8s ease-out' }} />
+                <div style={{ height: '100%', width: `${(foundEggs.length / 9) * 100}%`, background: CONFIG.BRAND_COLORS.moonShadow, transition: 'width 0.8s ease-out' }} />
               </div>
               <p style={{ lineHeight: '1.8', color: '#555', fontSize: '0.9rem' }}>
                 目前收集到 {foundEggs.length} / 9 個彩蛋！<br />
@@ -4204,7 +4206,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 maxWidth: '420px',
                 background: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(30px) saturate(200%)',
-                border: `3px solid ${CONFIG.BRAND_COLORS.moonYellow}`,
+                border: `3px solid ${CONFIG.BRAND_COLORS.moonShadow}`,
                 borderRadius: '20px',
                 boxShadow: '0 25px 50px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.6)',
                 padding: '35px 30px',
@@ -4277,7 +4279,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '15px 20px',
-                background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.moonYellow}20, ${CONFIG.BRAND_COLORS.islandBlue}10)`,
+                background: `linear-gradient(135deg, ${CONFIG.BRAND_COLORS.moonShadow}20, ${CONFIG.BRAND_COLORS.islandBlue}10)`,
                 borderRadius: '10px',
                 marginBottom: '20px'
               }}>
@@ -4345,13 +4347,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div style={{ width: '80px', height: '80px', background: 'white', borderRadius: '50%', margin: '0 auto 20px', overflow: 'hidden', padding: '10px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   <img src={headerImage} alt="Kiwimu" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
-                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonYellow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
+                <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moonShadow, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
                 <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
               </div>
 
               <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
                 <p style={{ marginBottom: '20px' }}>
-                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 700 }}>鮮奶油</span>裡誕生的生物。
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonShadow, fontWeight: 700 }}>鮮奶油</span>裡誕生的生物。
                 </p>
                 <p style={{ marginBottom: '20px' }}>
                   牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
@@ -4394,7 +4396,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         showCheckoutConfirm && (
           <div className="modal-overlay" onClick={() => setShowCheckoutConfirm(false)} style={{ zIndex: 3000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
-              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonSilver }}>
                 <h3 className="font-mono" style={{ margin: 0 }}>訂購確認 Check Order</h3>
                 <button className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
               </div>
@@ -4563,7 +4565,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   onClick={confirmAndSend}
                   disabled={submitting}
                   className={`btn-primary ${submitting ? 'btn-checkout-loading' : ''}`}
-                  style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonYellow }}
+                  style={{ background: 'black', color: CONFIG.BRAND_COLORS.moonSilver }}
                 >
                   {submitting ? '傳送中...' : '確認並傳送至 LINE ➔'}
                 </button>
@@ -4578,7 +4580,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         showDesktopOrderSuccess && (
           <div className="modal-overlay" onClick={() => setShowDesktopOrderSuccess(false)} style={{ zIndex: 3000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
-              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonYellow }}>
+              <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonSilver }}>
                 <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
                 <button className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
               </div>
@@ -4609,7 +4611,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     style={{
                       width: '100%',
                       background: 'black',
-                      color: CONFIG.BRAND_COLORS.moonYellow,
+                      color: CONFIG.BRAND_COLORS.moonSilver,
                       marginBottom: '15px'
                     }}
                   >
@@ -4806,7 +4808,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       width: '100%',
                       padding: '16px',
                       borderRadius: '8px',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      background: CONFIG.BRAND_COLORS.moonSilver,
                       color: 'black',
                       fontWeight: 700,
                       border: 'none',
@@ -4919,9 +4921,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     letterSpacing: '0.15em',
                     border: '2px solid',
                     ...(currentFortune.level === '隱藏版'
-                      ? { background: CONFIG.BRAND_COLORS.moonYellow, color: '#000', borderColor: CONFIG.BRAND_COLORS.moonYellow, boxShadow: '0 0 18px 4px rgba(212, 168, 83, 0.45)' }
+                      ? { background: CONFIG.BRAND_COLORS.moonSilver, color: '#000', borderColor: CONFIG.BRAND_COLORS.moonSilver, boxShadow: '0 0 18px 4px rgba(201, 205, 216, 0.45)' }
                       : currentFortune.level === '大吉'
-                        ? { background: 'rgba(212, 168, 83, 0.15)', color: CONFIG.BRAND_COLORS.moonYellow, borderColor: CONFIG.BRAND_COLORS.moonYellow }
+                        ? { background: 'rgba(201, 205, 216, 0.15)', color: CONFIG.BRAND_COLORS.moonSilver, borderColor: CONFIG.BRAND_COLORS.moonSilver }
                         : currentFortune.level === '中吉'
                           ? { background: 'rgba(245, 240, 232, 0.12)', color: CONFIG.BRAND_COLORS.creamWhite, borderColor: 'rgba(245, 240, 232, 0.6)' }
                           : { background: 'rgba(245, 240, 232, 0.06)', color: 'rgba(245, 240, 232, 0.75)', borderColor: 'rgba(245, 240, 232, 0.3)' })
@@ -4956,7 +4958,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}>
                   <p style={{ fontSize: '0.9rem', color: 'rgba(245, 240, 232, 0.9)', lineHeight: '1.6', margin: 0, fontWeight: 600 }}>
                     🎁 第一步：下載並截圖此展籤<br />
-                    📷 第二步：發布限時動態並標記 <strong style={{ color: CONFIG.BRAND_COLORS.moonYellow }}>@moon_moon_dessert</strong><br />
+                    📷 第二步：發布限時動態並標記 <strong style={{ color: CONFIG.BRAND_COLORS.moonSilver }}>@moon_moon_dessert</strong><br />
                     即可獲得「第二杯飲品半價優惠」！
                   </p>
                 </div>
@@ -4973,7 +4975,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   style={{
                     width: '100%',
                     padding: '12px',
-                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    background: CONFIG.BRAND_COLORS.moonSilver,
                     border: '2px solid #000',
                     borderRadius: '8px',
                     fontSize: '0.85rem',
@@ -5204,7 +5206,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     width: '80px',
                     height: '80px',
                     borderRadius: '50%',
-                    background: CONFIG.BRAND_COLORS.moonYellow,
+                    background: CONFIG.BRAND_COLORS.moonSilver,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -5277,7 +5279,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     rel="noreferrer"
                     style={{
                       display: 'inline-block',
-                      background: CONFIG.BRAND_COLORS.moonYellow,
+                      background: CONFIG.BRAND_COLORS.moonSilver,
                       color: CONFIG.BRAND_COLORS.emotionBlack,
                       padding: '12px 24px',
                       borderRadius: '24px',
