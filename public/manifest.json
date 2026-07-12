@@ -1,0 +1,16 @@
+{
+  "name": "月島甜點 Moon Island",
+  "short_name": "月島",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F0E8",
+  "theme_color": "#2E3A59",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-04_mfdlsz.webp",
+      "sizes": "512x512",
+      "type": "image/webp"
+    }
+  ]
+}
