@@ -4418,7 +4418,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               display: 'grid',
                               gridTemplateColumns: '32px 38px 32px',
                               alignItems: 'center',
-                              border: '1px solid #ddd',
+                              border: '1px solid var(--c-line)',
                               borderRadius: '999px',
                               overflow: 'hidden',
                               background: '#fff'
@@ -4485,7 +4485,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     placeholder="請輸入真實姓名"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--c-line)', fontSize: '1rem' }}
                   />
                 </div>
 
@@ -4497,7 +4497,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     maxLength={10}
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem' }}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--c-line)', fontSize: '1rem' }}
                   />
                 </div>
 
@@ -4518,7 +4518,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       width: 100%;
                       padding: 12px;
                       border-radius: 8px;
-                      border: 1px solid #ddd;
+                      border: 1px solid var(--c-line);
                       font-size: 1rem;
                       box-sizing: border-box;
                     }
@@ -4545,7 +4545,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     value={orderNote}
                     onChange={(e) => setOrderNote(e.target.value)}
                     placeholder="例如：需要蠟燭、大概幾點到..."
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '1rem', minHeight: '80px' }}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--c-line)', fontSize: '1rem', minHeight: '80px' }}
                   />
                 </div>
 
