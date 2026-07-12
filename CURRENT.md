@@ -13,7 +13,8 @@ Last updated: 2026-07-11
   - 本輪暫緩（記債）：index.tsx 巨石全拆、三套品名字串映射收斂成 ID-based
 - 實作波次全部完成（2026-07-12）：W1 API 加固 ✅ → W2 前端細節 ✅ → W3 倉庫衛生 ✅ → W4+W5 細節加深＋設計收斂 ✅。共 34 commits 已 push `origin/feat/full-upgrade-202607`。
 - Phase D 驗證 ✅：本地 8 環節全綠（首頁/menu/fallback 鏈/購物車/head 細節/mobile/tsc/build）；Vercel preview 驗過 API（menu supabase 正源 6 分類、MBTI 400/404 分流、nosniff+referrer-policy、favicon→Cloudinary webp 200）。紅隊（fresh Opus）PASS with nits，nit 已清或記債。
-- 待 Penso：①merge 進 main 上線（含 526bfd3 營業時間修正一起上）；②`gh auth refresh -h github.com -s workflow` 補 scope 後我把 CI workflow commit 加回（檔案備份在 session scratchpad/ci.yml）；③production 上一筆監督下的標記測試單（本地與 preview 都不能安全做真下單 E2E）。
+- 追加完成（2026-07-12）：Season 03.5「銀月夜」色系換裝（moonYellow 退場 → moonSilver #C9CDD8／moonShadow #5A6B8C 雙 token、夜藍加深 #1B2340→#111830、對比度全實算）＋入口卡 01-05 排版重整（字級階層、順序歸位、移除 emoji、修 button 置中漂移）。全部已 push，preview 部署 success。
+- 待 Penso：①看 preview 確認銀月夜整體效果 → 下令 merge 進 main 上線（含 526bfd3 營業時間修正一起上）；②islandBlue 橘紅要不要跟著冷化（現保留當唯一暖色）；③`gh auth refresh -h github.com -s workflow` 補 scope 後把 CI workflow commit 加回（備份在 session scratchpad/ci.yml）；④production 上一筆監督下的標記測試單。
 - Preview 環境注意：Vercel 會覆蓋 preview 的 Cache-Control（s-maxage 只在 production 生效）；沒設 ALLOWED_PREVIEW_ORIGIN 時 preview 下單/領獎 API 會 401（刻意安全設計）。
 - 記債：訂單速率限制、Sentry、index.tsx 巨石全拆、品名映射 ID 化、parseInt NaN 邊界 fallback、letter-spacing 單位統一。
 - 設計 DNA 契約已抽取（scratchpad/design-dna.md）：Season 03 色彩/字體/間距/形狀/動效/元件規格＋16 條不一致清單。
