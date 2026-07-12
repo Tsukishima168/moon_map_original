@@ -2475,7 +2475,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           transition: background 0.2s, box-shadow 0.2s;
         }
         .btn-primary:hover {
-          background: #238f82;
+          background: #A85D46;
           box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
