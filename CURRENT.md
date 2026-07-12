@@ -1,6 +1,22 @@
 # Map Current
 
-Last updated: 2026-06-04
+Last updated: 2026-07-11
+
+## Active Mission — 全面升級進化（2026-07-11 開工）
+
+- 目標：map.kiwimu.com 技術債＋體驗細節＋內容一致性全面升級，每個環節（menu／購物車／訂單／MBTI 推薦／SSO／GA4／Discord／SEO／響應式）有實測證據後才算完成。
+- 狀態：Phase C 實作中，分支 `feat/full-upgrade-202607`（基線 main @ `526bfd3`，營業時間修正仍未 push）。
+- Phase A/B 結論（報告在 session scratchpad 的 audit-repo.md / audit-live.md）：
+  - P0×3：verifyTrustedRequest host 自我放行漏洞、map-order 無欄位驗證、全站無 ErrorBoundary
+  - P1 主力：假 @vercel/node 型別、a11y 缺口、店址常數前後端重複、無 CI、sanity 死代碼、根目錄 15 個散落 SQL
+  - 線上 WARN×5：缺安全 headers、/api/menu 無 CDN 快取、無效 MBTI 回 404、favicon.ico 被 SPA 吞、線上營業時間仍舊值
+  - 本輪暫緩（記債）：index.tsx 巨石全拆、三套品名字串映射收斂成 ID-based
+- 實作波次：W1 API 加固 ✅（4 commits）→ W2 前端細節 ✅（8 commits）→ W3 倉庫衛生 ✅（6 commits）→ W4+W5 細節加深＋設計收斂（進行中；前一次因額度中斷已回滾重派）→ Phase D 全環節測試 → 紅隊 → 回報 Penso 才 push。
+- 設計 DNA 契約已抽取（scratchpad/design-dna.md）：Season 03 色彩/字體/間距/形狀/動效/元件規格＋16 條不一致清單。
+- Penso 拍板（2026-07-12）：①蠟封血紅、必填星號紅、三套金色家族、Noto Serif TC 引語體 → 全部維持現狀，視為刻意設計，寫入契約；②訂單速率限制、Sentry → 本輪不開，記債。
+- Season 03 主題已上線（bc67a04/20ea6ae 在 origin/main）；營業時間修正待 push。
+
+（以下為 2026-06-04 舊快照，僅供參考）
 
 ## Status
 
