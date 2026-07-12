@@ -4165,6 +4165,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>⏳</div>
                     載入甜點目錄中...
                   </div>
+                ) : menuCategories.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+                    <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🍰</div>
+                    菜單暫時無法載入，請透過 LINE 官方帳號查詢最新菜單。
+                  </div>
                 ) : (
                   menuBodyContent
                 )}
