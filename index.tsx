@@ -2212,7 +2212,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           background: CONFIG.BRAND_COLORS.emotionBlack,
                           color: CONFIG.BRAND_COLORS.moonYellow,
                           fontSize: '0.7rem',
-                          fontWeight: 'bold',
+                          fontWeight: 700,
                           padding: '4px 10px',
                           borderRadius: '20px',
                           zIndex: 10,
@@ -2244,7 +2244,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         </div>
                       )}
                       <div>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 'bold' }}>{item.name}</h4>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 700 }}>{item.name}</h4>
                         {item.description && (
                           <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-line' }}>
                             {item.description}
@@ -2940,7 +2940,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       borderRadius: '10px',
                       color: 'black',
                       fontSize: '0.65rem',
-                      fontWeight: 'bold'
+                      fontWeight: 700
                     }}>
                       {profile.mbti_type}
                     </span>
@@ -2956,7 +2956,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   padding: '6px 16px',
                   borderRadius: '20px',
                   fontSize: '0.75rem',
-                  fontWeight: 'bold',
+                  fontWeight: 700,
                   background: CONFIG.BRAND_COLORS.moonYellow,
                   cursor: 'pointer',
                   boxShadow: '0 4px 0 black'
@@ -3439,7 +3439,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         right: '15px',
                         fontSize: '0.7rem',
                         color: '#b0a070',
-                        fontWeight: 'bold',
+                        fontWeight: 700,
                         border: '1px solid #b0a070',
                         padding: '2px 8px',
                         borderRadius: '4px'
@@ -3456,7 +3456,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             {item.image && <img src={item.image} alt={item.name} loading="lazy" decoding="async" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', marginBottom: '10px', border: '2px solid #fff' }} />}
                             <div style={{ fontWeight: 800, fontSize: '1rem', color: '#333' }}>{item.name}</div>
                             {item.description && <div style={{ fontSize: '0.75rem', color: '#666', marginTop: '4px' }}>{item.description}</div>}
-                            <div style={{ marginTop: '8px', color: '#8b6b23', fontWeight: 'bold' }}>
+                            <div style={{ marginTop: '8px', color: '#8b6b23', fontWeight: 700 }}>
                               {item.prices && item.prices.length > 0 ? item.prices[0].price : '時價'}
                             </div>
                           </div>
@@ -3556,7 +3556,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               padding: '8px 20px',
               borderRadius: '20px',
               fontSize: '0.8rem',
-              fontWeight: 'bold'
+              fontWeight: 700
             }}>
               OPEN COLLECTION
             </div>
@@ -3864,7 +3864,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         border: '2px solid #000',
                         padding: '10px 20px',
                         borderRadius: '999px',
-                        fontWeight: 'bold',
+                        fontWeight: 700,
                         fontSize: '0.9rem',
                         cursor: 'pointer',
                         boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
@@ -4347,7 +4347,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
                 <p style={{ marginBottom: '20px' }}>
-                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 'bold' }}>鮮奶油</span>裡誕生的生物。
+                  Kiwimu 是從<span style={{ color: CONFIG.BRAND_COLORS.moonYellow, fontWeight: 700 }}>鮮奶油</span>裡誕生的生物。
                 </p>
                 <p style={{ marginBottom: '20px' }}>
                   牠不是誰的答案，也不是完美模板——牠更像一面溫柔的鏡子。
@@ -4412,7 +4412,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         }}
                       >
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: 'bold', lineHeight: 1.45 }}>{item.name}</div>
+                          <div style={{ fontWeight: 700, lineHeight: 1.45 }}>{item.name}</div>
                           <div style={{ fontSize: '0.85rem', color: '#666' }}>
                             {item.spec} / {item.price}
                           </div>
@@ -4475,7 +4475,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   })}
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 'bold', fontSize: '1.2rem', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderTop: '2px solid black', fontWeight: 700, fontSize: '1.2rem', marginBottom: '20px' }}>
                   <span>TOTAL</span>
                   <span>${calculateTotal()}</span>
                 </div>
@@ -4485,7 +4485,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </p>
 
                 <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>訂購人姓名 Name <span style={{ color: 'red' }}>*</span></label>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>訂購人姓名 Name <span style={{ color: 'red' }}>*</span></label>
                   <input
                     type="text"
                     placeholder="請輸入真實姓名"
@@ -4496,7 +4496,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ marginBottom: '15px' }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '0.9rem' }}>手機號碼 Phone <span style={{ color: 'red' }}>*</span></label>
+                  <label style={{ display: 'block', marginBottom: '5px', fontWeight: 700, fontSize: '0.9rem' }}>手機號碼 Phone <span style={{ color: 'red' }}>*</span></label>
                   <input
                     type="tel"
                     placeholder="09xxxxxxxx"
@@ -4508,7 +4508,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
                   <DatePicker
                     selected={pickupDate}
                     onChange={(date: Date | null) => setPickupDate(date)}
@@ -4546,7 +4546,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ marginBottom: '30px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', fontSize: '0.9rem' }}>備註 Note (選填)</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>備註 Note (選填)</label>
                   <textarea
                     value={orderNote}
                     onChange={(e) => setOrderNote(e.target.value)}
@@ -4580,7 +4580,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </div>
               <div className="modal-body">
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                  <p style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '10px' }}>
+                  <p style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '10px' }}>
                     🎉 訂單已成功送出！
                   </p>
                   <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
@@ -4589,7 +4589,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ background: '#f8f8f8', padding: '20px', borderRadius: '12px', marginBottom: '20px' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', color: '#333' }}>
                     📋 步驟 1：複製訂單訊息
                   </div>
                   <button
@@ -4628,7 +4628,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
 
                 <div style={{ background: '#fff3cd', padding: '20px', borderRadius: '12px', marginBottom: '20px', border: '2px solid #ffc107' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '10px', color: '#856404' }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', color: '#856404' }}>
                     📱 步驟 2：傳送到 LINE 官方帳號
                   </div>
                   <a
@@ -4683,7 +4683,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 {/* Success Message */}
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <div style={{ fontSize: '2rem', marginBottom: '15px' }}>💛</div>
-                  <p style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '8px', color: '#000', letterSpacing: '1px' }}>
+                  <p style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '8px', color: '#000', letterSpacing: '1px' }}>
                     妳發現了隱藏彩蛋
                   </p>
                   <p style={{ fontSize: '0.8rem', color: '#999', fontFamily: 'monospace' }}>
@@ -4719,7 +4719,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       科學無法解釋這種現象<br />
                       甜點師說這叫做『質變』
                     </p>
-                    <p style={{ fontWeight: 'bold', fontSize: '0.9rem', color: '#000', letterSpacing: '1px', marginTop: '20px' }}>
+                    <p style={{ fontWeight: 700, fontSize: '0.9rem', color: '#000', letterSpacing: '1px', marginTop: '20px' }}>
                       我想，這就是愛吧
                     </p>
                   </div>
@@ -4760,7 +4760,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     </div>
                     <div style={{
                       fontSize: '1.2rem',
-                      fontWeight: 'bold',
+                      fontWeight: 700,
                       fontFamily: 'monospace',
                       color: '#fff',
                       letterSpacing: '2px'
@@ -4804,7 +4804,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       borderRadius: '8px',
                       background: CONFIG.BRAND_COLORS.moonYellow,
                       color: 'black',
-                      fontWeight: 'bold',
+                      fontWeight: 700,
                       border: 'none',
                       fontSize: '1.1rem',
                       cursor: submitting ? 'not-allowed' : 'pointer',
@@ -4857,7 +4857,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                   <p style={{
                     fontSize: '0.9rem',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     color: '#000',
                     marginTop: '20px',
                     fontStyle: 'normal'
@@ -4899,7 +4899,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   padding: '12px 20px'
                 }}
               >
-                <span style={{ fontWeight: 'bold', fontSize: '0.85rem', letterSpacing: '0.1em' }}>🌙 心情展籤</span>
+                <span style={{ fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.1em' }}>🌙 心情展籤</span>
                 <button className="close-btn" onClick={() => setShowFortuneModal(false)} style={{ color: '#fff', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
               </div>
 
@@ -4911,7 +4911,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     padding: '6px 20px',
                     borderRadius: '999px',
                     fontSize: '0.75rem',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     letterSpacing: '0.15em',
                     border: '2px solid',
                     ...(currentFortune.level === '隱藏版'
@@ -4929,7 +4929,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 {/* Fortune Text */}
                 <p style={{
                   fontSize: '1.2rem',
-                  fontWeight: 'bold',
+                  fontWeight: 700,
                   lineHeight: '1.8',
                   color: CONFIG.BRAND_COLORS.creamWhite,
                   fontFamily: '"Noto Serif TC", serif',
@@ -4973,7 +4973,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     border: '2px solid #000',
                     borderRadius: '8px',
                     fontSize: '0.85rem',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     cursor: 'pointer',
                     boxShadow: 'var(--shadow-stamp-strong)',
                     transition: 'transform 0.1s',
@@ -5037,7 +5037,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     background: '#D93025',
                     color: '#fff',
                     textDecoration: 'none',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     boxShadow: '0 4px 15px rgba(217, 48, 37, 0.4)',
                     border: 'none',
                     padding: '12px',
@@ -5052,7 +5052,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   前往 LINE 領取 (輸入: 新年快樂) ➔
                 </button>
                 <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
-                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#D93025', fontWeight: 'bold' }}>新年快樂</span>」即可抽獎！
+                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#D93025', fontWeight: 700 }}>新年快樂</span>」即可抽獎！
                 </p>
               </div>
             </div>
@@ -5104,7 +5104,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     background: '#FFD700',
                     color: '#000',
                     textDecoration: 'none',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
                     border: 'none',
                     padding: '12px',
@@ -5119,7 +5119,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   前往 LINE 領取 (輸入: golden pudding) ➔
                 </button>
                 <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
-                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#B8860B', fontWeight: 'bold' }}>golden pudding</span>」<br />獲得布丁買一送一券！
+                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#B8860B', fontWeight: 700 }}>golden pudding</span>」<br />獲得布丁買一送一券！
                 </p>
               </div>
             </div>
@@ -5152,7 +5152,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     color: '#444',
                     padding: '16px',
                     borderRadius: '40px',
-                    fontWeight: 'bold',
+                    fontWeight: 700,
                     fontSize: '1rem',
                     border: '1px solid #ddd',
                     display: 'flex',
@@ -5221,7 +5221,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       color: 'white',
                       borderRadius: '20px',
                       fontSize: '0.9rem',
-                      fontWeight: 'bold'
+                      fontWeight: 700
                     }}>
                       MBTI: {profile.mbti_type}
                     </div>
@@ -5277,7 +5277,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       color: CONFIG.BRAND_COLORS.emotionBlack,
                       padding: '12px 24px',
                       borderRadius: '24px',
-                      fontWeight: 'bold',
+                      fontWeight: 700,
                       textDecoration: 'none',
                       border: '2px solid #000',
                       boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
@@ -5318,7 +5318,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             zIndex: 1500,
             animation: 'fadeIn 0.3s'
           }}>
-            <div style={{ fontWeight: 'bold' }}>
+            <div style={{ fontWeight: 700 }}>
               已選 {cart.reduce((a, c) => a + c.count, 0)} 份甜點
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
@@ -5328,7 +5328,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 color: CONFIG.BRAND_COLORS.emotionBlack,
                 padding: '8px 20px',
                 borderRadius: '30px',
-                fontWeight: 'bold',
+                fontWeight: 700,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '5px'
