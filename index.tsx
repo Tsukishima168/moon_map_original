@@ -2338,6 +2338,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.12);
           --shadow-glow-blue: 0 0 20px rgba(88, 120, 240, 0.3);
           --shadow-glow-yellow: 0 0 20px rgba(216, 224, 56, 0.4);
+          --shadow-stamp: 3px 3px 0 rgba(0, 0, 0, 0.2);
+          --shadow-stamp-strong: 4px 4px 0 rgba(0, 0, 0, 0.6);
         }
         
         * { 
@@ -2828,7 +2830,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             fontSize: '0.7rem',
             fontWeight: 700,
             letterSpacing: '0.05em',
-            boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+            boxShadow: 'var(--shadow-stamp)',
             cursor: 'pointer'
           }}
           title="彩蛋收集進度"
@@ -2854,7 +2856,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               fontSize: '0.7rem',
               fontWeight: 700,
               letterSpacing: '0.05em',
-              boxShadow: '3px 3px 0 rgba(0,0,0,0.2)',
+              boxShadow: 'var(--shadow-stamp)',
               cursor: 'pointer',
               textDecoration: 'none'
             }}
@@ -2873,7 +2875,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             background: CONFIG.BRAND_COLORS.moonYellow,
             border: '2px solid black',
             fontSize: '0.9rem',
-            boxShadow: '4px 4px 0 rgba(0,0,0,0.1)',
+            boxShadow: 'var(--shadow-stamp)',
             position: 'relative'
           }}>
             <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q1</span>
@@ -4969,7 +4971,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '4px 4px 0 rgba(0, 0, 0, 0.6)',
+                    boxShadow: 'var(--shadow-stamp-strong)',
                     transition: 'transform 0.1s',
                     color: '#000'
                   }}
