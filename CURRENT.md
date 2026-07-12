@@ -11,7 +11,11 @@ Last updated: 2026-07-11
   - P1 主力：假 @vercel/node 型別、a11y 缺口、店址常數前後端重複、無 CI、sanity 死代碼、根目錄 15 個散落 SQL
   - 線上 WARN×5：缺安全 headers、/api/menu 無 CDN 快取、無效 MBTI 回 404、favicon.ico 被 SPA 吞、線上營業時間仍舊值
   - 本輪暫緩（記債）：index.tsx 巨石全拆、三套品名字串映射收斂成 ID-based
-- 實作波次：W1 API 加固 ✅（4 commits）→ W2 前端細節 ✅（8 commits）→ W3 倉庫衛生 ✅（6 commits）→ W4+W5 細節加深＋設計收斂（進行中；前一次因額度中斷已回滾重派）→ Phase D 全環節測試 → 紅隊 → 回報 Penso 才 push。
+- 實作波次全部完成（2026-07-12）：W1 API 加固 ✅ → W2 前端細節 ✅ → W3 倉庫衛生 ✅ → W4+W5 細節加深＋設計收斂 ✅。共 34 commits 已 push `origin/feat/full-upgrade-202607`。
+- Phase D 驗證 ✅：本地 8 環節全綠（首頁/menu/fallback 鏈/購物車/head 細節/mobile/tsc/build）；Vercel preview 驗過 API（menu supabase 正源 6 分類、MBTI 400/404 分流、nosniff+referrer-policy、favicon→Cloudinary webp 200）。紅隊（fresh Opus）PASS with nits，nit 已清或記債。
+- 待 Penso：①merge 進 main 上線（含 526bfd3 營業時間修正一起上）；②`gh auth refresh -h github.com -s workflow` 補 scope 後我把 CI workflow commit 加回（檔案備份在 session scratchpad/ci.yml）；③production 上一筆監督下的標記測試單（本地與 preview 都不能安全做真下單 E2E）。
+- Preview 環境注意：Vercel 會覆蓋 preview 的 Cache-Control（s-maxage 只在 production 生效）；沒設 ALLOWED_PREVIEW_ORIGIN 時 preview 下單/領獎 API 會 401（刻意安全設計）。
+- 記債：訂單速率限制、Sentry、index.tsx 巨石全拆、品名映射 ID 化、parseInt NaN 邊界 fallback、letter-spacing 單位統一。
 - 設計 DNA 契約已抽取（scratchpad/design-dna.md）：Season 03 色彩/字體/間距/形狀/動效/元件規格＋16 條不一致清單。
 - Penso 拍板（2026-07-12）：①蠟封血紅、必填星號紅、三套金色家族、Noto Serif TC 引語體 → 全部維持現狀，視為刻意設計，寫入契約；②訂單速率限制、Sentry → 本輪不開，記債。
 - Season 03 主題已上線（bc67a04/20ea6ae 在 origin/main）；營業時間修正待 push。
