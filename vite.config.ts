@@ -15,6 +15,7 @@ export default defineConfig(() => {
               if (!id.includes('node_modules')) return;
               if (id.includes('react-datepicker')) return 'datepicker';
               if (id.includes('@supabase')) return 'supabase';
+              if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('/scheduler/')) return 'react-vendor';
               if (id.includes('react')) return 'react-vendor';
               return 'vendor';
             },
