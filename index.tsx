@@ -2344,6 +2344,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           /* Easing */
           --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
           --ease-playful: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+          /* LINE brand green (two shades in use — kept distinct, zero visual change) */
+          --c-line-brand: #06C755;
+          --c-line-brand-alt: #00B900;
         }
         
         * { 
@@ -2787,7 +2791,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   rel="noopener noreferrer"
                   style={{
                     display: 'inline-block',
-                    background: '#06C755',
+                    background: 'var(--c-line-brand)',
                     color: 'white',
                     padding: '12px 28px',
                     borderRadius: '999px',
@@ -4254,7 +4258,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     width: '100%',
                     padding: '12px',
                     marginBottom: '20px',
-                    background: '#00B900',
+                    background: 'var(--c-line-brand-alt)',
                     color: '#fff',
                     textAlign: 'center',
                     borderRadius: '10px',
@@ -4640,7 +4644,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       width: '100%',
                       display: 'block',
                       textAlign: 'center',
-                      background: '#06C755',
+                      background: 'var(--c-line-brand)',
                       color: 'white',
                       textDecoration: 'none',
                       padding: '12px'
