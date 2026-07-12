@@ -5435,7 +5435,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             justifyContent: 'center',
             textAlign: 'center',
             padding: '24px',
-            fontFamily: 'sans-serif',
+            background: CONFIG.BRAND_COLORS.creamWhite,
+            color: CONFIG.BRAND_COLORS.emotionBlack,
+            fontFamily: '"Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
           }}
         >
           <p style={{ fontSize: '18px', marginBottom: '16px' }}>
