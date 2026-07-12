@@ -2454,6 +2454,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           border: 1px solid rgba(255, 255, 255, 0.5);
           box-shadow: var(--shadow-glass),
                       inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          text-align: left;
           transition: all 0.4s var(--ease-ui);
           border-radius: 12px;
           display: flex; justify-content: space-between; align-items: center;
@@ -3008,9 +3009,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
-              <span className="font-mono text-blue" style={{ fontSize: '1rem' }}>01 // INTERACT</span><br />
-              <strong>我想登島互動 (Check-in)</strong>
-              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>*將開啟護照外部網頁</div>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>01 // INTERACT</span>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>我想登島互動 (Check-in)</strong>
+              <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>*將開啟護照外部網頁</div>
             </div>
             <span>↗</span>
           </a>
@@ -3022,31 +3023,41 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             window.location.href = bookingMenuUrl;
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '1rem' }}>02 // ORDER NOW</span><br />
-              <strong>我想帶走甜點 (預訂取貨)</strong>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>02 // ORDER NOW</span>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>我想帶走甜點 (預訂取貨)</strong>
             </div>
             <span>↗</span>
+          </button>
+          <button className="btn-entry" onClick={() => {
+            track('click_hero_music');
+            document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }}>
+            <div>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>03 // MUSIC</span>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>聽這一季音樂 (月升之後)</strong>
+            </div>
+            <span>↓</span>
           </button>
           <button className="btn-entry" onClick={() => {
             track('click_hero_store_badge');
             handleStoreBadge();
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>04 // VISIT</span><br />
-              <strong>到店解鎖徽章 (100m 內)</strong>
-              <div style={{ fontSize: '0.65rem', color: '#999', marginTop: '4px', fontWeight: 'normal' }}>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>04 // VISIT</span>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店解鎖徽章 (100m 內)</strong>
+              <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>
                 需開啟定位；成功會跳轉護照
               </div>
               {storeBadgeStatus === 'checking' && (
-                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>檢查定位中...</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '6px' }}>檢查定位中...</div>
               )}
               {storeDistance !== null && storeBadgeStatus !== 'granted' && (
-                <div style={{ fontSize: '0.7rem', color: '#999', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
               )}
               {storeBadgeMessage && (
                 <div
                   style={{
-                    fontSize: '0.7rem',
+                    fontSize: '0.75rem',
                     color: storeBadgeStatus === 'granted' ? '#2A9D8F' : '#c2410c',
                     marginTop: '6px',
                     lineHeight: 1.5,
@@ -3057,27 +3068,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
               )}
             </div>
-            <span>📍</span>
-          </button>
-          <button className="btn-entry" onClick={() => {
-            track('click_hero_music');
-            document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }}>
-            <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '1rem' }}>03 // MUSIC</span><br />
-              <strong>聽這一季音樂 (月升之後)</strong>
-            </div>
-            <span>♫</span>
+            <span>↗</span>
           </button>
           <button className="btn-entry" onClick={() => {
             track('click_hero_easter_egg_progress');
             setShowDiscoverModal(true);
           }}>
             <div>
-              <span className="font-mono" style={{ fontSize: '1rem' }}>05 // DISCOVER</span><br />
-              <strong>找尋彩蛋 ({foundEggs.length}/9)</strong>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>05 // DISCOVER</span>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>找尋彩蛋 ({foundEggs.length}/9)</strong>
             </div>
-            <span>✨</span>
+            <span>↗</span>
           </button>
         </header>
 
