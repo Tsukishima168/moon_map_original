@@ -2349,7 +2349,24 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         html {
           scroll-behavior: smooth;
         }
-        
+
+        :focus-visible {
+          outline: 2px solid var(--c-blue);
+          outline-offset: 2px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+          }
+          html {
+            scroll-behavior: auto;
+          }
+        }
+
         body {
           background: var(--c-cream);
           color: var(--c-black);
