@@ -29,11 +29,11 @@ set search_path = public
 as $$
 begin
   return query
-  update public.mbti_claims
+  update public.mbti_claims as claims
   set used_at = now()
-  where code = p_code
-    and used_at is null
-  returning mbti_type, variant;
+  where claims.code = p_code
+    and claims.used_at is null
+  returning claims.mbti_type, claims.variant;
 end;
 $$;
 
