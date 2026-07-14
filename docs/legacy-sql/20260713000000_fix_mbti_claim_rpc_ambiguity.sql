@@ -1,3 +1,5 @@
+-- 歷史參考檔，不可從 Map 執行 migration。
+-- 正式版本由 shop-kiwimu-com/supabase/migrations/20260713000000_fix_mbti_claim_rpc_ambiguity.sql 統一發布。
 -- 修正 shared MBTI claim RPC 的欄位名稱歧義。
 -- RETURNS TABLE 會建立同名 PL/pgSQL 變數；未限定的 mbti_type / variant
 -- 會在 UPDATE ... RETURNING 時觸發 PostgreSQL 42702。

@@ -2,6 +2,13 @@
 
 Last updated: 2026-07-11
 
+## Supabase Migration Ownership — 2026-07-14
+
+- Map 與 Shop 共用 Supabase project `xlqwfaailjyvsycjnzkz`。
+- 共用資料庫的可執行 migration 以 `shop-kiwimu-com/supabase/migrations` 為唯一發布來源；本 repo 不再執行 `supabase db push`。
+- 原 `consume_mbti_claim` 修正已移至 Shop 的 `20260713000000_fix_mbti_claim_rpc_ambiguity.sql`。
+- Map 僅在 `docs/legacy-sql/` 保留歷史參考，不屬於 Supabase CLI 的可執行 migration path。
+
 ## Active Mission — 全面升級進化（2026-07-11 開工）
 
 - 目標：map.kiwimu.com 技術債＋體驗細節＋內容一致性全面升級，每個環節（menu／購物車／訂單／MBTI 推薦／SSO／GA4／Discord／SEO／響應式）有實測證據後才算完成。
