@@ -33,3 +33,4 @@ dist-ssr
 # Backup files and local tooling state
 *.bak-*
 .gstack/
+supabase/.temp/
