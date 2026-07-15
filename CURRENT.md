@@ -1,6 +1,15 @@
 # Map Current
 
-Last updated: 2026-07-11
+Last updated: 2026-07-15
+
+## Five-site visual system · 2026-07-15
+
+- Added the shared Kiwimu Universe rail and `03 / Island guide` role label while preserving Map's Season 03.5 exhibition identity.
+- Fixed rail overlap for the floating bird, egg progress, and reward affordance; removed the redundant iframe `allowFullScreen` attribute because `allow` already grants fullscreen.
+- Fresh-context review found that the fixed `/menu` catalog covered the rail; the catalog now begins at `--ku-rail-height` while transactional modals may still cover the rail to preserve their close controls.
+- Verified `npx tsc --noEmit --pretty false`, the Vite production build, homepage, `/menu`, desktop and 390px browser QA, active-site centering, and zero page-level horizontal overflow.
+- Vite preview still logs the expected `/api/menu` HTML fallback warning because it does not emulate Vercel API routes; production menu behavior was not changed or re-verified in this pass.
+- No menu/order, reward, Supabase, Discord, or production mutation was executed; changes remain local and uncommitted.
 
 ## Supabase Migration Ownership — 2026-07-14
 

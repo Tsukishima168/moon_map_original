@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import KiwimuUniverseRail from './components/KiwimuUniverseRail';
+import './styles/kiwimu-universe.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -2714,7 +2716,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         
         .header-bird {
           position: fixed;
-          top: 20px;
+          top: calc(var(--ku-rail-height) + 20px);
           right: 20px;
           width: 80px;
           animation: float 6s ease-in-out infinite;
@@ -2744,7 +2746,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
 @media (max-width: 768px) {
           .header-bird {
-            top: 15px;
+            top: calc(var(--ku-rail-height) + 15px);
             right: 15px;
             width: 60px;
           }
@@ -2756,7 +2758,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         {onlyMenuView && (
           <div style={{
             position: 'fixed',
-            top: 0,
+            top: 'var(--ku-rail-height)',
             left: 0,
             right: 0,
             bottom: 0,
@@ -2829,7 +2831,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}
           style={{
             position: 'fixed',
-            top: '16px',
+            top: 'calc(var(--ku-rail-height) + 16px)',
             left: '16px',
             zIndex: 2000,
             display: onlyMenuView ? 'none' : undefined,
@@ -2856,7 +2858,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             }}
             style={{
               position: 'fixed',
-              top: '60px',
+              top: 'calc(var(--ku-rail-height) + 60px)',
               left: '16px',
               zIndex: 2000,
               background: '#000',
@@ -2909,6 +2911,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
+          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>03 / Island guide</div>
           <div className="font-mono" style={{
             marginBottom: '10px',
             fontSize: '0.8rem',
@@ -3627,7 +3630,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               width="100%"
               height="352"
               frameBorder="0"
-              allowFullScreen
               allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
               loading="lazy"
               style={{ border: 'none' }}
@@ -5474,6 +5476,7 @@ if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
     <ErrorBoundary>
+      <KiwimuUniverseRail currentSite="map" />
       <App />
     </ErrorBoundary>
   );
