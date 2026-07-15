@@ -16,6 +16,7 @@ Last updated: 2026-07-15
 - Map 與 Shop 共用 Supabase project `xlqwfaailjyvsycjnzkz`。
 - 共用資料庫的可執行 migration 以 `shop-kiwimu-com/supabase/migrations` 為唯一發布來源；本 repo 不再執行 `supabase db push`。
 - 原 `consume_mbti_claim` 修正已移至 Shop 的 `20260713000000_fix_mbti_claim_rpc_ambiguity.sql`。
+- 原 `20260704130000_harden_shared_order_tables_rls.sql` 已移出 CLI 可執行路徑，僅保留於 `docs/legacy-sql/` 作為 2026-07-04 線上修補的歷史證據。
 - Map 僅在 `docs/legacy-sql/` 保留歷史參考，不屬於 Supabase CLI 的可執行 migration path。
 
 ## Active Mission — 全面升級進化（2026-07-11 開工）
