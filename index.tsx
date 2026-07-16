@@ -5231,7 +5231,11 @@ if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
     <ErrorBoundary>
-      <KiwimuUniverseRail currentSite="map" />
+      <KiwimuUniverseRail
+        currentSite="map"
+        authClient={supabase}
+        onTrack={trackEvent}
+      />
       <App />
     </ErrorBoundary>
   );
