@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
+import { enforceRateLimit } from './_utils/rateLimit.js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = '1467024414699819152'; // 月島訂單通知頻道
@@ -10,6 +11,10 @@ export default async function handler(
 ) {
   if (request.method !== 'POST') {
     return response.status(405).json({ error: 'Method not allowed' });
+  }
+
+  if (enforceRateLimit(request, response, { routeKey: 'notify-discord-order', limit: 10, windowMs: 60_000 })) {
+    return;
   }
 
   if (!authorizeDiscordNotifyRequest(request)) {

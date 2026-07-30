@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
+import { enforceRateLimit } from './_utils/rateLimit.js'
 
 interface OrderPayload {
   order_number: string
@@ -334,6 +335,10 @@ const insertOrderWithRetry = async (
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  if (enforceRateLimit(req, res, { routeKey: 'map-order', limit: 10, windowMs: 60_000 })) {
+    return
   }
 
   if (!verifyTrustedRequest(req)) {

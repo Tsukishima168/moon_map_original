@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto'
 import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
 import { createAdminClient } from '../_utils/supabase-admin.js'
 import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from '../../lib/store-location.js'
+import { enforceRateLimit } from '../_utils/rateLimit.js'
 
 const REWARD_IDS = {
   eggMaster: 'egg_master_2026_q1',
@@ -63,6 +64,10 @@ const getEggProgressCount = async (adminClient: ReturnType<typeof createAdminCli
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  if (enforceRateLimit(req, res, { routeKey: 'rewards-claim', limit: 30, windowMs: 60_000 })) {
+    return
   }
 
   if (!verifyTrustedRequest(req)) {

@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
 import { createAdminClient } from '../_utils/supabase-admin.js'
+import { enforceRateLimit } from '../_utils/rateLimit.js'
 
 const EGG_MASTER_REWARD_ID = 'egg_master_2026_q1'
 const VALID_EGG_IDS = new Set(Array.from({ length: 9 }, (_, index) => index + 1))
@@ -23,6 +24,10 @@ const normalizeEggIds = (value: unknown) => {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  if (enforceRateLimit(req, res, { routeKey: 'rewards-progress', limit: 30, windowMs: 60_000 })) {
+    return
   }
 
   if (!verifyTrustedRequest(req)) {
