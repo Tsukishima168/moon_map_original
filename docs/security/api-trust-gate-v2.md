@@ -76,8 +76,39 @@ GET/HEAD，並加上 in-memory 限流。但根本問題沒解：**Origin header 
 自己的節流/驗證，等於把問題往前挪一層而非解決；需要額外設計「什麼情況下才發
 token」（例如：頁面正常載入時的一次性 nonce、綁定 session）。
 
+### 第 0 步（成本最低、應優先做）：把 Discord 通知搬回 server 端
+
+稽核時實查發現一件本文原稿沒抓到的事：**HMAC 簽章機制整套已經寫好了**——
+`api/_utils/authorizeDiscordNotifyRequest.ts` 已實作 HMAC-SHA256 + timestamp
+有效期窗（`DISCORD_NOTIFY_MAX_SIGNATURE_AGE_MS`）+ in-memory replay guard，
+並且已經有 `DISCORD_NOTIFY_REQUIRE_SIGNATURE` 這個「強制驗簽」開關。
+
+它在 production 完全沒生效，原因有兩層：
+
+1. Vercel production 沒有設 `DISCORD_NOTIFY_SIGNING_SECRET`、也沒設
+   `DISCORD_NOTIFY_REQUIRE_SIGNATURE` → 直接 fallback 到 `verifyTrustedRequest`。
+2. **更根本的阻塞**：`/api/notify-discord-order` 的呼叫方是瀏覽器
+   （`index.tsx:1411` 的 `fetch('/api/notify-discord-order', …)`），而瀏覽器
+   藏不住簽章密鑰。所以**今天直接把 `DISCORD_NOTIFY_REQUIRE_SIGNATURE` 設成
+   `true` 會把訂單通知靜默打死**，不是安全性升級。
+
+正解不需要 Turnstile 也不需要新機制，只要改資料流：
+
+- 把 Discord 通知從瀏覽器移到 `api/map-order.ts` 內部，在訂單寫入成功後由
+  server 端自己發（直接呼叫通知函式，或 server-to-server 帶簽章呼叫）。
+- 通知失敗不得讓下單失敗（沿用現有「Discord 失敗不阻斷業務」的原則）。
+- 完成後 `/api/notify-discord-order` 就不再需要對外開放：設
+  `DISCORD_NOTIFY_REQUIRE_SIGNATURE=true`（外部無簽章一律拒），或乾脆移除該
+  public route。
+- 這一步直接消滅「任何人可用偽造 Origin 洗 #月島訂單通知 頻道」這條路，
+  且不影響下單 UX、不增加第三方依賴。
+
+驗收：真人下一筆測試訂單，確認 Discord 仍收到通知；對
+`/api/notify-discord-order` 用偽造 Origin 發請求應回 401/403。
+
 ### 建議
 
+下單與兌獎端點仍需要下面兩條路線之一（第 0 步只解決 Discord 那條）。
 兩者不互斥，且都不完美地解決「誰在打 API」這個根本問題：Turnstile 擋機器人
 但不驗證身份；HMAC token 驗證來源合法性但簽發端點本身仍需要防護。中期建議：
 **路線 B 打底（跟現有 Discord 簽章模式技術棧一致，維護成本低）+ 路線 A 作為下單
