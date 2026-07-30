@@ -13,8 +13,18 @@ function normalizeOrigin(value: string): string {
 // Vercel's own system env var: 'production' | 'preview' | 'development'.
 // This is set by the platform, not by any request-controlled value, so it's
 // safe to branch on for what belongs in the default allow-list.
+//
+// Fail closed: an environment we cannot positively identify as local dev is
+// treated as production. Widening the allow-list must require an explicit
+// development signal, never the mere absence of one.
 function isProductionEnv(): boolean {
-  return process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production';
+  const vercelEnv = process.env.VERCEL_ENV;
+  if (vercelEnv) {
+    return vercelEnv !== 'development';
+  }
+
+  const nodeEnv = process.env.NODE_ENV;
+  return nodeEnv !== 'development' && nodeEnv !== 'test';
 }
 
 function extractOriginHeader(req: VercelRequest): string | null {

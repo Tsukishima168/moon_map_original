@@ -93,6 +93,20 @@ test('non-production: localhost origin is still trusted (dev workflow preserved)
   });
 });
 
+test('fail closed: with no env signal at all, localhost is NOT trusted', () => {
+  withEnv({ VERCEL_ENV: undefined, NODE_ENV: undefined, INTERNAL_API_TOKEN: undefined, ALLOWED_ORIGINS: undefined }, () => {
+    const req = makeReq({ method: 'POST', origin: 'http://localhost:5173' });
+    assert.equal(verifyTrustedRequest(req), false, 'absence of a dev signal must not widen the allow-list');
+  });
+});
+
+test('fail closed: preview deployments do not trust localhost either', () => {
+  withEnv({ VERCEL_ENV: 'preview', NODE_ENV: undefined, INTERNAL_API_TOKEN: undefined, ALLOWED_ORIGINS: undefined }, () => {
+    const req = makeReq({ method: 'POST', origin: 'http://localhost:5173' });
+    assert.equal(verifyTrustedRequest(req), false, 'preview URLs are public — treat them as production');
+  });
+});
+
 test('rate limit: exceeding the window returns 429 with Retry-After', () => {
   const routeKey = `test-route-${Date.now()}`;
   const limit = 3;
