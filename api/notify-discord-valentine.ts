@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
+import { enforceRateLimit } from './_utils/rateLimit.js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = '1466020032310939823'; // #results channel (same as MBTI project)
@@ -10,6 +11,13 @@ export default async function handler(
 ) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 同 /api/notify-discord-order：本路由會把請求內容轉貼進 Discord 頻道，
+    // 在沒有 DISCORD_NOTIFY_SIGNING_SECRET 的情況下信任閘只剩 Origin 白名單，
+    // 必須靠限流才能壓住單一來源的洗頻。
+    if (enforceRateLimit(request, response, { routeKey: 'notify-discord-valentine', limit: 10, windowMs: 60_000 })) {
+        return;
     }
 
     if (!authorizeDiscordNotifyRequest(request)) {

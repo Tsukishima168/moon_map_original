@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
+import { enforceRateLimit } from './_utils/rateLimit.js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';
 const CHANNEL_ID = '1474255420825538734'; // 新的活動推播頻道 各平台｜活動通知
@@ -10,6 +11,13 @@ export default async function handler(
 ) {
     if (request.method !== 'POST') {
         return response.status(405).json({ error: 'Method not allowed' });
+    }
+
+    // 這條路由和 /api/notify-discord-order 一樣會把請求內容轉貼進 Discord 頻道，
+    // 因此同樣需要限流：authorizeDiscordNotifyRequest 在沒有簽章密鑰時會退回
+    // Origin 白名單，而 Origin 是 client 可填字串，擋不住腳本式洗頻。
+    if (enforceRateLimit(request, response, { routeKey: 'notify-discord-activity', limit: 10, windowMs: 60_000 })) {
+        return;
     }
 
     if (!authorizeDiscordNotifyRequest(request)) {

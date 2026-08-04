@@ -162,3 +162,51 @@ test('rate limit: a different IP on the same route is not affected by another IP
   const reqB1 = makeReq({ method: 'POST', ip: '198.51.100.2' });
   assert.equal(checkRateLimit(reqB1, { routeKey, limit, windowMs }).allowed, true, 'IP B must have its own independent bucket');
 });
+
+/**
+ * Coverage guard.
+ *
+ * The trust gate is only as good as its weakest route: because the gate falls
+ * back to an Origin allow-list (and Origin is a client-supplied string), rate
+ * limiting is what actually bounds abuse of a route that writes to the DB or
+ * posts into Discord. The first hardening pass wired the limiter into
+ * map-order / rewards-claim / rewards-progress / notify-discord-order but
+ * missed notify-discord-activity and notify-discord-valentine, which are just
+ * as exposed. This test fails if any gated route ever ships without a limiter
+ * again — including routes added in the future.
+ */
+test('coverage: every trust-gated API route also enforces a rate limit', async () => {
+  const { readdirSync, readFileSync, statSync } = await import('node:fs');
+  const { join, dirname, relative } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  const apiDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'api');
+
+  function collect(dir: string): string[] {
+    return readdirSync(dir).flatMap((entry) => {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        // _utils holds the shared helpers themselves, not request handlers.
+        return entry === '_utils' ? [] : collect(full);
+      }
+      return full.endsWith('.ts') ? [full] : [];
+    });
+  }
+
+  const gatedRoutes = collect(apiDir).filter((file) => {
+    const source = readFileSync(file, 'utf8');
+    return source.includes('verifyTrustedRequest(') || source.includes('authorizeDiscordNotifyRequest(');
+  });
+
+  assert.ok(gatedRoutes.length > 0, 'expected to discover at least one trust-gated route');
+
+  const unlimited = gatedRoutes.filter(
+    (file) => !readFileSync(file, 'utf8').includes('enforceRateLimit(')
+  );
+
+  assert.deepEqual(
+    unlimited.map((file) => relative(apiDir, file)).sort(),
+    [],
+    'these trust-gated routes have no rate limit — an Origin header is trivially forged, so they are open to unbounded abuse'
+  );
+});
