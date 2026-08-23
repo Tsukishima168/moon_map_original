@@ -223,6 +223,22 @@
     gtag('js', new Date());
     gtag('config', gaId);
   </script>
+
+  <!-- LINE Tag (LINE Ads 成效追蹤) -->
+  <!-- 刻意用 inline <script> 而非 type="module"：module 會被 Vite 併進主 bundle，
+       要等 ~150KB JS 載完才發 pv，跳出率高的流量會漏掉。tagId 為公開值，直接寫死。 -->
+  <script>
+    (function (g, d, o) {
+      g._ltq = g._ltq || []; g._lt = g._lt || function () { g._ltq.push(arguments) };
+      var h = location.protocol === 'https:' ? 'https://d.line-scdn.net' : 'http://d.line-cdn.net';
+      var s = d.createElement('script'); s.async = 1;
+      s.src = o || h + '/n/line_tag/public/release/v1/lt.js';
+      var t = d.getElementsByTagName('script')[0]; t.parentNode.insertBefore(s, t);
+    })(window, document);
+    window.__LINE_TAG_ID__ = 'f13358fc-4047-4059-8d79-013e0f7b89f6';
+    _lt('init', { customerType: 'account', tagId: window.__LINE_TAG_ID__ });
+    _lt('send', 'pv', [window.__LINE_TAG_ID__]);
+  </script>
 </head>
 
 <body>
