@@ -15,8 +15,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "node scripts/vercel-build.mjs",
-    "deploy": "node scripts/vercel-build.mjs && vercel deploy --prebuilt --prod"
+    "vercel-build": "node scripts/vercel-build.mjs && node scripts/verify-economy-api-bundle.mjs",
+    "test:economy-v2": "node --test --experimental-strip-types lib/economyContract.test.ts lib/economyAdapter.test.ts lib/economyUi.test.ts lib/modalFocus.test.ts && node scripts/verify-economy-v2.mjs",
+    "deploy": "npm run vercel-build && vercel deploy --prebuilt --prod"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.91.1",

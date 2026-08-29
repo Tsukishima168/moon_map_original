@@ -1,14 +1,20 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import KiwimuUniverseRail from './components/KiwimuUniverseRail';
+import StoreVisitProofPanel from './components/StoreVisitProofPanel';
 import './styles/kiwimu-universe.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
+import {
+  getModalFocusableElements,
+  getModalTabWrapTarget,
+  isModalDismissKey,
+} from './lib/modalFocus';
 import {
   attachMenuItemIds,
   getMenuCatalogEntry,
@@ -16,7 +22,6 @@ import {
   type MenuCategory,
   type MenuItemId,
 } from './lib/menu-shared';
-import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from './lib/store-location';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -99,11 +104,6 @@ const WALLPAPERS = [
   { label: "Fortune", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902361/New_year-2_i9e9js.jpg" },
   { label: "2026.03", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_03_tduocw.jpg" }
 ];
-
-// In-store badge (GPS) config
-const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
-const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
-const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
 const FORTUNES = [
@@ -440,6 +440,56 @@ const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
 };
 
+function useDialogFocusTrap(
+  open: boolean,
+  dialogRef: React.RefObject<HTMLDivElement | null>,
+  onClose: () => void,
+  preferredSelector?: string,
+) {
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      const preferredTarget = preferredSelector
+        ? dialog.querySelector<HTMLElement>(preferredSelector)
+        : null;
+      (preferredTarget ?? getModalFocusableElements(dialog)[0])?.focus();
+    });
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (isModalDismissKey(event.key)) {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = getModalFocusableElements(dialog);
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const wrapTarget = getModalTabWrapTarget(
+        focusableElements,
+        document.activeElement as HTMLElement | null,
+        event.shiftKey,
+      );
+      if (wrapTarget) {
+        event.preventDefault();
+        wrapTarget.focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleDialogKeyDown);
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener('keydown', handleDialogKeyDown);
+    };
+  }, [dialogRef, onClose, open, preferredSelector]);
+}
+
 // --- DATA: MENU & RANDOMIZER ---
 
 // Removed static import: import MENU_CATEGORIES from './menu.json';
@@ -475,11 +525,52 @@ const App = () => {
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
   const [showDiscoverModal, setShowDiscoverModal] = useState(false);
+  const [showStoreVisitProof, setShowStoreVisitProof] = useState(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
   const [uiNotice, setUiNotice] = useState<{ message: string; tone: NoticeTone } | null>(null);
-  const [storeBadgeStatus, setStoreBadgeStatus] = useState<'idle' | 'checking' | 'granted' | 'denied' | 'error'>('idle');
-  const [storeDistance, setStoreDistance] = useState<number | null>(null);
   const noticeTimeoutRef = useRef<number | null>(null);
+  const storeVisitTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const storeVisitDialogRef = useRef<HTMLDivElement | null>(null);
+  const loginDialogRef = useRef<HTMLDivElement | null>(null);
+  const loginReturnFocusRef = useRef<HTMLElement | null>(null);
+
+  const closeStoreVisitProof = useCallback(() => {
+    setShowStoreVisitProof(false);
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => storeVisitTriggerRef.current?.focus());
+    }
+  }, []);
+
+  const openLoginModal = useCallback(() => {
+    if (
+      typeof document !== 'undefined'
+      && typeof HTMLElement !== 'undefined'
+      && document.activeElement instanceof HTMLElement
+    ) {
+      loginReturnFocusRef.current = document.activeElement;
+    }
+    setShowLogin(true);
+  }, []);
+
+  const closeLoginModal = useCallback(() => {
+    setShowLogin(false);
+    if (!showStoreVisitProof && typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => loginReturnFocusRef.current?.focus());
+    }
+  }, [showStoreVisitProof]);
+
+  useDialogFocusTrap(
+    showStoreVisitProof && !showLogin,
+    storeVisitDialogRef,
+    closeStoreVisitProof,
+    'input:not([disabled])',
+  );
+  useDialogFocusTrap(
+    showLogin,
+    loginDialogRef,
+    closeLoginModal,
+    '[data-login-primary="true"]',
+  );
 
   // Helper for LINE browser detection
   const isLineBrowser = typeof window !== 'undefined' && /Line/i.test(navigator.userAgent);
@@ -488,9 +579,6 @@ const App = () => {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
   const [foundEggs, setFoundEggs] = useState<number[]>([]);
-  const [eggMasterCode, setEggMasterCode] = useState<string | null>(() =>
-    typeof window !== 'undefined' ? localStorage.getItem('moonmoon_egg_master_code') : null
-  );
   const isEasterEggComplete = foundEggs.length >= 9;
   const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
   const mbtiLabUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
@@ -528,6 +616,15 @@ const App = () => {
     trackUtmLanding(getInitialUrlSearch());
   }, []);
 
+  useEffect(() => {
+    if ((!showStoreVisitProof && !showLogin) || typeof document === 'undefined') return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [showLogin, showStoreVisitProof]);
+
   // 彩蛋每月 renew：每月 1 號起用新月份 key，自動清空讓大家重新找
   const EGGS_RENEW_KEY = 'moonmoon_eggs_renew_month';
   useEffect(() => {
@@ -536,19 +633,11 @@ const App = () => {
     const storedMonth = localStorage.getItem(EGGS_RENEW_KEY);
     if (storedMonth !== monthKey) {
       localStorage.removeItem('moonmoon_found_eggs');
-      localStorage.removeItem('moonmoon_egg_master_code');
       localStorage.setItem(EGGS_RENEW_KEY, monthKey);
       setFoundEggs([]);
-      setEggMasterCode(null);
-      setRewardClaimStatus('idle');
       return;
     }
     const saved = localStorage.getItem('moonmoon_found_eggs');
-    const savedEggCode = localStorage.getItem('moonmoon_egg_master_code');
-    setEggMasterCode(savedEggCode);
-    if (savedEggCode) {
-      setRewardClaimStatus('saved');
-    }
     if (saved) {
       try {
         setFoundEggs(JSON.parse(saved));
@@ -557,12 +646,6 @@ const App = () => {
       }
     }
   }, []);
-
-  // Reward claim saving state
-  const [rewardClaimStatus, setRewardClaimStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>(() =>
-    typeof window !== 'undefined' && localStorage.getItem('moonmoon_egg_master_code') ? 'saved' : 'idle'
-  );
-  const [storeBadgeMessage, setStoreBadgeMessage] = useState<string | null>(null);
 
   const showUiNotice = (message: string, tone: NoticeTone = 'info') => {
     setUiNotice({ message, tone });
@@ -574,125 +657,6 @@ const App = () => {
       noticeTimeoutRef.current = window.setTimeout(() => {
         setUiNotice(null);
       }, 3200);
-    }
-  };
-
-  const savePendingRewardClaim = (rewardId: string, method: 'easter_egg' | 'gps') => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(PENDING_REWARD_CLAIM_KEY, JSON.stringify({
-        rewardId,
-        method,
-        createdAt: Date.now(),
-      }));
-    } catch {
-      // localStorage can be unavailable in private browsing.
-    }
-  };
-
-  const clearPendingRewardClaim = () => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.removeItem(PENDING_REWARD_CLAIM_KEY);
-    } catch {
-      // ignore
-    }
-  };
-
-  const getRewardClaimAccessToken = async () => {
-    if (!supabase) return null;
-    const { data: { session } } = await supabase.auth.getSession();
-    return session?.access_token ?? null;
-  };
-
-  const syncEggProgress = async (eggIds: number[]) => {
-    const uniqueEggIds = Array.from(new Set(eggIds.filter((eggId) => Number.isInteger(eggId) && eggId >= 1 && eggId <= 9)));
-    if (uniqueEggIds.length === 0) return null;
-
-    const accessToken = await getRewardClaimAccessToken();
-    if (!accessToken) return null;
-
-    const res = await fetch('/api/rewards/progress', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        reward_id: 'egg_master_2026_q1',
-        source: 'moon_map',
-        egg_ids: uniqueEggIds,
-      }),
-    });
-
-    const payload = await res.json().catch(() => ({} as { count?: number; error?: string }));
-
-    if (!res.ok) {
-      throw new Error(payload.error || 'Failed to sync egg progress');
-    }
-
-    return typeof payload.count === 'number' ? payload.count : null;
-  };
-
-  const claimEggMasterReward = async (currentFoundEggs: number[]) => {
-    if (typeof window === 'undefined') return;
-
-    const existingCode = localStorage.getItem('moonmoon_egg_master_code');
-    if (existingCode) {
-      setEggMasterCode(existingCode);
-      setRewardClaimStatus('saved');
-      clearPendingRewardClaim();
-      return;
-    }
-
-    setRewardClaimStatus('saving');
-
-    try {
-      const accessToken = await getRewardClaimAccessToken();
-      if (!accessToken) {
-        savePendingRewardClaim('egg_master_2026_q1', 'easter_egg');
-        setRewardClaimStatus('idle');
-        showUiNotice('登入 Passport 後會替你完成限定徽章領取。', 'info');
-        openPassportLogin({
-          intent: 'map_egg_master_reward',
-          onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
-        });
-        return;
-      }
-
-      const syncedEggCount = await syncEggProgress(currentFoundEggs);
-      if (typeof syncedEggCount === 'number' && syncedEggCount < 9) {
-        throw new Error('Reward claim proof is incomplete');
-      }
-
-      const res = await fetch('/api/rewards/claim', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          reward_id: 'egg_master_2026_q1',
-          source: 'moon_map',
-        }),
-      });
-
-      const payload = await res.json().catch(() => ({} as { code?: string; error?: string }));
-
-      if (!res.ok || typeof payload.code !== 'string' || !payload.code) {
-        throw new Error(payload.error || 'Failed to create reward claim');
-      }
-
-      localStorage.setItem('moonmoon_egg_master_code', payload.code);
-      setEggMasterCode(payload.code);
-      setRewardClaimStatus('saved');
-      clearPendingRewardClaim();
-      track('reward_claimed', { reward_id: 'egg_master_2026_q1', method: 'easter_egg', site_id: 'moon_map' });
-    } catch (e) {
-      console.error('Failed to create reward claim:', e);
-      localStorage.removeItem('moonmoon_egg_master_code');
-      setEggMasterCode(null);
-      setRewardClaimStatus('error');
     }
   };
 
@@ -724,17 +688,15 @@ const App = () => {
   }, []);
 
   // Save found eggs to localStorage
-  const markEggAsFound = async (eggId: number) => {
+  const markEggAsFound = (eggId: number) => {
     if (!foundEggs.includes(eggId)) {
       const newFound = [...foundEggs, eggId];
       setFoundEggs(newFound);
       localStorage.setItem('moonmoon_found_eggs', JSON.stringify(newFound));
 
-      // Check if this was the 9th egg (completed all)
+      // Finding every egg unlocks local presentation only. It never submits a
+      // formal Economy event or creates points, badges, or redemption codes.
       if (newFound.length === 9) {
-        await claimEggMasterReward(newFound);
-
-        // Auto scroll to wallpaper section immediately
         setTimeout(() => {
           document.getElementById('wallpaper-section')?.scrollIntoView({
             behavior: 'smooth',
@@ -862,9 +824,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     setCurrentEasterEgg(eggId);
     setShowEasterEgg(true);
     markEggAsFound(eggId);
-    void syncEggProgress([eggId]).catch((error) => {
-      console.warn('Failed to sync egg progress:', error);
-    });
     track('easter_egg_found', { egg_id: eggId });
   };
   const [liffReady, setLiffReady] = useState(false);
@@ -1217,150 +1176,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     });
   };
 
-  // --- STORE BADGE: GPS 100m unlock ---
-  const handleStoreBadge = async () => {
-    if (storeBadgeStatus === 'checking') return;
-    setStoreBadgeStatus('checking');
-    setStoreDistance(null);
-    setStoreBadgeMessage(null);
-
-    if (!('geolocation' in navigator)) {
-      setStoreBadgeMessage('此裝置不支援定位，無法解鎖到店徽章。');
-      setStoreBadgeStatus('error');
-      return;
-    }
-
-    const passportWindow = !isMobileDevice() ? window.open('', '_blank', 'noopener') : null;
-
-    if (passportWindow) {
-      passportWindow.document.write(`
-        <!DOCTYPE html>
-        <html lang="zh-TW">
-          <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <title>Passport 驗證中</title>
-            <style>
-              body {
-                margin: 0;
-                min-height: 100vh;
-                display: grid;
-                place-items: center;
-                background: #f8f8f8;
-                color: #111;
-                font-family: "Noto Sans TC", sans-serif;
-              }
-              .card {
-                max-width: 320px;
-                padding: 24px;
-                border-radius: 16px;
-                background: white;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-                text-align: center;
-                line-height: 1.8;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="card">
-              正在驗證你是否已抵達門市，完成後會自動前往 Passport 領取徽章。
-            </div>
-          </body>
-        </html>
-      `);
-      passportWindow.document.close();
-    }
-
-    const closePassportWindow = () => {
-      if (passportWindow && !passportWindow.closed) {
-        passportWindow.close();
-      }
-    };
-
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      const { latitude, longitude } = pos.coords;
-      const dist = distanceMeters(latitude, longitude, STORE_LOCATION.lat, STORE_LOCATION.lng);
-      setStoreDistance(dist);
-
-      if (dist <= STORE_RADIUS_METERS) {
-        // 已在範圍內，若已領取過則直接導向
-        let code = localStorage.getItem(STORE_BADGE_CODE_KEY);
-        if (!code) {
-          try {
-            const accessToken = await getRewardClaimAccessToken();
-            if (!accessToken) {
-              savePendingRewardClaim(STORE_BADGE_REWARD_ID, 'gps');
-              closePassportWindow();
-              setStoreBadgeStatus('idle');
-              setStoreBadgeMessage('請先登入島民身份，登入完成後再點一次定位即可領徽章。');
-              openPassportLogin({
-                intent: 'map_store_badge_reward',
-                onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
-              });
-              return;
-            }
-
-            const res = await fetch('/api/rewards/claim', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                reward_id: STORE_BADGE_REWARD_ID,
-                source: 'moon_map',
-                latitude,
-                longitude,
-              }),
-            });
-            const payload = await res.json().catch(() => ({} as { code?: string; error?: string }));
-            if (!res.ok || typeof payload.code !== 'string' || !payload.code) {
-              throw new Error(payload.error || 'Failed to create store badge claim');
-            }
-            code = payload.code;
-            localStorage.setItem(STORE_BADGE_CODE_KEY, payload.code);
-            clearPendingRewardClaim();
-            track('reward_claimed', { reward_id: STORE_BADGE_REWARD_ID, method: 'gps', site_id: 'moon_map' });
-          } catch (e) {
-            console.error('Failed to create store badge claim:', e);
-            closePassportWindow();
-            setStoreBadgeMessage('兌換碼建立失敗，請稍後重試。');
-            setStoreBadgeStatus('error');
-            return;
-          }
-        }
-
-        setStoreBadgeStatus('granted');
-        setStoreBadgeMessage('驗證成功，正在開啟 Passport 領取到店徽章...');
-        track('stamp_unlock', { site_id: 'moon_map', stamp_id: STORE_BADGE_REWARD_ID, method: 'gps' });
-        trackUserEvent('map_checkin', { method: 'gps', reward_id: STORE_BADGE_REWARD_ID });
-
-        // 直接導向護照，帶上 claim_code
-        const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&utm_source=moon_map&utm_medium=reward&utm_campaign=store_badge`;
-        if (passportWindow && !passportWindow.closed) {
-          passportWindow.location.href = url;
-        } else {
-          window.location.href = url;
-        }
-      } else {
-        closePassportWindow();
-        setStoreBadgeStatus('denied');
-        setStoreBadgeMessage(`尚未在店內範圍內（目前距離約 ${(dist / 1).toFixed(0)} 公尺），請靠近門市再試一次。`);
-      }
-    }, (err) => {
-      console.error('Geolocation error', err);
-      closePassportWindow();
-      setStoreBadgeStatus('error');
-      if (err.code === err.PERMISSION_DENIED) {
-        setStoreBadgeMessage('無法取得定位，請確認已允許位置權限。');
-      } else if (err.code === err.TIMEOUT) {
-        setStoreBadgeMessage('定位逾時，請確認 GPS 與網路已開啟後再重試。');
-      } else {
-        setStoreBadgeMessage('無法取得定位，請稍後再試。');
-      }
-    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
-  };
-
   const addToCart = addCartItem;
 
   const changeCartItemCount = (itemName: string, spec: string, delta: number) => {
@@ -1701,44 +1516,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     };
   }, []);
 
-  useEffect(() => {
-    if (!user || typeof window === 'undefined') return;
-
-    const pendingRaw = localStorage.getItem(PENDING_REWARD_CLAIM_KEY);
-    if (!pendingRaw) return;
-
-    try {
-      const pending = JSON.parse(pendingRaw) as { rewardId?: string; method?: string };
-
-      if (pending.rewardId === 'egg_master_2026_q1') {
-        if (localStorage.getItem('moonmoon_egg_master_code')) {
-          clearPendingRewardClaim();
-          return;
-        }
-
-        if (foundEggs.length >= 9 && !localStorage.getItem('moonmoon_egg_master_code')) {
-          void claimEggMasterReward(foundEggs);
-        }
-        return;
-      }
-
-      if (pending.rewardId === STORE_BADGE_REWARD_ID) {
-        clearPendingRewardClaim();
-        setStoreBadgeStatus('idle');
-        setStoreBadgeMessage('登入完成。請再點一次到店解鎖，完成定位後就會前往 Passport。');
-      }
-    } catch {
-      clearPendingRewardClaim();
-    }
-  }, [user, foundEggs]);
-
   const handleGoogleLogin = () => {
     setLoginMessage('前往 Google 登入...');
     openPassportLogin({
       intent: 'map_login',
       onComplete: () => {
         setLoginMessage('');
-        setShowLogin(false);
+        closeLoginModal();
       },
       onError: (detail) => {
         setLoginMessage('');
@@ -2960,7 +2744,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </div>
             ) : (
               <button
-                onClick={() => setShowLogin(true)}
+                onClick={openLoginModal}
                 style={{
                   border: '1px solid black',
                   padding: '6px 16px',
@@ -3041,35 +2825,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
             <span>↓</span>
           </button>
-          <button className="btn-entry" onClick={() => {
-            track('click_hero_store_badge');
-            handleStoreBadge();
+          <button ref={storeVisitTriggerRef} className="btn-entry" onClick={() => {
+            track('click_hero_store_visit_proof');
+            setShowStoreVisitProof(true);
           }}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>04 // VISIT</span>
-              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店解鎖徽章 (100m 內)</strong>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店印章（店員確認）</strong>
               <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>
-                需開啟定位；成功會跳轉護照
+                定位只作距離提示；正式印章需登入店員核發的短效憑證
               </div>
-              {storeBadgeStatus === 'checking' && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '6px' }}>檢查定位中...</div>
-              )}
-              {storeDistance !== null && storeBadgeStatus !== 'granted' && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '6px' }}>距離約 {storeDistance.toFixed(0)} m</div>
-              )}
-              {storeBadgeMessage && (
-                <div
-                  style={{
-                    fontSize: '0.75rem',
-                    color: storeBadgeStatus === 'granted' ? '#2A9D8F' : '#c2410c',
-                    marginTop: '6px',
-                    lineHeight: 1.5,
-                    fontWeight: 600,
-                  }}
-                >
-                  {storeBadgeMessage}
-                </div>
-              )}
             </div>
             <span>↗</span>
           </button>
@@ -3798,94 +3563,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </div>
 
               {isEasterEggComplete && (
-                <div style={{ marginTop: '20px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
-                    🎉 恭喜通關！還有兩份特別獎勵...
+                <div style={{ marginTop: '20px', padding: '16px', textAlign: 'center', background: '#f9f9f9', border: '1px solid #eee', borderRadius: '12px' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#333', margin: '0 0 8px', fontWeight: 700 }}>
+                    🎉 九顆彩蛋已全部找到，本站桌布與故事已解鎖。
                   </p>
-
-                  {/* Reward Claim Code Display */}
-                  {(() => {
-                    if (rewardClaimStatus === 'saving') {
-                      return (
-                        <p style={{ fontSize: '0.85rem', color: '#999' }}>正在產生兌換碼...</p>
-                      );
-                    }
-                    if (rewardClaimStatus === 'error' && !eggMasterCode) {
-                      return (
-                        <p style={{ fontSize: '0.85rem', color: '#c00' }}>兌換碼產生失敗，請重新整理頁面或聯繫客服。</p>
-                      );
-                    }
-                    if (eggMasterCode) {
-                      return (
-                        <div style={{
-                          background: '#f9f9f9',
-                          border: '1px solid #eee',
-                          borderRadius: '12px',
-                          padding: '15px',
-                          marginBottom: '15px'
-                        }}>
-                          <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
-                            你的兌換碼（截圖保存）
-                          </p>
-                          <div
-                            onClick={() => {
-                              copyTextWithNotice(
-                                eggMasterCode,
-                                '已複製兌換碼。',
-                                '目前裝置不支援一鍵複製，請長按選取文字手動複製或截圖保存。',
-                                '複製失敗，請手動複製或截圖保存兌換碼。'
-                              );
-                            }}
-                            style={{
-                              background: '#000',
-                              color: CONFIG.BRAND_COLORS.moonSilver,
-                              padding: '12px',
-                              borderRadius: '8px',
-                              fontFamily: 'monospace',
-                              fontSize: '0.85rem',
-                              letterSpacing: '1px',
-                              cursor: 'pointer',
-                              textAlign: 'center',
-                              wordBreak: 'break-all'
-                            }}
-                          >
-                            {eggMasterCode}
-                            <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px' }}>
-                              TAP TO COPY
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                  {/* Passport Badge Button */}
-                  {eggMasterCode && (
-                    <a
-                      href={`${CONFIG.LINKS.passport_url}?claim_code=${eggMasterCode}&reward=egg_master_2026_q1&utm_source=moon_map&utm_medium=reward&utm_campaign=egg_master`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        display: 'inline-block',
-                        background: CONFIG.BRAND_COLORS.moonSilver,
-                        color: CONFIG.BRAND_COLORS.emotionBlack,
-                        border: '2px solid #000',
-                        padding: '10px 20px',
-                        borderRadius: '999px',
-                        fontWeight: 700,
-                        fontSize: '0.9rem',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
-                        width: '100%',
-                        maxWidth: '300px',
-                        textDecoration: 'none',
-                        textAlign: 'center'
-                      }}
-                    >
-                      🏅 前往護照領取限定徽章
-                    </a>
-                  )}
+                  <p style={{ fontSize: '0.78rem', color: '#777', margin: 0, lineHeight: 1.7 }}>
+                    彩蛋進度只保存在這台裝置作為探索體驗，不會建立點數、徽章或兌換碼；正式會員資產一律由伺服器規則決定。
+                  </p>
                 </div>
               )}
             </div>
@@ -4045,6 +3729,64 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       </div >
 
       {/* --- MODALS --- */}
+
+      {/* SERVER-AUTHORITATIVE STORE VISIT PROOF */}
+      {showStoreVisitProof && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="store-visit-proof-title"
+          aria-hidden={showLogin ? true : undefined}
+          onClick={closeStoreVisitProof}
+          style={{
+            zIndex: 1900,
+            padding: '12px',
+            background: 'rgba(17, 24, 48, 0.68)',
+            visibility: showLogin ? 'hidden' : 'visible',
+            pointerEvents: showLogin ? 'none' : 'auto',
+          }}
+        >
+          <div
+            ref={storeVisitDialogRef}
+            className="modal-card"
+            onClick={(event) => event.stopPropagation()}
+            style={{
+              maxWidth: '560px',
+              maxHeight: 'calc(100dvh - 24px)',
+              padding: 0,
+              zIndex: 1901,
+              background: CONFIG.BRAND_COLORS.creamWhite,
+              backdropFilter: 'none',
+              border: '1px solid rgba(43,32,24,0.18)',
+              borderRadius: '18px',
+            }}
+          >
+            <div className="modal-header">
+              <div>
+                <div className="font-mono" style={{ fontSize: '0.72rem', color: '#5A6B8C' }}>ECONOMY V2 / MAP</div>
+                <h3 id="store-visit-proof-title" style={{ margin: '4px 0 0' }}>到店印章・店員短效憑證</h3>
+              </div>
+              <button className="close-btn" onClick={closeStoreVisitProof} aria-label="關閉到店印章視窗">×</button>
+            </div>
+            <div className="modal-body">
+              <StoreVisitProofPanel
+                userId={user?.id ?? null}
+                onRequestLogin={openLoginModal}
+                onEvent={(event, payload = {}) => {
+                  track(event, { ...payload, site_id: 'moon_map' });
+                  if (event === 'map_store_visit_claimed') {
+                    trackUserEvent('map_checkin', {
+                      method: 'staff_proof',
+                      location_id: 'annan-store',
+                    });
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* DISCOVER PROGRESS MODAL (M1) */}
       {showDiscoverModal && (
@@ -5139,11 +4881,23 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       {/* LOGIN MODAL */}
       {
         showLogin && (
-          <div className="modal-overlay" onClick={() => setShowLogin(false)} style={{ zIndex: 2000 }}>
-            <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
+          <div
+            className="modal-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="login-dialog-title"
+            onClick={closeLoginModal}
+            style={{ zIndex: 2000 }}
+          >
+            <div
+              ref={loginDialogRef}
+              className="modal-card"
+              onClick={e => e.stopPropagation()}
+              style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}
+            >
               <div className="modal-header">
-                <h3 className="font-mono">登島手續：領取島民狀態</h3>
-                <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+                <h3 id="login-dialog-title" className="font-mono">登島手續：領取島民狀態</h3>
+                <button className="close-btn" onClick={closeLoginModal} aria-label="關閉登入視窗">×</button>
               </div>
               <div className="modal-body" style={{ textAlign: 'center' }}>
                 <div style={{ marginBottom: '25px', padding: '0 10px' }}>
@@ -5154,6 +4908,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                 </div>
                 <button
+                  data-login-primary="true"
                   onClick={handleGoogleLogin}
                   disabled={!!loginMessage}
                   style={{
@@ -5476,7 +5231,11 @@ if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
     <ErrorBoundary>
-      <KiwimuUniverseRail currentSite="map" />
+      <KiwimuUniverseRail
+        currentSite="map"
+        authClient={supabase}
+        onTrack={trackEvent}
+      />
       <App />
     </ErrorBoundary>
   );

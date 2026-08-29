@@ -1,6 +1,19 @@
 # Map Current
 
-Last updated: 2026-07-15
+Last updated: 2026-07-16
+
+## Economy v2 adapter · 2026-07-16
+
+- Branch `codex/map-economy-v2-adapter-20260716`、Draft PR #10。
+- GPS 僅保留為到店輔助訊號；正式印章必須由登入且存在於
+  `staff_members` 的店員簽發一次性短效 proof，再由會員帳號核銷。偽造 GPS、
+  URL、CustomEvent 或重播 proof 都不能建立正式印章／點數。
+- 20 個 Economy／modal tests、static authority verifier、Vite production
+  build 與 8 個 Vercel API bundle 全數通過。Map 仍不持有 shared migration，
+  唯一 publisher 為 Shop。
+- Shared foundation 已在 hosted Supabase staging 通過 migration、lint、
+  Auth/RLS/PostgREST、proof replay 與併發驗證；production 尚未套用六項
+  Economy migration，PR 尚未 merge／deploy，rollout 未開。
 
 ## Five-site visual system · 2026-07-15
 
