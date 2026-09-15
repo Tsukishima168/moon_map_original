@@ -1,0 +1,681 @@
+:root {
+  --window-forest-deep: #1f2f1f;
+  --window-forest: #304f2f;
+  --window-leaf: #587337;
+  --window-moss: #7a893c;
+  --window-sun: #d7c678;
+  --window-cream: #f5f0e8;
+  --window-mist: #e8ead7;
+  --window-ink: #2b2018;
+  --window-radius: 28px;
+  --window-shadow: 0 24px 70px rgba(31, 47, 31, 0.2);
+}
+
+body {
+  background:
+    radial-gradient(circle at 12% 6%, rgba(215, 198, 120, 0.22), transparent 28rem),
+    linear-gradient(180deg, #f8f4e9 0%, var(--window-cream) 58%, #e9ead8 100%);
+}
+
+.season04-shell {
+  overflow: visible;
+}
+
+.season04-hero {
+  padding-top: 44px !important;
+  padding-bottom: 56px !important;
+}
+
+.season04-hero-stage {
+  position: relative;
+  width: min(1180px, calc(100vw - 32px));
+  min-height: clamp(620px, 64vw, 760px);
+  margin-left: 50%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  border: 1px solid rgba(215, 198, 120, 0.55);
+  border-radius: 36px;
+  background: var(--window-forest-deep);
+  box-shadow: var(--window-shadow);
+  isolation: isolate;
+}
+
+.season04-hero-art,
+.season04-hero-art picture,
+.season04-hero-art img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.season04-hero-art img {
+  object-fit: cover;
+  object-position: center;
+  animation: window-settle 1.2s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.season04-hero-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: '';
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(18, 35, 23, 0.86) 0%, rgba(18, 35, 23, 0.52) 37%, rgba(18, 35, 23, 0.04) 70%),
+    linear-gradient(0deg, rgba(18, 35, 23, 0.46), transparent 42%);
+}
+
+.season04-hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: inherit;
+  max-width: 620px;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(36px, 7vw, 76px);
+  color: var(--window-cream);
+}
+
+.season04-exhibition-badge {
+  align-self: flex-start;
+  width: min(100%, 460px);
+  margin-bottom: auto !important;
+  color: var(--window-cream);
+  border-color: rgba(245, 240, 232, 0.7) !important;
+  background: rgba(31, 47, 31, 0.5) !important;
+  box-shadow: 4px 4px 0 rgba(215, 198, 120, 0.72) !important;
+  backdrop-filter: blur(12px);
+}
+
+.season04-exhibition-badge strong {
+  display: block;
+  line-height: 1.45;
+}
+
+.season04-hero .ku-site-kicker {
+  width: fit-content;
+  color: var(--window-forest-deep);
+  border-color: var(--window-sun);
+  background: var(--window-sun);
+}
+
+.season04-hero-utility {
+  color: var(--window-cream);
+}
+
+.season04-hero-utility > span {
+  color: rgba(245, 240, 232, 0.78);
+}
+
+.season04-hero-logo img {
+  max-width: min(310px, 78vw) !important;
+  filter: brightness(0) invert(1) !important;
+}
+
+.season04-hero-logo h1 {
+  max-width: 540px;
+  color: var(--window-cream);
+  font-size: clamp(2.35rem, 7vw, 5.4rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.055em;
+  opacity: 1 !important;
+}
+
+.season04-hero-tagline {
+  max-width: 500px;
+  margin-bottom: 0 !important;
+  color: var(--window-sun) !important;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.8;
+}
+
+.season04-hero-tagline strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--window-cream);
+  font-weight: 500;
+}
+
+.season04-hero .header-bird {
+  position: absolute;
+  top: 26px;
+  right: 28px;
+  z-index: 3;
+}
+
+.season04-actions {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: min(920px, calc(100vw - 56px));
+  margin: -54px auto 0;
+}
+
+.season04-actions .btn-entry {
+  min-height: 104px;
+  margin: 0;
+  color: var(--window-ink);
+  border: 1px solid rgba(31, 47, 31, 0.24);
+  background: rgba(250, 247, 237, 0.92);
+  box-shadow: 0 14px 30px rgba(31, 47, 31, 0.14);
+}
+
+.season04-actions .btn-entry:nth-child(2) {
+  color: var(--window-cream);
+  border-color: var(--window-forest-deep);
+  background: var(--window-forest-deep);
+}
+
+.season04-actions .btn-entry:nth-child(2) .text-yellow {
+  color: var(--window-sun);
+}
+
+.season04-actions .btn-entry:last-child {
+  grid-column: 1 / -1;
+}
+
+.season04-story {
+  position: relative;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.season04-section-heading {
+  margin-bottom: 30px;
+  color: var(--window-forest-deep);
+  text-align: left !important;
+  letter-spacing: 0.12em;
+}
+
+.season04-section-heading::before {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--window-leaf);
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  content: '01 / WONDER';
+}
+
+.season04-story-card {
+  border-color: rgba(215, 198, 120, 0.36) !important;
+  background:
+    radial-gradient(circle at 86% 12%, rgba(215, 198, 120, 0.34), transparent 9rem),
+    linear-gradient(145deg, var(--window-forest) 0%, var(--window-forest-deep) 100%) !important;
+  box-shadow: 0 18px 44px rgba(31, 47, 31, 0.2);
+}
+
+.season04-story-card h3 {
+  color: var(--window-sun) !important;
+}
+
+.season04-brand-note {
+  border-left-color: var(--window-leaf) !important;
+  background: rgba(245, 240, 232, 0.82) !important;
+}
+
+.season04-journey {
+  width: min(980px, calc(100vw - 32px));
+  min-height: 720px !important;
+  margin: 40px 0 64px 50% !important;
+  transform: translateX(-50%);
+  border: 1px solid rgba(215, 198, 120, 0.5);
+  border-radius: 36px !important;
+  background-color: var(--window-forest-deep);
+  background-image: image-set(
+    url('/assets/season-04/journey-desktop.avif') type('image/avif'),
+    url('/assets/season-04/journey-desktop.webp') type('image/webp')
+  ) !important;
+  box-shadow: var(--window-shadow);
+}
+
+.season04-journey-overlay {
+  background: linear-gradient(100deg, rgba(22, 38, 24, 0.8) 0%, rgba(22, 38, 24, 0.42) 58%, rgba(22, 38, 24, 0.16) 100%) !important;
+}
+
+.season04-act-label {
+  display: inline-flex;
+  margin-bottom: 18px;
+  padding: 7px 12px;
+  color: var(--window-forest-deep);
+  border-radius: 999px;
+  background: var(--window-sun);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.season04-journey h2 {
+  max-width: 480px;
+  font-size: clamp(1.55rem, 4vw, 2.3rem);
+  line-height: 1.35;
+}
+
+.season04-journey .state-btn {
+  color: var(--window-forest-deep);
+  border-color: rgba(245, 240, 232, 0.45);
+  background: rgba(250, 247, 237, 0.9);
+}
+
+.season04-journey .state-btn:hover {
+  border-color: var(--window-sun);
+  background: var(--window-cream);
+}
+
+.season04-journey .state-btn.selected {
+  color: var(--window-forest-deep);
+  border-color: var(--window-sun);
+  background: var(--window-sun);
+}
+
+.season04-pause {
+  border-top: 0 !important;
+  background: transparent !important;
+}
+
+.season04-pause-visual {
+  position: relative;
+  width: min(980px, calc(100vw - 32px));
+  min-height: 520px;
+  margin: 0 0 48px 50%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  border: 1px solid rgba(215, 198, 120, 0.52);
+  border-radius: 36px;
+  background: var(--window-forest-deep);
+  box-shadow: var(--window-shadow);
+}
+
+.season04-pause-visual picture,
+.season04-pause-visual img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.season04-pause-visual img {
+  object-fit: cover;
+  object-position: center;
+}
+
+.season04-pause-visual::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  content: '';
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(20, 36, 22, 0.76) 0%, rgba(20, 36, 22, 0.18) 54%, transparent 76%);
+}
+
+.season04-pause-copy {
+  position: absolute;
+  bottom: 36px;
+  left: 36px;
+  z-index: 2;
+  width: min(390px, calc(100% - 72px));
+  color: var(--window-cream);
+}
+
+.season04-pause-copy .season04-act-label {
+  margin-bottom: 12px;
+}
+
+.season04-pause-copy h2 {
+  font-size: clamp(2.4rem, 8vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.season04-pause-copy p {
+  margin-top: 16px;
+  color: rgba(245, 240, 232, 0.86);
+  line-height: 1.7;
+}
+
+.season04-menu-heading {
+  color: var(--window-forest-deep);
+}
+
+.season04-menu-cta {
+  background: var(--window-forest-deep) !important;
+  box-shadow: 0 18px 42px rgba(31, 47, 31, 0.28) !important;
+}
+
+.season04-curated {
+  width: min(1120px, calc(100vw - 32px));
+  margin: 24px auto 0 !important;
+  padding: 64px clamp(20px, 4vw, 48px) !important;
+  border-radius: 36px 36px 0 0;
+  background: rgba(232, 234, 215, 0.78);
+}
+
+.season04-curated > h2 {
+  color: var(--window-forest-deep);
+}
+
+.season04-footer {
+  color: var(--window-cream);
+  border-top-color: rgba(245, 240, 232, 0.22) !important;
+  background: var(--window-forest-deep);
+  box-shadow: 0 0 0 100vmax var(--window-forest-deep);
+  clip-path: inset(0 -100vmax);
+}
+
+.season04-footer a:hover {
+  color: var(--window-sun);
+}
+
+.season04-menu-page {
+  color: var(--window-ink);
+  background:
+    radial-gradient(circle at 90% 0%, rgba(215, 198, 120, 0.26), transparent 26rem),
+    var(--window-cream) !important;
+}
+
+.season04-menu-page > * {
+  width: min(1120px, 100%);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.season04-menu-header {
+  position: relative;
+  min-height: 260px;
+  margin-bottom: 34px !important;
+  overflow: hidden;
+  align-items: flex-end !important;
+  padding: clamp(24px, 5vw, 52px);
+  color: var(--window-cream);
+  border-radius: 28px;
+  background:
+    linear-gradient(90deg, rgba(22, 38, 24, 0.9) 0%, rgba(22, 38, 24, 0.38) 64%, rgba(22, 38, 24, 0.12) 100%),
+    image-set(
+      url('/assets/season-04/pause-desktop.avif') type('image/avif'),
+      url('/assets/season-04/pause-desktop.webp') type('image/webp')
+    ) center 43% / cover;
+  box-shadow: var(--window-shadow);
+}
+
+.season04-menu-header > div,
+.season04-menu-header > a {
+  position: relative;
+  z-index: 1;
+}
+
+.season04-menu-header h1 {
+  margin-top: 8px;
+  font-size: clamp(1.8rem, 5vw, 3.2rem) !important;
+  letter-spacing: -0.045em;
+}
+
+.season04-menu-header p {
+  max-width: 520px;
+  margin-top: 10px;
+  color: rgba(245, 240, 232, 0.82);
+}
+
+.season04-menu-header > a {
+  padding: 9px 14px;
+  color: var(--window-forest-deep);
+  border-radius: 999px;
+  background: var(--window-sun);
+  font-weight: 700;
+  text-decoration: none !important;
+}
+
+.season04-menu-curation {
+  margin-bottom: 28px;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid rgba(215, 198, 120, 0.46);
+  border-radius: 24px;
+  color: var(--window-cream);
+  background:
+    radial-gradient(circle at 94% 12%, rgba(215, 198, 120, 0.2), transparent 18rem),
+    linear-gradient(135deg, rgba(31, 47, 31, 0.96), rgba(48, 79, 47, 0.9));
+  box-shadow: 0 18px 44px rgba(31, 47, 31, 0.18);
+}
+
+.season04-menu-curation-kicker {
+  margin-bottom: 12px;
+  color: var(--window-sun);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+}
+
+.season04-menu-curation h3 {
+  margin: 0 0 12px;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+  letter-spacing: -0.035em;
+}
+
+.season04-menu-curation p {
+  max-width: 760px;
+  margin: 0;
+  color: rgba(245, 240, 232, 0.82);
+  line-height: 1.8;
+}
+
+.season04-menu-content .menu-category {
+  margin-bottom: 28px !important;
+  padding: 24px;
+  border: 1px solid rgba(48, 79, 47, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 253, 247, 0.68);
+}
+
+.season04-menu-content .menu-category-toggle {
+  margin-bottom: 18px !important;
+}
+
+.season04-menu-category-curation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: baseline;
+  max-width: 760px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(48, 79, 47, 0.12);
+}
+
+.season04-menu-category-axis {
+  color: var(--window-forest);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+}
+
+.season04-menu-category-note {
+  color: rgba(43, 32, 24, 0.7);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.season04-menu-content .menu-item {
+  padding: 14px;
+  border: 1px solid rgba(48, 79, 47, 0.12) !important;
+  background: rgba(255, 253, 247, 0.88) !important;
+  box-shadow: 0 8px 22px rgba(31, 47, 31, 0.06) !important;
+}
+
+.season04-menu-content .menu-item:hover {
+  border-color: rgba(88, 115, 55, 0.42) !important;
+  box-shadow: 0 14px 30px rgba(31, 47, 31, 0.11) !important;
+}
+
+.season04-menu-modal {
+  background: rgba(22, 38, 24, 0.72) !important;
+  backdrop-filter: blur(12px);
+}
+
+.season04-menu-modal-card {
+  color: var(--window-ink);
+  border: 1px solid rgba(215, 198, 120, 0.5);
+  background: var(--window-cream) !important;
+  box-shadow: 0 28px 80px rgba(13, 27, 16, 0.38) !important;
+}
+
+.season04-menu-modal-card .modal-header {
+  border-bottom-color: rgba(48, 79, 47, 0.16);
+  background:
+    linear-gradient(90deg, rgba(232, 234, 215, 0.9), rgba(245, 240, 232, 0.96));
+}
+
+.season04-menu-modal-card .modal-body {
+  background: var(--window-cream);
+}
+
+.season04-menu-modal-card .menu-category-toggle {
+  color: var(--window-forest-deep);
+}
+
+.season04-menu-modal-card .menu-item {
+  border-color: rgba(48, 79, 47, 0.14) !important;
+  background: rgba(255, 253, 247, 0.86) !important;
+}
+
+@keyframes window-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.035);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 767px) {
+  .season04-hero {
+    padding-top: 20px !important;
+  }
+
+  .season04-hero-stage {
+    min-height: 720px;
+    border-radius: 24px;
+  }
+
+  .season04-hero-stage::after {
+    background:
+      linear-gradient(0deg, rgba(18, 35, 23, 0.92) 0%, rgba(18, 35, 23, 0.32) 68%, rgba(18, 35, 23, 0.12) 100%);
+  }
+
+  .season04-hero-copy {
+    justify-content: flex-end;
+    padding: 28px 24px 42px;
+  }
+
+  .season04-exhibition-badge {
+    margin-bottom: auto !important;
+    padding: 14px !important;
+  }
+
+  .season04-hero .header-bird {
+    top: 18px;
+    right: 18px;
+    width: 54px;
+  }
+
+  .season04-hero-logo h1 {
+    font-size: clamp(2.5rem, 14vw, 4rem) !important;
+  }
+
+  .season04-actions {
+    grid-template-columns: 1fr;
+    width: calc(100vw - 56px);
+    margin-top: -28px;
+  }
+
+  .season04-actions .btn-entry:last-child {
+    grid-column: auto;
+  }
+
+  .season04-journey {
+    min-height: 820px !important;
+    padding: 30px 18px !important;
+    border-radius: 24px !important;
+    background-image: url('/assets/season-04/journey-mobile.webp') !important;
+    background-position: center !important;
+  }
+
+  .season04-journey-overlay {
+    background: linear-gradient(0deg, rgba(22, 38, 24, 0.88) 0%, rgba(22, 38, 24, 0.2) 76%) !important;
+  }
+
+  .season04-journey > div:nth-of-type(2) {
+    margin-top: auto;
+  }
+
+  .season04-pause-visual {
+    min-height: 680px;
+    border-radius: 24px;
+  }
+
+  .season04-pause-visual::after {
+    background: linear-gradient(0deg, rgba(20, 36, 22, 0.9) 0%, rgba(20, 36, 22, 0.05) 62%);
+  }
+
+  .season04-pause-copy {
+    bottom: 26px;
+    left: 24px;
+    width: calc(100% - 48px);
+  }
+
+  .season04-pause-copy h2 {
+    font-size: clamp(3rem, 18vw, 4.5rem);
+  }
+
+  .season04-curated {
+    padding: 44px 18px !important;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .season04-menu-page {
+    padding: 12px !important;
+    padding-bottom: 120px !important;
+  }
+
+  .season04-menu-header {
+    min-height: 320px;
+    align-items: flex-end !important;
+    padding: 24px;
+    border-radius: 22px;
+    background:
+      linear-gradient(0deg, rgba(22, 38, 24, 0.9) 0%, rgba(22, 38, 24, 0.1) 72%),
+      url('/assets/season-04/pause-mobile.webp') center / cover;
+  }
+
+  .season04-menu-header > a {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+  }
+
+  .season04-menu-curation {
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  .season04-menu-category-curation {
+    display: block;
+  }
+
+  .season04-menu-category-note {
+    display: block;
+    margin-top: 6px;
+  }
+
+  .season04-menu-content .menu-category {
+    padding: 18px 14px;
+    border-radius: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .season04-hero-art img {
+    animation: none;
+  }
+}

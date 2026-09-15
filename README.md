@@ -141,14 +141,18 @@ GitHub remote 目前仍為 `Tsukishima168/moon_map_original`，本次只做本�
 
 ## 🌈 Design System
 
-### Brand Colors
+### Season 04 Brand Colors
 
 ```css
---c-cream: #F8F8F8        /* 奶油白 */
---c-black: #000000        /* 情緒黑 */
---c-yellow: #D8E038       /* 月光黃 */
---c-blue: #5878F0         /* 島嶼藍 */
+--window-forest-deep: #1F2F1F; /* 深林綠 */
+--window-forest: #304F2F;      /* 主綠 */
+--window-leaf: #587337;        /* 葉綠 */
+--window-moss: #7A893C;        /* 苔綠，僅用於裝飾 */
+--window-sun: #D7C678;         /* 窗光金 */
+--window-cream: #F5F0E8;       /* 奶油白 */
 ```
+
+完整規格見 [`docs/DESIGN-SYSTEM.md`](docs/DESIGN-SYSTEM.md)。
 
 ### Responsive Breakpoints
 

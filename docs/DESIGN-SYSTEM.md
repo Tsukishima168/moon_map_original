@@ -1,62 +1,93 @@
-# Moon Map 設計系統契約 — Season 03.5「銀月夜」
+# Moon Map 設計系統契約 — Season 04「甜點目錄」
 
-> 建立：2026-07-12（全面升級輪）。來源：index.tsx 實碼抽取＋Penso 拍板。
-> 2026-07-12 Season 03.5 換裝：Penso 拍板「更深的夜＋銀月光」，只換季節強調層（nightBlue 系＋moonYellow），creamWhite/emotionBlack 不動。
-> 規則：改 UI 前先讀本檔。使用下列 token，不准發明新色值/新圓角/新緩動曲線；要新增系統值先問 Penso。
+> 更新：2026-09-07。來源：窗邊計畫三份印刷主視覺＋`index.tsx` 現有功能契約。
+> 本季只重塑 Map 的季節敘事層，不改 Kiwimu Universe 五站導覽、菜單資料來源、購物車、結帳、登入、定位與彩蛋契約。
 
-## 色彩（唯一權威：index.tsx CONFIG.BRAND_COLORS）
+## 設計命題
+
+**WONDER → JOURNEY → PAUSE**
+
+「窗邊計畫」是本季入口結構；「甜點目錄 / Dessert Menu」是這次綠色系列對外最直覺的菜單名稱。訪客從好奇進入一個綠色世界，沿著光與階梯前進，最後在甜點旁停一下。綠色是環境，不是所有元件的填色；商品與表單仍使用奶油白表面確保閱讀與轉換。
+
+## 策展分層
+
+| 分類 | 策展軸線 | 文案角色 |
+|---|---|---|
+| 提拉米蘇 | 奶油的陰影 | 咖啡、乳酪與酒香疊成窗邊的深色記憶 |
+| 巴斯克乳酪 | 焦糖的土壤 | 烘烤邊緣留下焦香，中心保持柔軟 |
+| 戚風蛋糕 | 果實的光 | 鮮奶油、果酸與空氣感，讓綠光變得輕 |
+| 千層蛋糕 | 時間的層次 | 一層一層切開時間，茶、奶油與果香在切面裡停住 |
+| 乾濕分離布丁 | 安靜的甜 | 把焦糖和蛋奶分開，留一點選擇給今天的自己 |
+| 店內飲品 | 茶與咖啡的流動 | 抹茶、焙茶、花草與咖啡，把窗邊的停頓延長 |
+
+## 色彩（唯一權威：`index.tsx` 的 `CONFIG.BRAND_COLORS`）
 
 | Token | 值 | 角色 |
 |---|---|---|
-| creamWhite | `#F5F0E8` | 背景/表面；夜卡文字基色 |
-| emotionBlack | `#2B2018` | 文字主色（`--c-black`） |
-| moonSilver | `#C9CDD8` | 深底強調（夜間卡/深色 modal/黑框印章鈕底＋黑字組合）；黑字對比 13.2:1 |
-| moonShadow | `#5A6B8C` | 淺底強調（奶油白/白底上的標題底線、標籤文字、hover 光暈、純裝飾邊框/漸層飾條）；對 `#F5F0E8` 對比 4.72:1（實算，≥3:1 達標） |
-| islandBlue | `#C4745A` | 次強調（命名誤植，實為橘紅；`--c-blue`）；hover 加深用 `#A85D46` |
-| grayText | `#7A6A5A` | 次階文字（`--c-gray`） |
-| grayLine | `#E8E0D6` | 分隔線/表單框（`--c-line`） |
-| nightBlue → nightBlueDeep | `#1B2340` → `#111830` | S03.5 夜間漸層加深版（165°/175°），僅 Season Story 卡與心情展籤 modal |
-| --c-line-brand / -alt | `#06C755` / `#00B900` | LINE 第三方品牌色（固定，不歸品牌板） |
+| creamWhite | `#F5F0E8` | 商品卡、表單、長文與淺色表面 |
+| emotionBlack | `#2B2018` | 淺底主要文字 |
+| moonSilver / windowSun | `#D7C678` | 窗光、選取狀態、深綠底重點 |
+| moonShadow / windowLeaf | `#587337` | 淺底標籤、底線、focus 與進度 |
+| islandBlue / windowForest | `#304F2F` | 主 CTA、主題表面；舊 key 為相容性保留 |
+| grayText | `#5F6856` | 次階文字 |
+| grayLine | `#D8D7C4` | 分隔線與表單框 |
+| nightBlue / windowForest | `#304F2F` | 深色漸層起點；舊 key 為相容性保留 |
+| nightBlueDeep / windowForestDeep | `#1F2F1F` | 深綠底、頁尾、主 CTA |
+| windowMoss | `#7A893C` | 純裝飾，不承載小字 |
+| --c-line-brand / -alt | `#06C755` / `#00B900` | LINE 第三方品牌色，固定不改 |
 
-### moonSilver / moonShadow 分流準則（2026-07-12 對比度審查）
+### 對比準則
 
-- **判準**：該處背景深或淺，以及 moonYellow 舊值是否直接托著文字。
-- 深底（夜間卡、深色 modal、黑框印章鈕的底，通常搭配黑字/emotionBlack 字）→ `moonSilver`。emotionBlack 對 moonSilver 對比 9.98:1；純黑對 moonSilver 對比 13.2:1。
-- 淺底且為純裝飾（邊框線、底線、outline 環、進度條、低透明度漸層飾條，無文字直接疊在色塊上）→ `moonShadow`。moonShadow 對 `#F5F0E8` 對比 4.72:1，對白底 5.36:1。
-- 淺底且作為文字前景色（標題強調字、mono 標籤文字）→ `moonShadow` 當文字色，對 creamWhite/白底 4.72–5.36:1，通過 AA。
-- 例外：展籤/任務卡下載圖（SVG 白底卡＋黑框＋黑字 coupon banner）→ 判讀後選 `moonSilver`：黑字在 moonShadow 上僅 3.9:1，小字（10–13px）會落到 AA 門檻以下；moonSilver 上黑字 13.2:1 穩過，且該色塊本身有 2px 黑色實框做視覺分界，不需仰賴底色對比與奶油白區分。
+- 奶油白 `#F5F0E8` 對森林深綠 `#1F2F1F`：12.47:1。
+- 奶油白對窗景綠 `#304F2F`：8.10:1。
+- 森林深綠對日光黃 `#D7C678`：8.24:1。
+- 苔光綠 `#7A893C` 對奶油白只有 3.38:1，只能作大面積裝飾或非文字圖形。
 
-- 夜間區塊文字一律 `rgba(245,240,232, α)` 階梯（α 0.1–0.9），不用純白。
-- 玻璃感變數：`--glass-white-light/medium/strong`、`--shadow-glass`、`--shadow-glow-blue/yellow`。
+## 三幕素材
+
+| 幕 | 素材 | 使用位置 |
+|---|---|---|
+| WONDER | `wonder-desktop.avif/webp`、`wonder-mobile.webp` | 首屏 Hero |
+| JOURNEY | `journey-desktop.avif/webp`、`journey-mobile.webp` | Island Hours／狀態選擇 |
+| PAUSE | `pause-desktop.avif/webp`、`pause-mobile.webp` | 菜單入口與 `/menu` 頁首 |
+
+- 圖片放在 `public/assets/season-04/`。
+- 印刷 PDF 不可直接上線。
+- 圖片中的文字只作視覺元素；主標、說明與 CTA 必須另有 HTML 文字。
+- 手機使用專屬裁切，不能依賴桌機圖 `object-fit: cover` 自動取景。
 
 ## 字體
 
-- 全站：`"Noto Sans TC", -apple-system, …, sans-serif`（唯一載入的中文字體，400/500/700）。
-- 標籤/系統感：`.font-mono`（Menlo 鏈＋`letter-spacing:.05em`＋uppercase）。
-- 引語/展籤：泛型 `serif`（僅心情展籤一處用 `"Noto Serif TC", serif`）。
-- 字重統一寫數字（700），不寫 `'bold'`。
+- 中文與正文：`"Noto Sans TC"`，400 / 500 / 700。
+- 系統標籤：既有 Menlo / Monaco mono stack，uppercase、`letter-spacing: .05em`。
+- WONDER / JOURNEY / PAUSE 的特殊字形由印刷主視覺承擔，不新增顯示字體依賴。
+- 引語與展籤維持既有 serif 策略。
 
-## 間距與形狀
+## 版面與元件
 
-- 容器：max-width 600/720/800px（mobile/768/1024），section padding 60/80px。
-- 間距事實標準：8/10/12/15/20/25/30px（含 15/25 兩個非 8-grid 的歷史標準值，沿用）。
-- 圓角三級：8 / 12 / 20px；pill 用 `999px`；圓形 `50%`。btn-primary 專屬 40px。
-- 陰影兩家族：柔光 `0 Npx Mpx rgba(0,0,0,.03–.25)`；硬邊貼紙 `--shadow-stamp`（3px 3px 0 rgba(0,0,0,.2)）/ `--shadow-stamp-strong`（4px 4px 0 rgba(0,0,0,.6)）。
-- 復古印章語彙：`2px solid #000` 黑框＋貼紙陰影＋moonSilver 底（S03.5 展籤 CTA，深底/黑框印章鈕家族統一用 moonSilver）。
+- 敘事圖像可以突破 800px 內容欄，最大約 1180px。
+- 功能內容維持既有 600 / 720 / 800px 容器。
+- Hero、Journey、Pause 使用 24–36px 大圓角；商品卡、表單與小元件維持 8 / 12 / 20px 階級。
+- `/menu` 以奶油白商品卡為主，綠色只用於頁首、分類層級、選取狀態與 CTA。
+- 黑色 Kiwimu Universe 導覽列保持不變；Map active 狀態沿用跨站 lime。
 
 ## 動效
 
-- 預設過渡：`all .3s ease`。
-- 曲線 token：`--ease-ui`（cubic-bezier(.4,0,.2,1)，UI 反饋類）／`--ease-playful`（cubic-bezier(.175,.885,.32,1.275)，彩蛋/驚喜類）。
-- 全域已掛 `prefers-reduced-motion: reduce` 降級——新動畫不用另外處理，但不准移除該規則。
+- 首屏只做一次 1.2 秒影像 settle，不做循環視差。
+- 互動元件沿用 `--ease-ui` 與 `--ease-playful`。
+- 所有新動效受全域 `prefers-reduced-motion` 規則降級。
 
-## Penso 拍板：以下為刻意設計，不准「順手修正」（2026-07-12）
+## 不可破壞
 
-1. 蠟封血紅 `#8b0000`/`#5d0000` — 保留，彩蛋戲劇色。
-2. 必填星號 `color:'red'` — 保留，不定義 --c-error。
-3. 兩套金色/警示黃家族（#FFD700 系、#fff3cd 系）— 各自保留，不合併。moonYellow 已於 2026-07-12 Season 03.5 換裝退場，拆分為 moonSilver/moonShadow（見上方分流準則），不再屬「拍板保留」清單。
-4. 引語體維持泛型 `serif`，不全站載入 Noto Serif TC（效能考量）。
+1. 不改 `/api/menu`、Supabase menu contract、stable item id 與 fallback。
+2. 不改購物車、結帳、LINE 導購、Discord 通知與訂單 persistence。
+3. 不改 Passport 登入、GPS 徽章與 9 顆彩蛋的 reward id。
+4. 不把桌機大圖直接套用到手機。
+5. 不讓裝飾文字取代可存取的 HTML 標題。
 
-## 記債（升級輪未做，動工前先問）
+## 驗收尺寸
 
-- index.tsx 巨石全拆（5400 行）／品名字串映射收斂 ID-based／letter-spacing px→em 統一／圓角與間距孤兒值併級／訂單 API 速率限制／Sentry 錯誤監控。
+- Mobile：390 × 844。
+- Tablet：768 × 1024。
+- Desktop：1440 × 900。
+- 驗證 `npm run vercel-build`、`npx tsc --noEmit`、首頁與 `/menu` 的 console error、菜單加入購物車與結帳入口。

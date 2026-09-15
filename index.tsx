@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import KiwimuUniverseRail from './components/KiwimuUniverseRail';
 import './styles/kiwimu-universe.css';
+import './styles/window-plan.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -58,18 +59,18 @@ const getInitialUrlSearch = () => {
 const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
-  TAGLINE: "每一季一個主題。你路過，也算參展。",
-  CURRENT_SEASON: "Season 03: The Island After Dark（島嶼・月升之後）",
+  TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
+  CURRENT_SEASON: "Season 04: 甜點目錄｜Green Dessert Collection",
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',
     emotionBlack: '#2B2018',
-    moonSilver: '#C9CDD8',
-    moonShadow: '#5A6B8C',
-    islandBlue: '#C4745A',
-    grayText: '#7A6A5A',
-    grayLine: '#E8E0D6',
-    nightBlue: '#1B2340',
-    nightBlueDeep: '#111830',
+    moonSilver: '#D7C678',
+    moonShadow: '#587337',
+    islandBlue: '#304F2F',
+    grayText: '#5F6856',
+    grayLine: '#D8D7C4',
+    nightBlue: '#304F2F',
+    nightBlueDeep: '#1F2F1F',
   },
   LINKS: {
     preorder_pickup_url: "https://map.kiwimu.com/menu",
@@ -78,7 +79,7 @@ const CONFIG = {
     passport_url: "https://passport.kiwimu.com",
     line_url: "https://lin.ee/MndRHE2",
     mbti_lab_url: "https://kiwimu.com",
-    spotify_url: "https://open.spotify.com/playlist/4GvSWtZD5YiJdIu7M8e9Ei",
+    spotify_url: "https://open.spotify.com/playlist/1Cw8MbGrZgQHHJngRhzX0O",
     wallpaper_url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg",
     easter_egg_reward_url: "#wallpaper-section",
     line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
@@ -89,6 +90,33 @@ const CONFIG = {
     liff_id: "2008848603-ANGQX0GN",
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
+};
+
+const MENU_CURATION_NOTES: Record<string, { axis: string; note: string }> = {
+  tiramisu: {
+    axis: '奶油的陰影',
+    note: '咖啡、乳酪與酒香疊成窗邊的深色記憶。',
+  },
+  basque: {
+    axis: '焦糖的土壤',
+    note: '烘烤邊緣留下焦香，中心保持柔軟。',
+  },
+  chiffon: {
+    axis: '果實的光',
+    note: '鮮奶油、果酸與空氣感，讓綠光變得輕。',
+  },
+  mille_crepe: {
+    axis: '時間的層次',
+    note: '一層一層切開時間，茶、奶油與果香在切面裡停住。',
+  },
+  pudding: {
+    axis: '安靜的甜',
+    note: '把焦糖和蛋奶分開，留一點選擇給今天的自己。',
+  },
+  drinks: {
+    axis: '茶與咖啡的流動',
+    note: '抹茶、焙茶、花草與咖啡，把窗邊的停頓延長。',
+  },
 };
 
 // Wallpaper assets (Cloudinary)
@@ -107,16 +135,16 @@ const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
 const FORTUNES = [
-  { level: '大吉', text: '今晚的月亮很圓，你的煩惱很扁。' },
-  { level: '中吉', text: '白天流的汗，晚上會變成吃甜點的正當理由。' },
-  { level: '小吉', text: '熱到融化沒關係，月升之後都會重新成形。' },
-  { level: '吉', text: '今天的運氣，適合把冷氣留給自己，把甜點留給現在。' },
-  { level: '大吉', text: '願你的桃花，像台南的夏夜一樣，又長又亮。' },
+  { level: '大吉', text: '今天的光會找到你，不用站得特別顯眼。' },
+  { level: '中吉', text: '慢一點走，下一個轉角可能剛好有甜點。' },
+  { level: '小吉', text: '葉子沒有催你長大，今天也不用急。' },
+  { level: '吉', text: '適合靠近窗邊，也適合把手機放遠一點。' },
+  { level: '大吉', text: '你正在走的路，比你以為的更接近光。' },
   { level: '中吉', text: '事情可以明天再做，布丁不行，它今天最好吃。' },
-  { level: '吉', text: '老闆說，轉到這張的人，今晚會睡得特別好。' },
-  { level: '小吉', text: '月亮不趕時間，你也不用。' },
-  { level: '大吉', text: '恭喜，下半年的財運跟中秋的月亮一樣圓。' },
-  { level: '隱藏版', text: 'Kiwimu 偷偷把今晚的月亮調亮了一點，因為你來了。' },
+  { level: '吉', text: '今天會有一個小小的好消息，可能還帶著奶油。' },
+  { level: '小吉', text: '光不趕時間，你也不用。' },
+  { level: '大吉', text: '願你走過的地方，都留下一點溫柔的綠。' },
+  { level: '隱藏版', text: 'Kiwimu 偷偷把窗邊的光調亮了一點，因為你來了。' },
 ];
 const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
 const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
@@ -234,33 +262,33 @@ const STATE_DATA: Record<string, {
   recommendedItemIds: MenuItemId[];
 }> = {
   noon: {
-    title: "還是白天 / 12:00",
-    advice: "太陽在頭頂上，一天最亮的時候。離月升還很久，先想好等等要吃什麼。",
-    mission: "點一杯冰的，跟夏天講和五分鐘。",
+    title: "光剛落進來 / 12:00",
+    advice: "窗邊剛亮起來，綠色還很安靜。先讓眼睛停一下，再想今天想吃什麼。",
+    mission: "找一個有光的位置，替今天留一小塊空白。",
     recommendedItemIds: ['basque_classic', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic']
   },
   open: {
-    title: "開門避暑 / 13:00",
-    advice: "門開了，冷氣跟甜點都醒了。外面是夏天，裡面可以先假裝是晚上。",
-    mission: "進門先深呼吸一口涼的，再決定要坐哪。",
+    title: "沿著綠光走 / 13:00",
+    advice: "門開了，甜點與葉影一起醒來。順著光走，不需要急著決定目的地。",
+    mission: "慢一點進門，看看今天第一個吸引你的角落。",
     recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_honey_black_tea']
   },
   three: {
-    title: "最熱一刻 / 15:00",
-    advice: "全島最熱的一刻。不要跟太陽硬碰硬，把自己交給甜點。",
-    mission: "吃一口冰的，替 Kiwimu 感受一下不會融化的感覺。",
+    title: "葉影最深 / 15:00",
+    advice: "光穿過葉片，留下深深淺淺的影子。你也可以暫時不用把事情看得太清楚。",
+    mission: "選一份有層次的甜點，慢慢吃到心裡安靜下來。",
     recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'mille_crepe_matcha']
   },
   golden: {
-    title: "天色讓步 / 17:00",
-    advice: "光開始退了，熱也是。今天最好的部分正要開始。",
-    mission: "看一眼窗外的天色，猜猜月亮幾點到。",
+    title: "窗邊變金 / 17:00",
+    advice: "綠色裡多了一點金。今天不必重新開始，只要在這裡接住剩下的光。",
+    mission: "看一眼窗邊，把今天值得留下的片刻記住。",
     recommendedItemIds: ['tiramisu_baileys', 'basque_classic', 'tiramisu_matcha']
   },
   closing: {
-    title: "月亮接班 / 18:00",
-    advice: "店要關了，月亮要上班了。融化的都會重新成形，包括你。",
-    mission: "帶一份甜點回家，把這個晚上留給自己。",
+    title: "在甜點旁停下 / 18:00",
+    advice: "路走到這裡，不需要再趕。讓一份甜點替今天收尾，讓自己停在剛好的地方。",
+    mission: "帶一份甜點回家，也把這段綠光帶走。",
     recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
   }
 };
@@ -2101,7 +2129,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   // 甜點目錄區塊（modal 與 /menu 僅目錄頁共用）
   const menuBodyContent = (
-    <div>
+    <div className="menu-catalog">
       {/* Personalized Welcome Banner */}
       {mbtiType && menuMbtiRecommendation && (
         <div style={{
@@ -2140,16 +2168,29 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </div>
       )}
 
+      <section className="season04-menu-curation" aria-label="甜點目錄策展說明">
+        <div className="font-mono season04-menu-curation-kicker">
+          CURATION / DESSERT MENU
+        </div>
+        <h3>甜點不是被陳列，是被光慢慢養出來。</h3>
+        <p>
+          這一季以「窗邊計畫」作為入口，把綠色系列整理成一份清楚好選的甜點目錄。
+          茶的深綠、果實的光、奶油的陰影與安靜的甜，會在灰黑桌面、黑盤與窗影裡慢慢展開。
+        </p>
+      </section>
+
       {menuCategories.map((cat) => {
         const isCollapsed = collapsedCategories.has(cat.id);
+        const curationNote = MENU_CURATION_NOTES[cat.id];
 
         // Check if category has recommended items to show indicator
         const recItemIds = menuMbtiRecommendation?.recommendedItemIds ?? [];
         const hasRecommendation = recItemIds.some((recId) => cat.items.some((item) => item.id === recId));
 
         return (
-          <div key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
+          <div className="menu-category" key={cat.id} style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
             <div
+              className="menu-category-toggle"
               onClick={() => toggleCategory(cat.id)}
               role="button"
               tabIndex={0}
@@ -2188,6 +2229,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
                   {cat.subtitle}
                 </div>
+                {curationNote && (
+                  <div className="season04-menu-category-curation">
+                    <span className="font-mono season04-menu-category-axis">{curationNote.axis}</span>
+                    <span className="season04-menu-category-note">{curationNote.note}</span>
+                  </div>
+                )}
               </div>
               <div style={{ fontSize: '1.5rem', fontWeight: 300, transform: isCollapsed ? 'rotate(0deg)' : 'rotate(45deg)', transition: 'transform 0.3s', lineHeight: 1 }}>
                 +
@@ -2340,8 +2387,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           /* Shadows */
           --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
           --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.12);
-          --shadow-glow-blue: 0 0 20px rgba(88, 120, 240, 0.3);
-          --shadow-glow-yellow: 0 0 20px rgba(216, 224, 56, 0.4);
+          --shadow-glow-blue: 0 0 20px rgba(48, 79, 47, 0.3);
+          --shadow-glow-yellow: 0 0 20px rgba(215, 198, 120, 0.4);
           --shadow-stamp: 3px 3px 0 rgba(0, 0, 0, 0.2);
           --shadow-stamp-strong: 4px 4px 0 rgba(0, 0, 0, 0.6);
 
@@ -2468,7 +2515,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           background: var(--glass-white-strong);
           backdrop-filter: blur(20px) saturate(200%);
           box-shadow: var(--shadow-glass-hover),
-                      0 0 0 1px rgba(88, 120, 240, 0.2),
+                      0 0 0 1px rgba(88, 115, 55, 0.24),
                       inset 0 1px 0 rgba(255, 255, 255, 0.8);
           transform: translateY(-4px);
         }
@@ -2490,7 +2537,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           transition: background 0.2s, box-shadow 0.2s;
         }
         .btn-primary:hover {
-          background: #A85D46;
+          background: ${CONFIG.BRAND_COLORS.nightBlueDeep};
           box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
@@ -2753,10 +2800,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
       `}</style>
 
-      <div className="container">
+      <div className="container season04-shell">
         {/* 僅甜點目錄網址 /menu：全螢幕目錄，購物車與結帳 modal 仍在上層 */}
         {onlyMenuView && (
-          <div style={{
+          <div className="season04-menu-page" style={{
             position: 'fixed',
             top: 'var(--ku-rail-height)',
             left: 0,
@@ -2768,8 +2815,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             padding: '20px',
             paddingBottom: '120px'
           }}>
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>月島甜點 | 甜點目錄</h1>
+            <header className="season04-menu-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <span className="font-mono" style={{ fontSize: '0.72rem', letterSpacing: '0.18em', color: CONFIG.BRAND_COLORS.moonSilver }}>DESSERT MENU · SEASON 04</span>
+                <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>甜點目錄</h1>
+                <p>把本季甜點整理成清楚好選的綠色系列。茶、奶油、果實與咖啡在窗影裡慢慢展開，挑一份今天想停下來的味道。</p>
+              </div>
               <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
             </header>
 
@@ -2812,7 +2863,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
             {/* 正常或 fallback 菜單內容 */}
             {!loadingMenu && menuCategories.length > 0 && (
-              <div>
+              <div className="season04-menu-content">
                 {menuBodyContent}
               </div>
             )}
@@ -2880,9 +2931,18 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         )}
 
         {/* A. HERO */}
-        <header style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
+        <header className="season04-hero" style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
+          <div className="season04-hero-stage">
+            <div className="season04-hero-art" aria-hidden="true">
+              <picture>
+                <source media="(max-width: 767px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
+                <source srcSet="/assets/season-04/wonder-desktop.avif" type="image/avif" />
+                <img src="/assets/season-04/wonder-desktop.webp" alt="" decoding="async" fetchPriority="high" />
+              </picture>
+            </div>
+            <div className="season04-hero-copy">
           {/* CURRENT EXHIBITION BANNER - Moved to Top */}
-          <div style={{
+          <div className="season04-exhibition-badge" style={{
             marginBottom: '30px',
             padding: '20px',
             background: CONFIG.BRAND_COLORS.moonSilver,
@@ -2891,7 +2951,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             boxShadow: 'var(--shadow-stamp)',
             position: 'relative'
           }}>
-            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q1</span>
+            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q3</span>
             <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
 
             {/* Gold Coin Egg (Hidden in Yellow Background) */}
@@ -2911,8 +2971,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
-          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>03 / Island guide</div>
-          <div className="font-mono" style={{
+          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Window plan</div>
+          <div className="font-mono season04-hero-utility" style={{
             marginBottom: '10px',
             fontSize: '0.8rem',
             display: 'flex',
@@ -2978,15 +3038,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
 
           {/* Logo Integration */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+          <div className="season04-hero-logo" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
             <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" decoding="async" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
-              Island Landing
+              Dessert Menu
             </h1>
           </div>
 
-          <p style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px', position: 'relative' }}>
+          <p className="season04-hero-tagline" style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px', position: 'relative' }}>
             {CONFIG.TAGLINE}
+            <strong>從窗邊開始，把抹茶、柚子、焙茶、咖啡與奶油整理成一座可以停留的綠色小溫室。</strong>
             {/* Easter Egg #5 - 島主筆記 */}
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
@@ -3009,7 +3070,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
             />
           </p>
+            </div>
+          </div>
 
+          <div className="season04-actions">
           <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>01 // INTERACT</span>
@@ -3037,7 +3101,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>03 // MUSIC</span>
-              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>聽這一季音樂 (月升之後)</strong>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>聽一段綠光裡的音樂</strong>
             </div>
             <span>↓</span>
           </button>
@@ -3083,14 +3147,15 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
             <span>↗</span>
           </button>
+          </div>
         </header>
 
         {/* B. EXHIBITION STORY */}
-        <section className="section-padding border-y" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
-          <h2 className="font-mono" style={{ marginBottom: '30px', textAlign: 'center' }}>ABOUT THIS EXHIBITION</h2>
+        <section className="section-padding border-y season04-story" style={{ background: 'white', position: 'relative', overflow: 'hidden' }}>
+          <h2 className="font-mono season04-section-heading" style={{ marginBottom: '30px', textAlign: 'center' }}>DESSERT MENU / 甜點目錄</h2>
 
-          {/* Season Story — Season 03 夜卡：整站唯一深色區塊 */}
-          <div style={{ marginBottom: '40px', padding: '30px', background: `linear-gradient(165deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)`, borderRadius: '12px', border: '1px solid rgba(201, 205, 216, 0.35)', position: 'relative', overflow: 'hidden' }}>
+          {/* Season 04 story card: the narrative bridge from Wonder to Journey */}
+          <div className="season04-story-card" style={{ marginBottom: '40px', padding: '30px', background: `linear-gradient(165deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)`, borderRadius: '12px', border: '1px solid rgba(201, 205, 216, 0.35)', position: 'relative', overflow: 'hidden' }}>
             {/* 月亮 */}
             <div aria-hidden="true" style={{
               position: 'absolute',
@@ -3103,19 +3168,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               boxShadow: `0 0 24px 8px rgba(201, 205, 216, 0.35)`,
               pointerEvents: 'none'
             }} />
-            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.moonSilver, paddingRight: '60px' }}>Season 03: The Island After Dark（島嶼・月升之後）</h3>
+            <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.moonSilver, paddingRight: '60px' }}>{CONFIG.CURRENT_SEASON}</h3>
             <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: 'rgba(245, 240, 232, 0.85)' }}>
               <p style={{ marginBottom: '15px' }}>
-                這一季，<strong style={{ color: CONFIG.BRAND_COLORS.creamWhite }}>月升之後</strong>。
+                「窗邊計畫」是一扇入口；這次的綠色系列，我們把它整理成一份<strong style={{ color: CONFIG.BRAND_COLORS.creamWhite }}>甜點目錄</strong>。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                白天太亮，什麼都藏不住；太熱，什麼都留不住。
+                甜點在這裡像標本，也像正在呼吸的日常。抹茶、柚子、綠葡萄、焙茶與咖啡，不必都長成同一種綠，而是一起留下光的層次。
               </p>
               <p style={{ marginBottom: '15px' }}>
-                所以島嶼決定，把重要的事留給晚上。<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonSilver}`, color: CONFIG.BRAND_COLORS.creamWhite }}>融化的，會在月升之後重新成形</span>。
+                不必急著抵達。<span style={{ borderBottom: `2px solid ${CONFIG.BRAND_COLORS.moonSilver}`, color: CONFIG.BRAND_COLORS.creamWhite }}>挑一份今天願意停下來的甜點</span>，就算完成一次小小的參展。
               </p>
               <p>
-                選一份甜點，陪你把今天涼下來。
+                WONDER 是看見光的第一秒，JOURNEY 是沿著味道前進，PAUSE 是把時間留在甜點旁。
               </p>
             </div>
             {/* Easter Egg #1 - 北海道誕生 */}
@@ -3143,7 +3208,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
 
           {/* Moon Moon Story */}
-          <div style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonShadow}`, position: 'relative' }}>
+          <div className="season04-brand-note" style={{ padding: '25px', background: CONFIG.BRAND_COLORS.creamWhite, borderLeft: `4px solid ${CONFIG.BRAND_COLORS.moonShadow}`, position: 'relative' }}>
             <h3 className="font-mono" style={{ fontSize: '1.1rem', marginBottom: '15px' }}>MOON MOON 月島甜點店</h3>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666', marginBottom: '12px' }}>
               月島不只是一間甜點店，更是一個<strong>情緒展覽空間</strong>。
@@ -3178,8 +3243,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </section>
 
         {/* C. PEAK EXPERIENCE & D. CHECK-IN (Combined with Background) */}
-        <div style={{
-          backgroundImage: 'url(https://res.cloudinary.com/dvizdsv4m/image/upload/v1769239698/Please_make_the_2k_202601241151_ios8rt.jpg)',
+        <div className="season04-journey" style={{
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: '24px',
@@ -3194,7 +3258,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           justifyContent: 'space-between'
         }}>
           {/* Overlay for readability */}
-          <div style={{
+          <div className="season04-journey-overlay" style={{
             position: 'absolute',
             top: 0, left: 0, right: 0, bottom: 0,
             background: 'rgba(0,0,0,0.3)',
@@ -3202,26 +3266,27 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}></div>
 
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <h2 className="font-mono" style={{ color: 'white', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>ISLAND HOURS / 你幾點來的</h2>
+            <div className="font-mono season04-act-label">02 / JOURNEY</div>
+            <h2 className="font-mono" style={{ color: 'white', marginBottom: '20px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>沿著綠光走 / 你幾點來的</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               <button
                 className={`state-btn ${selectedState === 'noon' ? 'selected' : ''}`}
                 onClick={() => handleStateSelect('noon')}
               >
-                12:00<br />還是白天
+                12:00<br />光剛落進來
               </button>
               <div className="checkin-grid">
                 <button className={`state-btn ${selectedState === 'open' ? 'selected' : ''}`} onClick={() => handleStateSelect('open')}>
-                  13:00<br />開門避暑
+                  13:00<br />沿著綠光走
                 </button>
                 <button className={`state-btn ${selectedState === 'three' ? 'selected' : ''}`} onClick={() => handleStateSelect('three')}>
-                  15:00<br />最熱一刻
+                  15:00<br />葉影最深
                 </button>
                 <button className={`state-btn ${selectedState === 'golden' ? 'selected' : ''}`} onClick={() => handleStateSelect('golden')}>
-                  17:00<br />天色讓步
+                  17:00<br />窗邊變金
                 </button>
                 <button className={`state-btn ${selectedState === 'closing' ? 'selected' : ''}`} onClick={() => handleStateSelect('closing')}>
-                  18:00<br />月亮接班
+                  18:00<br />在甜點旁停下
                 </button>
               </div>
             </div>
@@ -3396,8 +3461,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </div>
 
         {/* E. SOFT BUY (MENU ENTRY) */}
-        <section id="menu-section" className="section-padding border-t" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
-          <h2 className="font-mono" style={{ marginBottom: '20px', textAlign: 'center' }}>ISLAND MENU / VIP ISLANDS</h2>
+        <section id="menu-section" className="section-padding border-t season04-pause" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
+          <div className="season04-pause-visual">
+            <picture aria-hidden="true">
+              <source media="(max-width: 767px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
+              <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
+              <img src="/assets/season-04/pause-desktop.webp" alt="" loading="lazy" decoding="async" />
+            </picture>
+            <div className="season04-pause-copy">
+              <div className="font-mono season04-act-label">03 / PAUSE</div>
+              <h2>停一下。</h2>
+              <p>路的盡頭不是答案，是一份亮著綠光的甜點目錄，和一份剛好想吃的甜點。</p>
+            </div>
+          </div>
+          <h2 className="font-mono season04-menu-heading" style={{ marginBottom: '20px', textAlign: 'center' }}>DESSERT MENU / 甜點目錄</h2>
 
           {/* HIDDEN MENU SECTION (Daily Secret) */}
           {(() => {
@@ -3519,12 +3596,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             onMouseOut={(e) => { e.currentTarget.style.opacity = '0.2'; e.currentTarget.style.transform = 'scale(1) rotate(0deg)'; }}
           />
 
-          <button style={{
+          <button className="season04-menu-cta" style={{
             width: '100%',
             padding: '40px 30px',
             border: 'none',
             borderRadius: '16px',
-            background: CONFIG.BRAND_COLORS.emotionBlack,
+            background: CONFIG.BRAND_COLORS.nightBlueDeep,
             color: 'white',
             display: 'flex',
             flexDirection: 'column',
@@ -3539,11 +3616,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}
             onMouseOver={(e) => {
               e.currentTarget.style.transform = 'scale(1.02)';
-              e.currentTarget.style.background = '#1a1a1a';
+              e.currentTarget.style.background = CONFIG.BRAND_COLORS.nightBlue;
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.transform = 'scale(1)';
-              e.currentTarget.style.background = CONFIG.BRAND_COLORS.emotionBlack;
+              e.currentTarget.style.background = CONFIG.BRAND_COLORS.nightBlueDeep;
             }}
             onClick={() => {
               setShowMenu(true);
@@ -3552,13 +3629,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               });
             }}
           >
-            <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.6, letterSpacing: '0.2em' }}>EXPLORE THE FLAVORS</div>
+            <div className="font-mono" style={{ fontSize: '0.8rem', opacity: 0.6, letterSpacing: '0.2em' }}>OPEN THE MENU</div>
             <div style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '0.1em' }}>
-              ISLAND MENU
+              甜點目錄
               <span style={{ color: CONFIG.BRAND_COLORS.moonSilver, marginLeft: '10px' }}>↗</span>
             </div>
             <p style={{ fontSize: '0.9rem', opacity: 0.7, maxWidth: '300px', fontWeight: 400, margin: '0 0 10px 0' }}>
-              探索本季甜點處方與過往收藏項目
+              查看本季策展甜點與店內飲品
             </p>
             <div style={{
               background: CONFIG.BRAND_COLORS.moonSilver,
@@ -3568,7 +3645,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               fontSize: '0.8rem',
               fontWeight: 700
             }}>
-              OPEN COLLECTION
+              OPEN THE COLLECTION
             </div>
           </button>
 
@@ -3596,8 +3673,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       </div>
 
       {/* NEW: CURATED CONTENT */}
-      <div style={{ marginTop: '80px', padding: '0 20px' }}>
-        <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED EXHIBITION</h2>
+      <div className="season04-curated" style={{ marginTop: '80px', padding: '0 20px' }}>
+        <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED PAUSE / 留下來的片刻</h2>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
           {/* 1. Spotify Embed */}
@@ -3626,7 +3703,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
             />
             <iframe
-              src="https://open.spotify.com/embed/playlist/4GvSWtZD5YiJdIu7M8e9Ei?utm_source=generator&theme=0"
+              src="https://open.spotify.com/embed/playlist/1Cw8MbGrZgQHHJngRhzX0O?utm_source=generator&theme=0"
               width="100%"
               height="352"
               frameBorder="0"
@@ -3994,7 +4071,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </div>
         {/* Container closing div removed */}
         {/* F. FOOTER */}
-        <footer style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
+        <footer className="season04-footer" style={{ padding: '60px 0', borderTop: '1px solid black', fontSize: '0.9rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '40px' }}>
             <div>
               <h5 className="font-mono" style={{ marginBottom: '15px' }}>ISLAND INFO</h5>
@@ -4164,12 +4241,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       {/* MENU MODAL */}
       {
         showMenu && (
-          <div className="modal-overlay" onClick={() => setShowMenu(false)}>
-            <div className="modal-card" onClick={e => e.stopPropagation()}>
+          <div className="modal-overlay season04-menu-modal" onClick={() => setShowMenu(false)}>
+            <div className="modal-card season04-menu-modal-card" onClick={e => e.stopPropagation()}>
               <div className="modal-header">
                 <div>
-                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>SEASON 01</div>
-                  <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>MENU</h3>
+                  <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>DESSERT MENU</div>
+                  <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>甜點目錄</h3>
                 </div>
                 <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
               </div>
@@ -4948,7 +5025,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   「{currentFortune.text}」
                 </p>
 
-                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.5)', letterSpacing: '0.15em' }}>🌙 月升之後 · 來自 Kiwimu 的祝福</p>
+                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.5)', letterSpacing: '0.15em' }}>窗邊計畫 · 來自 Kiwimu 的祝福</p>
 
                 {/* IG Promo Message */}
                 <div style={{

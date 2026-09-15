@@ -7,7 +7,7 @@
             {
                 "name": "經典提拉米蘇",
                 "description": "濃郁咖啡酒香與綿密馬斯卡彭乳酪的完美平衡，層層交織的義式經典。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282853/dessert/menu_item_fdf76c2c-121e-4069-bdf0-5662c214c622.webp",
                 "prices": [
                     {
                         "spec": "200ml",
@@ -22,7 +22,7 @@
             {
                 "name": "烤焦糖布丁摩卡米蘇",
                 "description": "焦糖脆片與摩卡咖啡的雙重奏鳴，帶來意想不到的層次驚喜。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282893/dessert/menu_item_63cd7340-1b89-47a6-b49a-1ee0c1eb86fe.webp",
                 "prices": [
                     {
                         "spec": "200ml",
@@ -37,7 +37,7 @@
             {
                 "name": "小山園抹茶米蘇",
                 "description": "嚴選日本小山園抹茶，苦甜交融，呈現和洋融合的細膩風味。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282897/dessert/menu_item_a9a834ed-39ca-4524-8f03-2183db366d1f.webp",
                 "prices": [
                     {
                         "spec": "200ml",
@@ -52,7 +52,7 @@
             {
                 "name": "日本柚子蘋果乳酪米蘇",
                 "description": "清新柚子香氣搭配蘋果果酸，輕盈爽口的夏日版提拉米蘇。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282902/dessert/menu_item_ed08801b-55f5-4d51-9db4-37cc03688bef.webp",
                 "prices": [
                     {
                         "spec": "200ml",
@@ -67,7 +67,7 @@
             {
                 "name": "奶酒提拉米蘇",
                 "description": "加入 Baileys 奶酒增添醇厚酒香，成熟大人味的溫柔甜蜜。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282893/dessert/menu_item_63cd7340-1b89-47a6-b49a-1ee0c1eb86fe.webp",
                 "prices": [
                     {
                         "spec": "200ml",
@@ -89,7 +89,7 @@
             {
                 "name": "原味巴斯克",
                 "description": "外酥內軟的焦糖外殼，包裹著半熟乳酪的濃郁綿密，簡單卻深刻。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282899/dessert/menu_item_d120a328-3222-4618-8aed-9a547f7b386a.webp",
                 "prices": [
                     {
                         "spec": "四吋",
@@ -108,7 +108,7 @@
             {
                 "name": "檸檬巴斯克",
                 "description": "清爽檸檬香氣平衡乳酪濃郁，每一口都是夏日微風般的輕盈。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282850/dessert/menu_item_0a76fe1d-0302-4bff-8997-236d4a004b0b.webp",
                 "prices": [
                     {
                         "spec": "四吋",
@@ -127,7 +127,7 @@
             {
                 "name": "鹹蛋黃巴斯克",
                 "description": "鹹香蛋黃與甜美乳酪的東西碰撞，獨特鹹甜滋味令人難忘。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866455/CHIFFON_HOKKAIDO_kff8rv.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282894/dessert/menu_item_7bb2e59f-934e-44a3-af13-d52c5c43853c.webp",
                 "prices": [
                     {
                         "spec": "四吋",
@@ -153,7 +153,7 @@
             {
                 "name": "莓果巧克力戚風蛋糕",
                 "description": "比利時巧克力與新鮮莓果的浪漫邂逅，輕盈卻充滿層次。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923761/dessert/menu_item_e3a60ea8-aa3e-40f3-ad8e-3cc4dd12ec02.webp",
                 "prices": [
                     {
                         "spec": "四吋",
@@ -172,7 +172,7 @@
             {
                 "name": "烤焦糖布丁戚風蛋糕",
                 "description": "焦糖布丁與雲朵般蛋糕體的溫柔相遇，甜蜜中帶著微微焦香。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282895/dessert/menu_item_8e59b833-853a-4164-b747-6382c4bd7658.webp",
                 "prices": [
                     {
                         "spec": "四吋",
@@ -209,7 +209,7 @@
             {
                 "name": "北海道十勝低糖原味千層",
                 "description": "嚴選北海道十勝鮮奶油，低糖配方突顯乳香，品嚐最純粹的美好。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282901/dessert/menu_item_e9fa32e1-d48a-4cbc-8663-f9888c18c3e2.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -220,7 +220,7 @@
             {
                 "name": "法芙娜巧克力布朗尼千層",
                 "description": "法國法芙娜巧克力的醇厚，搭配布朗尼碎片，巧克力控的天堂。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789289016/dessert/menu_item_d323bd72-12ff-4bbb-9533-16fac4d08bba.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -231,7 +231,7 @@
             {
                 "name": "特濃抹茶千層",
                 "description": "濃郁抹茶層層堆疊，苦中帶甘，展現日式甜點的細膩哲學。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282889/dessert/menu_item_212f556e-502a-4e5a-90bb-e77e7b92f7ba.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -242,7 +242,7 @@
             {
                 "name": "伯爵茶千層",
                 "description": "伯爵茶的佛手柑香氣在每一層綻放，優雅而不甜膩。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282888/dessert/menu_item_07aa3a7a-41dc-4f20-a48a-75293ff9778f.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -253,7 +253,7 @@
             {
                 "name": "檸檬日本柚子千層",
                 "description": "雙柑橘的清新酸甜，為千層蛋糕注入陽光般的活力。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/CHIFFON_BERRY_wlmqgd.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282898/dessert/menu_item_c0820442-bab4-4c47-a4a8-60ef88da22d9.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -264,7 +264,7 @@
             {
                 "name": "蜜香紅茶拿鐵千層",
                 "description": "蜜香紅茶與鮮奶油的溫柔融合，如午後的一杯手調拿鐵。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282900/dessert/menu_item_e58bac5a-eb09-4a7d-b5ad-47e8491e63c0.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -275,7 +275,7 @@
             {
                 "name": "焙茶拿鐵千層",
                 "description": "日本焙茶的炭火焙香，帶來沉穩內斂的和風韻味。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/MILLE_CREPE_CLASSIC_ofjcvq.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282891/dessert/menu_item_4543b86a-80a9-41d3-b8bb-b9bc505f5d8a.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -286,7 +286,7 @@
             {
                 "name": "十勝低糖水果森林千層",
                 "description": "繽紛水果與低糖鮮奶油的清爽組合，如漫步森林般的自然甜美。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866453/CHIFFON_FRUIT_fswhqh.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282903/dessert/menu_item_f5c62e8d-59df-44c5-bcd6-d6473097b32b.webp",
                 "prices": [
                     {
                         "spec": "九吋",
@@ -315,7 +315,7 @@
             {
                 "name": "布丁",
                 "description": "經典法式烤布丁，焦糖脆片與滑嫩蛋奶的完美對話，簡單卻雋永。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1767866454/TIRAMISU_CLASSIC_puzwyg.webp",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282892/dessert/menu_item_5fc488d8-c1dd-45c6-aa4f-e164b6d793ab.webp",
                 "prices": [
                     {
                         "spec": "單個",
