@@ -60,7 +60,7 @@ const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
-  CURRENT_SEASON: "Season 04｜甜點目錄",
+  CURRENT_SEASON: "Season 04｜窗邊計畫",
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',
     emotionBlack: '#2B2018',
@@ -2971,7 +2971,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
-          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Dessert menu</div>
+          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Window Plan</div>
           <div className="font-mono season04-hero-utility" style={{
             marginBottom: '10px',
             fontSize: '0.8rem',
