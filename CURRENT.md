@@ -1,6 +1,23 @@
 # Map Current
 
-Last updated: 2026-07-15
+Last updated: 2026-09-16
+
+## 播放清單頁籤 · 2026-09-16
+
+- SPOTIFY 區塊從寫死的單一 iframe 改成八張歌單的頁籤切換。新增 `SPOTIFY_PLAYLISTS` 常數（id／中文名／英文名／說明）與 `activePlaylist` state；標題、說明、iframe src 全部跟著頁籤動。
+- 無障礙：`role="tablist"` + `aria-selected` + roving tabindex，左右方向鍵可切換；iframe 外層為 `role="tabpanel"`。
+- 樣式 `.season04-playlist-tabs` / `.season04-playlist-tab` 加在 `styles/window-plan.css`，顏色全部沿用既有 `--window-*` token，未新增色值。說明段落加 `min-height: 2.4em` 防止切換時版面跳動。
+- 驗證：`tsc --noEmit` 0 錯誤、`npm run build` 成功、console 無錯誤、切換後標題／說明／iframe src／aria-selected 全部同步、375px 無水平溢出且頁籤橫向可捲、embed 實測載入（含封面與曲目）。
+- **踩到的坑（重要）**：`dde58ed`（09-15）上線時嵌的 `1Cw8MbGrZgQHHJngRhzX0O` 當時是**私人**清單，Spotify 私人歌單的 embed 對訪客不顯示，該區塊從 09-15 到 09-16 對所有訪客是空的。09-16 將八張全部改為公開後才正常。**日後任何要 embed 的歌單，建立時就必須是公開。**
+- KIWIMU 這個 Spotify 帳號定位為甜點店對外分享用，因此七張工作狀態歌單公開於站上屬預期行為，非誤設。
+
+## 補記：2026-07-16 之後未入帳的 commit
+
+- `15c64a2`（08-23）埋入 LINE Tag base code（LINE Ads pv 追蹤）
+- `d2e2aae`（08-27）map 的 Supabase client 明確指定 `flowType: pkce`
+- `dde58ed`（09-15）上線綠色甜點目錄與新歌單
+- `48dd3bf` / `7773bd0`（09-16）第四季命名與版面重心修正
+- 以上五筆當時未回寫本檔，於 2026-09-16 補記。細節以 git log 為準。
 
 ## Five-site visual system · 2026-07-15
 

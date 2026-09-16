@@ -431,6 +431,57 @@ body {
   color: rgba(43, 32, 24, 0.66);
   font-size: 0.86rem;
   line-height: 1.7;
+  min-height: 2.4em;
+}
+
+.season04-playlist-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 0 18px 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.season04-playlist-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.season04-playlist-tab {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border: 1px solid rgba(31, 47, 31, 0.16);
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(43, 32, 24, 0.62);
+  font: inherit;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.season04-playlist-tab:hover {
+  border-color: var(--window-leaf);
+  color: var(--window-forest-deep);
+}
+
+.season04-playlist-tab:focus-visible {
+  outline: 2px solid var(--window-leaf);
+  outline-offset: 2px;
+}
+
+.season04-playlist-tab.is-active {
+  border-color: var(--window-forest-deep);
+  background: var(--window-forest-deep);
+  color: var(--window-cream);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .season04-playlist-tab {
+    transition: none;
+  }
 }
 
 .season04-download-stack {
