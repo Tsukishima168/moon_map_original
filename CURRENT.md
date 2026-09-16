@@ -8,6 +8,7 @@ Last updated: 2026-09-16
 - 無障礙：`role="tablist"` + `aria-selected` + roving tabindex，左右方向鍵可切換；iframe 外層為 `role="tabpanel"`。
 - 樣式 `.season04-playlist-tabs` / `.season04-playlist-tab` 加在 `styles/window-plan.css`，顏色全部沿用既有 `--window-*` token，未新增色值。說明段落加 `min-height: 2.4em` 防止切換時版面跳動。
 - 驗證：`tsc --noEmit` 0 錯誤、`npm run build` 成功、console 無錯誤、切換後標題／說明／iframe src／aria-selected 全部同步、375px 無水平溢出且頁籤橫向可捲、embed 實測載入（含封面與曲目）。
+- Footer 的 Spotify 入口改為站內 `#spotify-section` 八歌單區塊，不再外連單一歌單；避免把「月島工作歌單牆」誤解成只有第一張播放清單。
 - **踩到的坑（重要）**：`dde58ed`（09-15）上線時嵌的 `1Cw8MbGrZgQHHJngRhzX0O` 當時是**私人**清單，Spotify 私人歌單的 embed 對訪客不顯示，該區塊從 09-15 到 09-16 對所有訪客是空的。09-16 將八張全部改為公開後才正常。**日後任何要 embed 的歌單，建立時就必須是公開。**
 - KIWIMU 這個 Spotify 帳號定位為甜點店對外分享用，因此七張工作狀態歌單公開於站上屬預期行為，非誤設。
 
@@ -26,7 +27,7 @@ Last updated: 2026-09-16
 - Fresh-context review found that the fixed `/menu` catalog covered the rail; the catalog now begins at `--ku-rail-height` while transactional modals may still cover the rail to preserve their close controls.
 - Verified `npx tsc --noEmit --pretty false`, the Vite production build, homepage, `/menu`, desktop and 390px browser QA, active-site centering, and zero page-level horizontal overflow.
 - Vite preview still logs the expected `/api/menu` HTML fallback warning because it does not emulate Vercel API routes; production menu behavior was not changed or re-verified in this pass.
-- No menu/order, reward, Supabase, Discord, or production mutation was executed; changes remain local and uncommitted.
+- At the 2026-07-15 handoff, no menu/order, reward, Supabase, Discord, or production mutation was executed; later commits supersede that local handoff state, so current Git status remains the source of truth.
 
 ## Supabase Migration Ownership — 2026-07-14
 
