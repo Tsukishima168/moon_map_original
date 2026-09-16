@@ -28,7 +28,7 @@ body {
 
 .season04-hero-stage {
   position: relative;
-  width: min(1180px, calc(100vw - 32px));
+  width: min(1080px, calc(100vw - 32px));
   min-height: clamp(620px, 64vw, 760px);
   margin-left: 50%;
   overflow: hidden;
@@ -71,7 +71,9 @@ body {
   z-index: 2;
   display: flex;
   min-height: inherit;
+  width: min(100%, 620px);
   max-width: 620px;
+  box-sizing: border-box;
   flex-direction: column;
   justify-content: flex-end;
   padding: clamp(36px, 7vw, 76px);
@@ -115,12 +117,14 @@ body {
 }
 
 .season04-hero-logo h1 {
-  max-width: 540px;
+  max-width: 7.2ch;
   color: var(--window-cream);
   font-size: clamp(2.35rem, 7vw, 5.4rem) !important;
   font-weight: 800 !important;
   letter-spacing: -0.055em;
+  line-height: 0.98 !important;
   opacity: 1 !important;
+  text-wrap: balance;
 }
 
 .season04-hero-tagline {
@@ -346,7 +350,7 @@ body {
 }
 
 .season04-curated {
-  width: min(1120px, calc(100vw - 32px));
+  width: min(920px, calc(100vw - 32px));
   margin: 24px auto 0 !important;
   padding: 64px clamp(20px, 4vw, 48px) !important;
   border-radius: 36px 36px 0 0;
@@ -354,7 +358,85 @@ body {
 }
 
 .season04-curated > h2 {
+  max-width: 760px;
+  margin-inline: auto;
   color: var(--window-forest-deep);
+}
+
+.season04-curated-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto 40px;
+}
+
+.season04-curated-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(31, 47, 31, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 253, 247, 0.82);
+  box-shadow: 0 18px 42px rgba(31, 47, 31, 0.08);
+}
+
+.season04-spotify-card {
+  scroll-margin-top: 96px;
+}
+
+.season04-spotify-card iframe {
+  display: block;
+  margin-top: 14px;
+  border-radius: 12px;
+}
+
+.season04-curated-card-heading {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 18px 0;
+}
+
+.season04-curated-card-heading .text-yellow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--window-leaf);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.season04-curated-card-heading strong {
+  display: block;
+  color: var(--window-forest-deep);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.35;
+}
+
+.season04-curated-card-heading > span {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--window-forest-deep);
+  border: 1px solid rgba(31, 47, 31, 0.24);
+  border-radius: 50%;
+  background: var(--window-sun);
+  font-weight: 800;
+}
+
+.season04-spotify-card p {
+  margin: 8px 18px 0;
+  color: rgba(43, 32, 24, 0.66);
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.season04-download-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
 }
 
 .season04-footer {
@@ -564,6 +646,8 @@ body {
   }
 
   .season04-hero-copy {
+    width: 100%;
+    max-width: 100%;
     justify-content: flex-end;
     padding: 28px 24px 42px;
   }
@@ -580,7 +664,18 @@ body {
   }
 
   .season04-hero-logo h1 {
-    font-size: clamp(2.5rem, 14vw, 4rem) !important;
+    max-width: 7.2ch;
+    font-size: clamp(2.65rem, 12vw, 3.25rem) !important;
+  }
+
+  .season04-hero-utility {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+
+  .season04-hero-utility button {
+    max-width: 100%;
   }
 
   .season04-actions {

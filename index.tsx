@@ -60,7 +60,7 @@ const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
-  CURRENT_SEASON: "Season 04: 甜點目錄｜Green Dessert Collection",
+  CURRENT_SEASON: "Season 04｜甜點目錄",
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',
     emotionBlack: '#2B2018',
@@ -2951,7 +2951,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             boxShadow: 'var(--shadow-stamp)',
             position: 'relative'
           }}>
-            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q3</span>
+            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q4</span>
             <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
 
             {/* Gold Coin Egg (Hidden in Yellow Background) */}
@@ -2971,7 +2971,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
-          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Window plan</div>
+          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Dessert menu</div>
           <div className="font-mono season04-hero-utility" style={{
             marginBottom: '10px',
             fontSize: '0.8rem',
@@ -3047,7 +3047,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           <p className="season04-hero-tagline" style={{ color: CONFIG.BRAND_COLORS.grayText, marginBottom: '40px', position: 'relative' }}>
             {CONFIG.TAGLINE}
-            <strong>從窗邊開始，把抹茶、柚子、焙茶、咖啡與奶油整理成一座可以停留的綠色小溫室。</strong>
+            <strong>從窗邊開始，把抹茶、柚子、焙茶、咖啡與奶油整理成一份可以慢慢選的甜點目錄。</strong>
             {/* Easter Egg #5 - 島主筆記 */}
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
@@ -3676,9 +3676,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       <div className="season04-curated" style={{ marginTop: '80px', padding: '0 20px' }}>
         <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED PAUSE / 留下來的片刻</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+        <div className="season04-curated-grid">
           {/* 1. Spotify Embed */}
-          <div id="spotify-section" style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #eee', background: 'white', scrollMarginTop: '80px', position: 'relative' }}>
+          <div
+            id="spotify-section"
+            className="season04-curated-card season04-spotify-card"
+          >
+            <div className="season04-curated-card-heading">
+              <div>
+                <span className="font-mono text-yellow">SPOTIFY</span>
+                <strong>窗邊甜點目錄歌單</strong>
+              </div>
+              <span aria-hidden="true">♪</span>
+            </div>
+            <p>一邊滑甜點，一邊聽一段留在綠光裡的歌。</p>
             {/* Easter Egg #2 - 神秘好友 */}
             <img
               src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
@@ -3703,6 +3714,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               onMouseOut={(e) => { e.currentTarget.style.opacity = '0.25'; e.currentTarget.style.transform = 'scale(1)'; }}
             />
             <iframe
+              title="Spotify playlist - 窗邊甜點目錄歌單"
               src="https://open.spotify.com/embed/playlist/1Cw8MbGrZgQHHJngRhzX0O?utm_source=generator&theme=0"
               width="100%"
               height="352"
@@ -3714,11 +3726,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
 
           {/* 2. Downloadables Grid */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <div className="season04-download-stack">
 
             {/* Wallpaper (multi) with lock state */}
             <div
               id="wallpaper-section"
+              className="season04-curated-card season04-wallpaper-card"
               style={{
                 borderRadius: '12px',
                 padding: '18px 16px',
