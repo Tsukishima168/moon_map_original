@@ -1,6 +1,11 @@
 # Map Current
 
-Last updated: 2026-09-16
+Last updated: 2026-09-17
+
+## Hero CTA 對齊修正 · 2026-09-17
+
+- 修正桌機版 Hero 下方 5 張 CTA 卡片整組偏右：`.season04-actions` 寬度大於外層 `.container` 時，`margin: auto` 不會可靠置中；已改成與 Hero stage 一致的 `margin-left: 50%` + `translateX(-50%)` 視覺置中。
+- 驗證：`tsc --noEmit` 0 錯誤、`npm run vercel-build` 成功；本機 1440px、1976px 寬螢幕與 390px 手機截圖檢查正常。
 
 ## 播放清單頁籤 · 2026-09-16
 
