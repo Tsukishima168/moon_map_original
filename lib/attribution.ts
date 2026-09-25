@@ -17,14 +17,27 @@
  *  - orders.mbti_type = mbti
  *  - orders.utm_source/utm_medium/utm_campaign/utm_content/utm_term = src/med/cmp/cnt/trm
  *  - cookie 壞掉或缺值時一律當作沒有，不能讓建單失敗（讀取全程 try/catch，最壞情況回傳空值）。
+ *
+ * v1.1 補：寫入端每個值上限 64 字；from 必須符合 ^[a-z0-9_]+$（格式不符就不寫入該欄位，
+ * 不是整個 cookie 寫入失敗）。讀取端（getOrderAttribution）也做同樣的截斷，防禦舊版
+ * cookie 或其他站尚未套用這條規則時寫入的超長值。
  */
 
 const COOKIE_NAME = 'kw_attr';
 const COOKIE_DOMAIN = '.kiwimu.com';
 const COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 30; // 30 天
 const FIRST_TOUCH_STALE_MS = 30 * 24 * 60 * 60 * 1000; // 30 天
+const MAX_ATTR_VALUE_LENGTH = 64;
 
 const MBTI_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/;
+const FROM_PATTERN = /^[a-z0-9_]+$/;
+
+/** trim 後截到 64 字；非字串／空字串回傳 undefined（cookie 物件裡就不會留下這個 key）。 */
+function capAttrValue(value: string | null | undefined): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim().slice(0, MAX_ATTR_VALUE_LENGTH);
+  return trimmed || undefined;
+}
 
 export interface KwAttr {
   src?: string;
@@ -116,9 +129,13 @@ export function syncAttributionFromUrl(search?: string): void {
   const now = Date.now();
   const current = readKwAttr();
 
-  // 網址有 from → 覆寫 from / from_ts（優先權高於 utm_source 判斷）
+  // 網址有 from → 覆寫 from / from_ts（優先權高於 utm_source 判斷）。
+  // from 必須符合 ^[a-z0-9_]+$，格式不符就不寫入（避免髒資料進 cookie）。
   if (fromParam) {
-    writeKwAttr({ ...current, from: fromParam, from_ts: now });
+    const cappedFrom = capAttrValue(fromParam);
+    if (cappedFrom && FROM_PATTERN.test(cappedFrom)) {
+      writeKwAttr({ ...current, from: cappedFrom, from_ts: now });
+    }
     return;
   }
 
@@ -128,12 +145,12 @@ export function syncAttributionFromUrl(search?: string): void {
     if (!current.src || isStale) {
       writeKwAttr({
         ...current,
-        src: utmSource,
-        med: params.get('utm_medium') || undefined,
-        cmp: params.get('utm_campaign') || undefined,
-        cnt: params.get('utm_content') || undefined,
-        trm: params.get('utm_term') || undefined,
-        land: window.location.hostname,
+        src: capAttrValue(utmSource),
+        med: capAttrValue(params.get('utm_medium')),
+        cmp: capAttrValue(params.get('utm_campaign')),
+        cnt: capAttrValue(params.get('utm_content')),
+        trm: capAttrValue(params.get('utm_term')),
+        land: capAttrValue(window.location.hostname),
         ts: now,
       });
     }
@@ -147,16 +164,17 @@ export function syncAttributionFromUrl(search?: string): void {
 export function getOrderAttribution(): OrderAttribution {
   try {
     const attr = readKwAttr();
-    const mbti = attr.mbti && MBTI_PATTERN.test(attr.mbti) ? attr.mbti : null;
+    const cappedMbti = capAttrValue(attr.mbti);
+    const mbti = cappedMbti && MBTI_PATTERN.test(cappedMbti) ? cappedMbti : null;
 
     return {
       from_mbti_test: Boolean(mbti),
       mbti_type: mbti,
-      utm_source: attr.src || null,
-      utm_medium: attr.med || null,
-      utm_campaign: attr.cmp || null,
-      utm_content: attr.cnt || null,
-      utm_term: attr.trm || null,
+      utm_source: capAttrValue(attr.src) || null,
+      utm_medium: capAttrValue(attr.med) || null,
+      utm_campaign: capAttrValue(attr.cmp) || null,
+      utm_content: capAttrValue(attr.cnt) || null,
+      utm_term: capAttrValue(attr.trm) || null,
     };
   } catch {
     return {

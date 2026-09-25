@@ -81,8 +81,10 @@ const MAX_ITEMS_COUNT = 100
 const MAX_ITEM_NAME_LENGTH = 200
 const MAX_ITEM_SPEC_LENGTH = 200
 const MAX_QUANTITY = 1000
-// R4: cookie 來的字串欄位做長度上限與格式驗證
-const MAX_MBTI_TYPE_LENGTH = 64
+// R4 v1.1：attribution 欄位（utm_*／mbti_type）一律截到 64 字，絕不因為這些欄位拒單
+// （BLOCKER fix：先前版本會因 utm 超長或型別錯誤直接 400，這是錯的——歸因資料壞掉
+// 只代表「沒有歸因」，不代表訂單本身無效）。
+const MAX_ATTRIBUTION_STRING_LENGTH = 64
 const MBTI_TYPE_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/
 
 // Inferred from other Kiwimu sites' usage of the shared `orders.status` column
@@ -112,11 +114,6 @@ const STRING_FIELD_MAX_LENGTHS = {
   source: 60,
   ga_client_id: 128,
   referrer: 2048,
-  utm_source: 200,
-  utm_medium: 200,
-  utm_campaign: 200,
-  utm_content: 200,
-  utm_term: 200,
 } as const
 
 function isNonEmptyString(value: unknown, maxLength: number): value is string {
@@ -128,10 +125,6 @@ function isOptionalString(value: unknown, maxLength: number): boolean {
   return typeof value === 'string' && value.length <= maxLength
 }
 
-function isOptionalBoolean(value: unknown): boolean {
-  return value === null || value === undefined || typeof value === 'boolean'
-}
-
 /**
  * R4: 正規化並驗證 mbti_type（格式 /^[EI][NS][TF][JP](-[AT])?$/，長度 ≤ 64）。
  * 前端的 kw_attr cookie 可能壞掉、格式跑掉、或根本沒有這欄位——一律當作沒有（null），
@@ -140,8 +133,20 @@ function isOptionalBoolean(value: unknown): boolean {
 export function normalizeMbtiType(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const trimmed = value.trim().toUpperCase()
-  if (trimmed.length === 0 || trimmed.length > MAX_MBTI_TYPE_LENGTH) return null
+  if (trimmed.length === 0 || trimmed.length > MAX_ATTRIBUTION_STRING_LENGTH) return null
   return MBTI_TYPE_PATTERN.test(trimmed) ? trimmed : null
+}
+
+/**
+ * R4 v1.1：其餘 attribution 欄位（utm_source/medium/campaign/content/term）的正規化——
+ * 只在型別是字串時保留，trim 後截到 64 字；不是字串（number/object/…）就當作沒有。
+ * 這裡「絕不」回傳錯誤，因為 attribution 壞掉只代表沒有歸因，不代表訂單無效。
+ */
+export function sanitizeAttributionString(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  return trimmed.slice(0, MAX_ATTRIBUTION_STRING_LENGTH)
 }
 
 function isFiniteNumberInRange(value: unknown, min: number, max: number): value is number {
@@ -198,19 +203,10 @@ export function validateOrderRequestPayload(order: unknown, items: unknown): str
   if (o.order_number !== undefined && !isOptionalString(o.order_number, STRING_FIELD_MAX_LENGTHS.order_number)) {
     return 'Invalid order_number'
   }
-  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const) {
-    if (!isOptionalString(o[key], STRING_FIELD_MAX_LENGTHS[key])) {
-      return `Invalid ${key}`
-    }
-  }
-  // mbti_type 格式驗證留給 normalizeMbtiType 在寫入前處理（壞值一律當作沒有，不擋建單）；
-  // 這裡只擋明顯錯誤的型別/長度，避免一個壞掉的 cookie 讓整張訂單失敗。
-  if (!isOptionalString(o.mbti_type, MAX_MBTI_TYPE_LENGTH)) {
-    return 'Invalid mbti_type'
-  }
-  if (!isOptionalBoolean(o.from_mbti_test)) {
-    return 'Invalid from_mbti_test'
-  }
+  // R4 v1.1 BLOCKER fix：utm_*／mbti_type／from_mbti_test 不在這裡驗證、不會讓建單失敗。
+  // 這些全是 attribution 欄位，壞掉、超長、型別錯誤都只代表「沒有歸因」，不是訂單無效；
+  // 正規化與截斷放在 toCanonicalOrder（sanitizeAttributionString / normalizeMbtiType），
+  // from_mbti_test 則永遠由伺服器端依 mbti_type 是否驗證通過重新計算，不讀取這裡的原始值。
 
   if (items.length > MAX_ITEMS_COUNT) {
     return `Too many items: max ${MAX_ITEMS_COUNT}`
@@ -317,11 +313,11 @@ export const toCanonicalOrder = (
     from_mbti_test: Boolean(normalizedMbtiType),
     checkout_site: MAP_CHECKOUT_SITE,
     source_from: normalizeOrderSource(order.source),
-    utm_source: order.utm_source || null,
-    utm_medium: order.utm_medium || null,
-    utm_campaign: order.utm_campaign || null,
-    utm_content: order.utm_content || null,
-    utm_term: order.utm_term || null,
+    utm_source: sanitizeAttributionString(order.utm_source),
+    utm_medium: sanitizeAttributionString(order.utm_medium),
+    utm_campaign: sanitizeAttributionString(order.utm_campaign),
+    utm_content: sanitizeAttributionString(order.utm_content),
+    utm_term: sanitizeAttributionString(order.utm_term),
     user_id: order.user_id || null,
     status: order.payment_status || 'pending',
   }
