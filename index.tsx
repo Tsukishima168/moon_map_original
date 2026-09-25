@@ -8,7 +8,7 @@ import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
-import { buildFromUrl, buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
+import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
 import { getOrderAttribution, syncAttributionFromUrl } from './lib/attribution';
 import {
@@ -564,6 +564,9 @@ const App = () => {
   const [storeBadgeStatus, setStoreBadgeStatus] = useState<'idle' | 'checking' | 'granted' | 'denied' | 'error'>('idle');
   const [storeDistance, setStoreDistance] = useState<number | null>(null);
   const noticeTimeoutRef = useRef<number | null>(null);
+  // v1.1：手機雙擊「前往結帳」會在同一個 tick 內觸發兩次 handleCheckout，
+  // preorder_click 也跟著送兩次——用時間戳記擋掉 700ms 內的重複點擊。
+  const preorderClickGuardRef = useRef(0);
 
   // Helper for LINE browser detection
   const isLineBrowser = typeof window !== 'undefined' && /Line/i.test(navigator.userAgent);
@@ -581,13 +584,9 @@ const App = () => {
   // R3: 站內跨站連結（指向其他 *.kiwimu.com 站）不用 utm_*，改用 from=<來源站>_<位置>
   const mbtiLabUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_profile');
   const passportUrl = buildFromUrl(CONFIG.LINKS.passport_url, 'map_hero_checkin');
-  // booking_url 指向 map 自己（map.kiwimu.com/menu），非跨站連結，維持原本 UTM 寫法
-  const bookingMenuUrl = buildUtmUrl(CONFIG.LINKS.booking_url, {
-    medium: 'menu-section',
-    campaign: '2026-q1-integration',
-    content: 'order_cta',
-    additionalParams: { from: 'map' },
-  });
+  // v1.1：booking_url 指向 map 自己（map.kiwimu.com/menu），是自我連結，不是跨站連結，
+  // 不需要任何 utm_* 或 from 參數（自己連自己不需要標來源）。
+  const bookingMenuUrl = CONFIG.LINKS.booking_url;
   const mbtiRecommendationUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_recommendation');
   const mbtiMissionUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_mission_card');
 
@@ -1505,13 +1504,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     }
   };
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cart.length === 0) return;
 
-    // R5: beacon + event_callback（≤800ms 逾時），確保事件送得出去
-    await sendReliableGaEvent('preorder_click', {
-      item_name: cart.map(item => item.name).join(', ')
-    });
+    // v1.1：這裡不會立即跳頁（只是打開結帳確認 modal），不需要 await 事件送出結果，
+    // 直接 fire-and-forget（beacon 本身就不受後續操作影響）；用時間戳記擋 700ms 內
+    // 的重複點擊（手機雙擊），避免 preorder_click 送兩次。
+    const now = Date.now();
+    if (now - preorderClickGuardRef.current > 700) {
+      preorderClickGuardRef.current = now;
+      void sendReliableGaEvent('preorder_click', {
+        item_name: cart.map(item => item.name).join(', ')
+      });
+    }
 
     // Pre-fill Name if available
     if (profile?.nickname) setCustomerName(profile.nickname);
@@ -1577,6 +1582,23 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       // 讀不到時的備援（例如非 kiwimu.com 環境沒有寫入 cookie）。cookie 壞掉/缺值時
       // getOrderAttribution() 一律回傳 null/false，不會讓建單失敗。
       const attribution = getOrderAttribution();
+      // v1.1：UTM 整組取用，不逐欄混拼——cookie 有 src 就整組用 cookie，否則整組用備援，
+      // 避免出現「utm_source 來自 cookie、utm_medium 來自當頁 URL」這種對不上的組合。
+      const utmSet = attribution.utm_source
+        ? {
+            utm_source: attribution.utm_source,
+            utm_medium: attribution.utm_medium,
+            utm_campaign: attribution.utm_campaign,
+            utm_content: attribution.utm_content,
+            utm_term: attribution.utm_term,
+          }
+        : {
+            utm_source: utmParams.utm_source,
+            utm_medium: utmParams.utm_medium,
+            utm_campaign: utmParams.utm_campaign,
+            utm_content: utmParams.utm_content,
+            utm_term: utmParams.utm_term,
+          };
 
       let confirmedOrderId = proposedOrderId;
       let orderSuccess = false;
@@ -1600,11 +1622,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               source: 'moon_map',
               ga_client_id: gaClientId,
               referrer: utmParams.referrer,
-              utm_source: attribution.utm_source || utmParams.utm_source,
-              utm_medium: attribution.utm_medium || utmParams.utm_medium,
-              utm_campaign: attribution.utm_campaign || utmParams.utm_campaign,
-              utm_content: attribution.utm_content || utmParams.utm_content,
-              utm_term: attribution.utm_term || utmParams.utm_term,
+              ...utmSet,
               mbti_type: attribution.mbti_type,
               from_mbti_test: attribution.from_mbti_test,
             },
@@ -1633,19 +1651,23 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         console.warn('Fallback: DB API failed, but proceeding to LINE redirect anyway.');
       }
 
-      // 5. GA4 event — R5: beacon + event_callback（≤800ms 逾時），送出後才繼續跳 LINE，
-      // 避免像過去一樣事件被導頁打斷、GA4 量不到。
-      await sendReliableGaEvent('purchase', {
-        transaction_id: confirmedOrderId,
-        value: totalAmount,
-        currency: 'TWD',
-        items: cart.map(item => ({
-          item_name: item.name,
-          item_variant: item.spec,
-          price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
-          quantity: item.count
-        }))
-      });
+      // 5. GA4 event — v1.1：只在訂單真的存進 DB 時才送 purchase（orderSuccess），
+      // 避免「送出 purchase 但實際上沒有訂單」的幽靈轉換污染 GA4。
+      // R5: beacon + event_callback（≤800ms 逾時），送出後才繼續跳 LINE，避免像過去
+      // 一樣事件被導頁打斷、GA4 量不到。
+      if (orderSuccess) {
+        await sendReliableGaEvent('purchase', {
+          transaction_id: confirmedOrderId,
+          value: totalAmount,
+          currency: 'TWD',
+          items: cart.map(item => ({
+            item_name: item.name,
+            item_variant: item.spec,
+            price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
+            quantity: item.count
+          }))
+        });
+      }
 
       // 6. Discord 通知（避免手機跳 LINE 時取消請求）
       await notifyDiscordOrder({
