@@ -8,8 +8,9 @@ import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
-import { buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
+import { buildFromUrl, buildUtmUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
 import { trackUserEvent } from './lib/eventTracker';
+import { getOrderAttribution, syncAttributionFromUrl } from './lib/attribution';
 import {
   attachMenuItemIds,
   getMenuCatalogEntry,
@@ -482,6 +483,47 @@ const track = (event: string, payload: any = {}) => {
   trackEvent(event, payload);
 };
 
+// R5: preorder_click／purchase 送出後緊接著會跳頁（LINE），預設的 gtag transport
+// 常常來不及送出就被導頁打斷，導致這兩個事件在 GA4 幾乎量不到。改用
+// transport_type: 'beacon'（navigator.sendBeacon，不受導頁影響）＋ event_callback，
+// 並且最多只等 800ms 就繼續往下走，不讓追蹤拖住結帳流程。
+const sendReliableGaEvent = (
+  eventName: string,
+  payload: Record<string, any>,
+  timeoutMs = 800
+): Promise<void> => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined' || typeof (window as any).gtag !== 'function') {
+      resolve();
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+
+    const timeoutId = window.setTimeout(finish, timeoutMs);
+
+    try {
+      (window as any).gtag('event', eventName, {
+        ...payload,
+        transport_type: 'beacon',
+        event_callback: () => {
+          window.clearTimeout(timeoutId);
+          finish();
+        },
+      });
+    } catch (err) {
+      console.warn(`[GA4] ${eventName} dispatch failed:`, err);
+      window.clearTimeout(timeoutId);
+      finish();
+    }
+  });
+};
+
 // --- DATA: MENU & RANDOMIZER ---
 
 // Removed static import: import MENU_CATEGORIES from './menu.json';
@@ -536,39 +578,23 @@ const App = () => {
   );
   const isEasterEggComplete = foundEggs.length >= 9;
   const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
-  const mbtiLabUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
-    medium: 'profile-card',
-    campaign: '2026-q1-integration',
-    content: 'profile_mbti_link',
-    additionalParams: { from: 'map' },
-  });
-  const passportUrl = buildUtmUrl(CONFIG.LINKS.passport_url, {
-    medium: 'hero-checkin',
-    campaign: '2026-q1-integration',
-    content: 'checkin',
-    additionalParams: { from: 'map' },
-  });
+  // R3: 站內跨站連結（指向其他 *.kiwimu.com 站）不用 utm_*，改用 from=<來源站>_<位置>
+  const mbtiLabUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_profile');
+  const passportUrl = buildFromUrl(CONFIG.LINKS.passport_url, 'map_hero_checkin');
+  // booking_url 指向 map 自己（map.kiwimu.com/menu），非跨站連結，維持原本 UTM 寫法
   const bookingMenuUrl = buildUtmUrl(CONFIG.LINKS.booking_url, {
     medium: 'menu-section',
     campaign: '2026-q1-integration',
     content: 'order_cta',
     additionalParams: { from: 'map' },
   });
-  const mbtiRecommendationUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
-    medium: 'recommendation',
-    campaign: '2026-q1-integration',
-    content: 'personalized',
-    additionalParams: { from: 'map' },
-  });
-  const mbtiMissionUrl = buildUtmUrl(CONFIG.LINKS.mbti_lab_url, {
-    medium: 'mission_card',
-    campaign: '2026-q1-integration',
-    content: 'cross_site',
-    additionalParams: { from: 'map' },
-  });
+  const mbtiRecommendationUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_recommendation');
+  const mbtiMissionUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_mission_card');
 
   useEffect(() => {
     trackUtmLanding(getInitialUrlSearch());
+    // R4: 同步第一接觸歸因 cookie kw_attr（只在 *.kiwimu.com 正式網域寫入）
+    syncAttributionFromUrl(getInitialUrlSearch());
   }, []);
 
   // 彩蛋每月 renew：每月 1 號起用新月份 key，自動清空讓大家重新找
@@ -1379,7 +1405,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         trackUserEvent('map_checkin', { method: 'gps', reward_id: STORE_BADGE_REWARD_ID });
 
         // 直接導向護照，帶上 claim_code
-        const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&utm_source=moon_map&utm_medium=reward&utm_campaign=store_badge`;
+        const url = `${CONFIG.LINKS.passport_url}?claim_code=${code}&reward=${STORE_BADGE_REWARD_ID}&from=map_store_badge`;
         if (passportWindow && !passportWindow.closed) {
           passportWindow.location.href = url;
         } else {
@@ -1479,13 +1505,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'preorder_click', {
-        item_name: cart.map(item => item.name).join(', ')
-      });
-    }
+
+    // R5: beacon + event_callback（≤800ms 逾時），確保事件送得出去
+    await sendReliableGaEvent('preorder_click', {
+      item_name: cart.map(item => item.name).join(', ')
+    });
 
     // Pre-fill Name if available
     if (profile?.nickname) setCustomerName(profile.nickname);
@@ -1547,6 +1573,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       const totalAmount = calculateTotal();
       const gaClientId = getGAClientId();
       const utmParams = storedUTMParams || getUTMParams();
+      // R4: kw_attr cookie 是第一接觸歸因的正本；目前這頁 URL 的 utm_* 只當作 cookie
+      // 讀不到時的備援（例如非 kiwimu.com 環境沒有寫入 cookie）。cookie 壞掉/缺值時
+      // getOrderAttribution() 一律回傳 null/false，不會讓建單失敗。
+      const attribution = getOrderAttribution();
 
       let confirmedOrderId = proposedOrderId;
       let orderSuccess = false;
@@ -1570,11 +1600,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               source: 'moon_map',
               ga_client_id: gaClientId,
               referrer: utmParams.referrer,
-              utm_source: utmParams.utm_source,
-              utm_medium: utmParams.utm_medium,
-              utm_campaign: utmParams.utm_campaign,
-              utm_content: utmParams.utm_content,
-              utm_term: utmParams.utm_term,
+              utm_source: attribution.utm_source || utmParams.utm_source,
+              utm_medium: attribution.utm_medium || utmParams.utm_medium,
+              utm_campaign: attribution.utm_campaign || utmParams.utm_campaign,
+              utm_content: attribution.utm_content || utmParams.utm_content,
+              utm_term: attribution.utm_term || utmParams.utm_term,
+              mbti_type: attribution.mbti_type,
+              from_mbti_test: attribution.from_mbti_test,
             },
             items: cart.map(item => ({
               item_name: item.name,
@@ -1601,20 +1633,19 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         console.warn('Fallback: DB API failed, but proceeding to LINE redirect anyway.');
       }
 
-      // 5. GA4 event
-      if (typeof window !== 'undefined' && (window as any).gtag) {
-        (window as any).gtag('event', 'purchase', {
-          transaction_id: confirmedOrderId,
-          value: totalAmount,
-          currency: 'TWD',
-          items: cart.map(item => ({
-            item_name: item.name,
-            item_variant: item.spec,
-            price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
-            quantity: item.count
-          }))
-        });
-      }
+      // 5. GA4 event — R5: beacon + event_callback（≤800ms 逾時），送出後才繼續跳 LINE，
+      // 避免像過去一樣事件被導頁打斷、GA4 量不到。
+      await sendReliableGaEvent('purchase', {
+        transaction_id: confirmedOrderId,
+        value: totalAmount,
+        currency: 'TWD',
+        items: cart.map(item => ({
+          item_name: item.name,
+          item_variant: item.spec,
+          price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
+          quantity: item.count
+        }))
+      });
 
       // 6. Discord 通知（避免手機跳 LINE 時取消請求）
       await notifyDiscordOrder({
@@ -1797,8 +1828,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   useEffect(() => {
+    // /menu 專用頁已在另一個 effect 把 title 設為「甜點目錄」；這裡若無條件覆寫，
+    // mount 時兩個 effect 都會跑一次，此 effect 排在後面就會把 /menu 的 title 蓋掉，
+    // 導致 /menu 的分頁標題永遠顯示不出來（LINE / Google 預覽也跟著錯）。
+    if (onlyMenuView) return;
     document.title = `${CONFIG.STORE_NAME_EN} | Island Landing`;
-  }, []);
+  }, [onlyMenuView]);
 
   const handleStateSelect = (stateKey: string) => {
     // Toggle: if clicking the same state, close it
@@ -4000,7 +4035,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   {/* Passport Badge Button */}
                   {eggMasterCode && (
                     <a
-                      href={`${CONFIG.LINKS.passport_url}?claim_code=${eggMasterCode}&reward=egg_master_2026_q1&utm_source=moon_map&utm_medium=reward&utm_campaign=egg_master`}
+                      href={`${CONFIG.LINKS.passport_url}?claim_code=${eggMasterCode}&reward=egg_master_2026_q1&from=map_egg_master`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
@@ -5437,7 +5472,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
                       transition: 'transform 0.2s'
                     }}
-                    onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link')}
+                    onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link', {
+                      entrySurface: 'profile_modal',
+                      destinationType: 'internal',
+                    })}
                     onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   >

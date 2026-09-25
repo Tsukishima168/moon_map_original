@@ -16,6 +16,14 @@
             "source": "/favicon.ico",
             "destination": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-04_mfdlsz.webp",
             "permanent": true
+        },
+        {
+            "source": "/:path*",
+            "has": [
+                { "type": "host", "value": "moon-map-original.vercel.app" }
+            ],
+            "destination": "https://map.kiwimu.com/:path*",
+            "permanent": true
         }
     ]
 }

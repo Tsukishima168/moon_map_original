@@ -118,7 +118,39 @@ export function buildUtmUrl(
   return url.toString();
 }
 
-export function trackOutboundClick(url: string, label: string, extra?: Record<string, any>) {
+// R3: 站內跨站連結（指向其他 *.kiwimu.com 站）不用 utm_*，改用單一參數
+// from=<來源站>_<位置>（只小寫英數與底線）。
+const FROM_PARAM_PATTERN = /^[a-z0-9_]+$/;
+
+export function buildFromUrl(
+  baseUrl: string,
+  from: string,
+  additionalParams?: Record<string, string>
+): string {
+  const url = new URL(baseUrl);
+
+  if (FROM_PARAM_PATTERN.test(from)) {
+    url.searchParams.set('from', from);
+  }
+
+  if (additionalParams) {
+    Object.entries(additionalParams).forEach(([key, value]) => {
+      url.searchParams.set(key, value);
+    });
+  }
+
+  return url.toString();
+}
+
+export function trackOutboundClick(
+  url: string,
+  linkName: string,
+  options?: {
+    entrySurface?: string;
+    destinationType?: string;
+    extra?: Record<string, any>;
+  }
+) {
   let targetSite = 'external';
   try {
     const host = new URL(url).hostname;
@@ -128,13 +160,17 @@ export function trackOutboundClick(url: string, label: string, extra?: Record<st
   }
 
   const utmParams = compactUtmParams(getUtmParamsFromUrl(url));
+  const destinationType = options?.destinationType || (targetSite === 'external' ? 'external' : 'internal');
 
   trackEvent('outbound_click', {
     source_site: SITE_ID,
     target_site: targetSite,
-    label,
+    link_name: linkName,
+    entry_surface: options?.entrySurface,
+    destination_type: destinationType,
     url,
     ...utmParams,
-    ...(extra || {}),
+    ...(options?.extra || {}),
+    transport_type: 'beacon',
   });
 }

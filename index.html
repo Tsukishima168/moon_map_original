@@ -206,20 +206,28 @@
   </script>
 
   <!-- Google Analytics 4 -->
+  <!-- R1: 只在正式網域（kiwimu.com 或其子網域）載入／送資料；localhost、127.0.0.1、
+       *.vercel.app 預覽網址一律不載入 gtag，避免污染正式流量數據。 -->
   <script type="module">
-    // Use the new Kiwimu-Core GA4 ID for unified funnel tracking
-    const gaId = import.meta.env.VITE_GA4_ID || 'G-DM6F27KL8B';
+    const __hostname = window.location.hostname;
+    const __isProdKiwimuHost = __hostname === 'kiwimu.com' || __hostname.endsWith('.kiwimu.com');
 
-    window.__GA4_ID__ = gaId;
-    const gaScript = document.createElement('script');
-    gaScript.async = true;
-    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-    document.head.appendChild(gaScript);
+    if (__isProdKiwimuHost) {
+      // Use the new Kiwimu-Core GA4 ID for unified funnel tracking
+      const gaId = import.meta.env.VITE_GA4_ID || 'G-DM6F27KL8B';
 
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', gaId);
+      window.__GA4_ID__ = gaId;
+      const gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+      document.head.appendChild(gaScript);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', gaId);
+    }
   </script>
 
   <!-- LINE Tag (LINE Ads 成效追蹤) -->

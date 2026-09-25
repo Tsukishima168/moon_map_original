@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
 
-interface OrderPayload {
+export interface OrderPayload {
   order_number: string
   customer_name: string
   customer_phone: string
@@ -20,9 +20,13 @@ interface OrderPayload {
   utm_campaign?: string | null
   utm_content?: string | null
   utm_term?: string | null
+  // R4: 第一接觸歸因（來自前端 kw_attr cookie，見 lib/attribution.ts）。
+  // 值不可信任，下面一律重新驗證/正規化，壞掉或缺值時當作沒有，不擋建單。
+  mbti_type?: string | null
+  from_mbti_test?: boolean | null
 }
 
-interface OrderItemPayload {
+export interface OrderItemPayload {
   item_name: string
   item_spec: string
   unit_price: number
@@ -77,6 +81,9 @@ const MAX_ITEMS_COUNT = 100
 const MAX_ITEM_NAME_LENGTH = 200
 const MAX_ITEM_SPEC_LENGTH = 200
 const MAX_QUANTITY = 1000
+// R4: cookie 來的字串欄位做長度上限與格式驗證
+const MAX_MBTI_TYPE_LENGTH = 64
+const MBTI_TYPE_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/
 
 // Inferred from other Kiwimu sites' usage of the shared `orders.status` column
 // (no DB CHECK constraint / enum exists to source this from — see
@@ -121,6 +128,22 @@ function isOptionalString(value: unknown, maxLength: number): boolean {
   return typeof value === 'string' && value.length <= maxLength
 }
 
+function isOptionalBoolean(value: unknown): boolean {
+  return value === null || value === undefined || typeof value === 'boolean'
+}
+
+/**
+ * R4: 正規化並驗證 mbti_type（格式 /^[EI][NS][TF][JP](-[AT])?$/，長度 ≤ 64）。
+ * 前端的 kw_attr cookie 可能壞掉、格式跑掉、或根本沒有這欄位——一律當作沒有（null），
+ * 絕不因為這個欄位讓整張訂單建立失敗。
+ */
+export function normalizeMbtiType(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim().toUpperCase()
+  if (trimmed.length === 0 || trimmed.length > MAX_MBTI_TYPE_LENGTH) return null
+  return MBTI_TYPE_PATTERN.test(trimmed) ? trimmed : null
+}
+
 function isFiniteNumberInRange(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
 }
@@ -129,7 +152,7 @@ function isFiniteNumberInRange(value: unknown, min: number, max: number): value 
  * Validates the untrusted request body before any DB write or Discord notify.
  * Returns a human-readable error message, or null if the payload is valid.
  */
-function validateOrderRequestPayload(order: unknown, items: unknown): string | null {
+export function validateOrderRequestPayload(order: unknown, items: unknown): string | null {
   if (!order || typeof order !== 'object') {
     return 'Missing required fields: order, items'
   }
@@ -179,6 +202,14 @@ function validateOrderRequestPayload(order: unknown, items: unknown): string | n
     if (!isOptionalString(o[key], STRING_FIELD_MAX_LENGTHS[key])) {
       return `Invalid ${key}`
     }
+  }
+  // mbti_type 格式驗證留給 normalizeMbtiType 在寫入前處理（壞值一律當作沒有，不擋建單）；
+  // 這裡只擋明顯錯誤的型別/長度，避免一個壞掉的 cookie 讓整張訂單失敗。
+  if (!isOptionalString(o.mbti_type, MAX_MBTI_TYPE_LENGTH)) {
+    return 'Invalid mbti_type'
+  }
+  if (!isOptionalBoolean(o.from_mbti_test)) {
+    return 'Invalid from_mbti_test'
   }
 
   if (items.length > MAX_ITEMS_COUNT) {
@@ -254,12 +285,15 @@ const normalizeOrderItems = (items: OrderItemPayload[]): CanonicalOrderItem[] =>
   }))
 }
 
-const toCanonicalOrder = (
+export const toCanonicalOrder = (
   order: OrderPayload,
   items: OrderItemPayload[],
   orderId: string
 ): CanonicalOrderPayload => {
   const totalAmount = Number(order.total_amount) || 0
+  // R4: from_mbti_test 不直接信任前端傳來的布林值，一律由伺服器端根據
+  // mbti_type 是否驗證通過重新計算（Boolean(mbti)），避免不一致。
+  const normalizedMbtiType = normalizeMbtiType(order.mbti_type)
 
   return {
     order_id: orderId,
@@ -279,8 +313,8 @@ const toCanonicalOrder = (
     delivery_address: null,
     delivery_fee: 0,
     delivery_notes: order.order_note || null,
-    mbti_type: null,
-    from_mbti_test: false,
+    mbti_type: normalizedMbtiType,
+    from_mbti_test: Boolean(normalizedMbtiType),
     checkout_site: MAP_CHECKOUT_SITE,
     source_from: normalizeOrderSource(order.source),
     utm_source: order.utm_source || null,
