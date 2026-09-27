@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
 
-interface OrderPayload {
+export interface OrderPayload {
   order_number: string
   customer_name: string
   customer_phone: string
@@ -20,9 +20,13 @@ interface OrderPayload {
   utm_campaign?: string | null
   utm_content?: string | null
   utm_term?: string | null
+  // R4: 第一接觸歸因（來自前端 kw_attr cookie，見 lib/attribution.ts）。
+  // 值不可信任，下面一律重新驗證/正規化，壞掉或缺值時當作沒有，不擋建單。
+  mbti_type?: string | null
+  from_mbti_test?: boolean | null
 }
 
-interface OrderItemPayload {
+export interface OrderItemPayload {
   item_name: string
   item_spec: string
   unit_price: number
@@ -77,6 +81,11 @@ const MAX_ITEMS_COUNT = 100
 const MAX_ITEM_NAME_LENGTH = 200
 const MAX_ITEM_SPEC_LENGTH = 200
 const MAX_QUANTITY = 1000
+// R4 v1.1：attribution 欄位（utm_*／mbti_type）一律截到 64 字，絕不因為這些欄位拒單
+// （BLOCKER fix：先前版本會因 utm 超長或型別錯誤直接 400，這是錯的——歸因資料壞掉
+// 只代表「沒有歸因」，不代表訂單本身無效）。
+const MAX_ATTRIBUTION_STRING_LENGTH = 64
+const MBTI_TYPE_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/
 
 // Inferred from other Kiwimu sites' usage of the shared `orders.status` column
 // (no DB CHECK constraint / enum exists to source this from — see
@@ -105,11 +114,6 @@ const STRING_FIELD_MAX_LENGTHS = {
   source: 60,
   ga_client_id: 128,
   referrer: 2048,
-  utm_source: 200,
-  utm_medium: 200,
-  utm_campaign: 200,
-  utm_content: 200,
-  utm_term: 200,
 } as const
 
 function isNonEmptyString(value: unknown, maxLength: number): value is string {
@@ -121,6 +125,30 @@ function isOptionalString(value: unknown, maxLength: number): boolean {
   return typeof value === 'string' && value.length <= maxLength
 }
 
+/**
+ * R4: 正規化並驗證 mbti_type（格式 /^[EI][NS][TF][JP](-[AT])?$/，長度 ≤ 64）。
+ * 前端的 kw_attr cookie 可能壞掉、格式跑掉、或根本沒有這欄位——一律當作沒有（null），
+ * 絕不因為這個欄位讓整張訂單建立失敗。
+ */
+export function normalizeMbtiType(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim().toUpperCase()
+  if (trimmed.length === 0 || trimmed.length > MAX_ATTRIBUTION_STRING_LENGTH) return null
+  return MBTI_TYPE_PATTERN.test(trimmed) ? trimmed : null
+}
+
+/**
+ * R4 v1.1：其餘 attribution 欄位（utm_source/medium/campaign/content/term）的正規化——
+ * 只在型別是字串時保留，trim 後截到 64 字；不是字串（number/object/…）就當作沒有。
+ * 這裡「絕不」回傳錯誤，因為 attribution 壞掉只代表沒有歸因，不代表訂單無效。
+ */
+export function sanitizeAttributionString(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  return trimmed.slice(0, MAX_ATTRIBUTION_STRING_LENGTH)
+}
+
 function isFiniteNumberInRange(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
 }
@@ -129,7 +157,7 @@ function isFiniteNumberInRange(value: unknown, min: number, max: number): value 
  * Validates the untrusted request body before any DB write or Discord notify.
  * Returns a human-readable error message, or null if the payload is valid.
  */
-function validateOrderRequestPayload(order: unknown, items: unknown): string | null {
+export function validateOrderRequestPayload(order: unknown, items: unknown): string | null {
   if (!order || typeof order !== 'object') {
     return 'Missing required fields: order, items'
   }
@@ -175,11 +203,10 @@ function validateOrderRequestPayload(order: unknown, items: unknown): string | n
   if (o.order_number !== undefined && !isOptionalString(o.order_number, STRING_FIELD_MAX_LENGTHS.order_number)) {
     return 'Invalid order_number'
   }
-  for (const key of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'] as const) {
-    if (!isOptionalString(o[key], STRING_FIELD_MAX_LENGTHS[key])) {
-      return `Invalid ${key}`
-    }
-  }
+  // R4 v1.1 BLOCKER fix：utm_*／mbti_type／from_mbti_test 不在這裡驗證、不會讓建單失敗。
+  // 這些全是 attribution 欄位，壞掉、超長、型別錯誤都只代表「沒有歸因」，不是訂單無效；
+  // 正規化與截斷放在 toCanonicalOrder（sanitizeAttributionString / normalizeMbtiType），
+  // from_mbti_test 則永遠由伺服器端依 mbti_type 是否驗證通過重新計算，不讀取這裡的原始值。
 
   if (items.length > MAX_ITEMS_COUNT) {
     return `Too many items: max ${MAX_ITEMS_COUNT}`
@@ -254,12 +281,15 @@ const normalizeOrderItems = (items: OrderItemPayload[]): CanonicalOrderItem[] =>
   }))
 }
 
-const toCanonicalOrder = (
+export const toCanonicalOrder = (
   order: OrderPayload,
   items: OrderItemPayload[],
   orderId: string
 ): CanonicalOrderPayload => {
   const totalAmount = Number(order.total_amount) || 0
+  // R4: from_mbti_test 不直接信任前端傳來的布林值，一律由伺服器端根據
+  // mbti_type 是否驗證通過重新計算（Boolean(mbti)），避免不一致。
+  const normalizedMbtiType = normalizeMbtiType(order.mbti_type)
 
   return {
     order_id: orderId,
@@ -279,15 +309,15 @@ const toCanonicalOrder = (
     delivery_address: null,
     delivery_fee: 0,
     delivery_notes: order.order_note || null,
-    mbti_type: null,
-    from_mbti_test: false,
+    mbti_type: normalizedMbtiType,
+    from_mbti_test: Boolean(normalizedMbtiType),
     checkout_site: MAP_CHECKOUT_SITE,
     source_from: normalizeOrderSource(order.source),
-    utm_source: order.utm_source || null,
-    utm_medium: order.utm_medium || null,
-    utm_campaign: order.utm_campaign || null,
-    utm_content: order.utm_content || null,
-    utm_term: order.utm_term || null,
+    utm_source: sanitizeAttributionString(order.utm_source),
+    utm_medium: sanitizeAttributionString(order.utm_medium),
+    utm_campaign: sanitizeAttributionString(order.utm_campaign),
+    utm_content: sanitizeAttributionString(order.utm_content),
+    utm_term: sanitizeAttributionString(order.utm_term),
     user_id: order.user_id || null,
     status: order.payment_status || 'pending',
   }

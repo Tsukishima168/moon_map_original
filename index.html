@@ -206,20 +206,34 @@
   </script>
 
   <!-- Google Analytics 4 -->
+  <!-- R1 v1.1：正式網域（kiwimu.com 或其子網域）＋ map 自己的正式舊別名
+       moon-map-original.vercel.app（流量＝正式站 64%，疑似 LINE LIFF 入口；
+       R2 v1.1 決定暫不轉址，所以這裡改成白名單放行，不能讓它繼續量不到）。
+       只擋 localhost、127.0.0.1 與其他 *.vercel.app 預覽網址。 -->
   <script type="module">
-    // Use the new Kiwimu-Core GA4 ID for unified funnel tracking
-    const gaId = import.meta.env.VITE_GA4_ID || 'G-DM6F27KL8B';
+    const __hostname = window.location.hostname;
+    const __LEGACY_VERCEL_ALIAS = 'moon-map-original.vercel.app';
+    const __isProdKiwimuHost =
+      __hostname === 'kiwimu.com' ||
+      __hostname.endsWith('.kiwimu.com') ||
+      __hostname === __LEGACY_VERCEL_ALIAS;
 
-    window.__GA4_ID__ = gaId;
-    const gaScript = document.createElement('script');
-    gaScript.async = true;
-    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
-    document.head.appendChild(gaScript);
+    if (__isProdKiwimuHost) {
+      // Use the new Kiwimu-Core GA4 ID for unified funnel tracking
+      const gaId = import.meta.env.VITE_GA4_ID || 'G-DM6F27KL8B';
 
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', gaId);
+      window.__GA4_ID__ = gaId;
+      const gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+      document.head.appendChild(gaScript);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', gaId);
+    }
   </script>
 
   <!-- LINE Tag (LINE Ads 成效追蹤) -->
