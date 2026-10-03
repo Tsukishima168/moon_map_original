@@ -233,6 +233,18 @@
       window.gtag = gtag;
       gtag('js', new Date());
       gtag('config', gaId);
+
+      // menu_view：與 page_view 同時點送出，不等 React 掛載；路徑容錯 /menu、/menu/、大小寫
+      if (/^\/menu\/?$/i.test(window.location.pathname)) {
+        const p = new URLSearchParams(window.__MOON_MAP_INITIAL_SEARCH__ || window.location.search);
+        gtag('event', 'menu_view', {
+          site_id: 'moon_map',
+          page_path: '/menu',
+          entry: 'path',
+          utm_source: p.get('utm_source') || undefined,
+          mbti: p.get('mbti') || undefined,
+        });
+      }
     }
   </script>
 
