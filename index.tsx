@@ -554,7 +554,7 @@ const App = () => {
   const [recommendation, setRecommendation] = useState<string>("");
   const [showMenu, setShowMenu] = useState(false);
   // 僅甜點目錄頁：/menu 路徑只顯示目錄（與 Dessert-Booking / LINE 共用連結）
-  const [onlyMenuView] = useState(() => typeof window !== 'undefined' && window.location.pathname === '/menu');
+  const [onlyMenuView] = useState(() => typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname));
   const [headerImage, setHeaderImage] = useState('');
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
@@ -1143,7 +1143,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
 
         setMenuCategories(categories);
-        const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
+        const isOnlyMenuUrl = typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname);
         setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat) => cat.id)));
       } catch (err) {
         console.error('Failed to load menu categories:', err);
@@ -1221,7 +1221,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   // /menu 專用：分頁標題讓 LINE、Google 連結預覽顯示「甜點目錄」
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/menu') {
+    if (typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname)) {
       const prev = document.title;
       document.title = '月島甜點 | 甜點目錄';
 
