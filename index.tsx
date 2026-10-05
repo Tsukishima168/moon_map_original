@@ -584,7 +584,7 @@ const App = () => {
   const easterEggRewardUrl = CONFIG.LINKS.easter_egg_reward_url || CONFIG.LINKS.wallpaper_url;
   // R3: 站內跨站連結（指向其他 *.kiwimu.com 站）不用 utm_*，改用 from=<來源站>_<位置>
   const mbtiLabUrl = buildFromUrl(CONFIG.LINKS.mbti_lab_url, 'map_profile');
-  const passportUrl = buildFromUrl(CONFIG.LINKS.passport_url, 'map_hero_checkin');
+  const passportUrl = buildFromUrl(CONFIG.LINKS.passport_url, 'map_hero_checkin', { screen: 'passport', tab: 'journey', journey_mode: 'store' });
   // v1.1：booking_url 指向 map 自己（map.kiwimu.com/menu），是自我連結，不是跨站連結，
   // 不需要任何 utm_* 或 from 參數（自己連自己不需要標來源）。
   const bookingMenuUrl = CONFIG.LINKS.booking_url;
@@ -3142,8 +3142,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
               <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>01 // INTERACT</span>
-              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>我想登島互動 (Check-in)</strong>
-              <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>*將開啟護照外部網頁</div>
+              <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店後，回護照繼續集章</strong>
+              <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>開啟到店任務；抵達門市後再定位或掃 QR</div>
             </div>
             <span>↗</span>
           </a>
