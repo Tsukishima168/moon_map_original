@@ -32,7 +32,7 @@
       window.__MOON_MAP_INITIAL_SEARCH__ = window.location.search;
 
       const url = new URL(window.location.href);
-      const canonicalPath = url.pathname === '/menu' ? '/menu' : '/';
+      const canonicalPath = /^\/menu\/?$/i.test(url.pathname) ? '/menu' : '/';
       const canonicalUrl = `https://map.kiwimu.com${canonicalPath}`;
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) {
@@ -234,6 +234,7 @@
       function gtag() { dataLayer.push(arguments); }
       window.gtag = gtag;
       gtag('js', new Date());
+
       // entry_from：這次著陸的站內入口。上面的 inline script 已把 from 從網址拔掉，
       // 所以讀 __MOON_MAP_INITIAL_SEARCH__（原始 query）；沒有就不帶這個參數。
       const entryFrom = resolveEntryFrom(window.__MOON_MAP_INITIAL_SEARCH__);
@@ -241,6 +242,18 @@
         gtag('config', gaId, { entry_from: entryFrom });
       } else {
         gtag('config', gaId);
+      }
+
+      // menu_view：與 page_view 同時點送出，不等 React 掛載；路徑容錯 /menu、/menu/、大小寫
+      if (/^\/menu\/?$/i.test(window.location.pathname)) {
+        const p = new URLSearchParams(window.__MOON_MAP_INITIAL_SEARCH__ || window.location.search);
+        gtag('event', 'menu_view', {
+          site_id: 'moon_map',
+          page_path: '/menu',
+          entry: 'path',
+          utm_source: p.get('utm_source') || undefined,
+          mbti: p.get('mbti') || undefined,
+        });
       }
     }
   </script>

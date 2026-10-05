@@ -554,7 +554,7 @@ const App = () => {
   const [recommendation, setRecommendation] = useState<string>("");
   const [showMenu, setShowMenu] = useState(false);
   // 僅甜點目錄頁：/menu 路徑只顯示目錄（與 Dessert-Booking / LINE 共用連結）
-  const [onlyMenuView] = useState(() => typeof window !== 'undefined' && window.location.pathname === '/menu');
+  const [onlyMenuView] = useState(() => typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname));
   const [headerImage, setHeaderImage] = useState('');
   const [showStory, setShowStory] = useState(false); // Original Easter Egg Modal (deprecated)
   const [showProfile, setShowProfile] = useState(false); // Profile Modal
@@ -1057,26 +1057,42 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     return null;
   };
 
+  // index.html 在 React 掛載前會把 utm_* 從網址列移除（replaceState），
+  // 所以必須讀 getInitialUrlSearch()（頁面載入當下的 search），而不是 window.location.search。
+  // 進站帶 utm 時存進 sessionStorage，整個瀏覽 session（含重新整理）下單時都取得到。
   const getUTMParams = () => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      return {
-        utm_source: urlParams.get('utm_source') || null,
-        utm_medium: urlParams.get('utm_medium') || null,
-        utm_campaign: urlParams.get('utm_campaign') || null,
-        utm_content: urlParams.get('utm_content') || null,
-        utm_term: urlParams.get('utm_term') || null,
-        referrer: document.referrer || null
-      };
-    }
-    return {
-      utm_source: null,
-      utm_medium: null,
-      utm_campaign: null,
-      utm_content: null,
-      utm_term: null,
-      referrer: null
+    const empty = {
+      utm_source: null as string | null,
+      utm_medium: null as string | null,
+      utm_campaign: null as string | null,
+      utm_content: null as string | null,
+      utm_term: null as string | null,
+      referrer: null as string | null
     };
+    if (typeof window === 'undefined') return empty;
+
+    const STORAGE_KEY = 'moonmoon_utm_session';
+    const urlParams = new URLSearchParams(getInitialUrlSearch());
+    const fromUrl = {
+      utm_source: urlParams.get('utm_source') || null,
+      utm_medium: urlParams.get('utm_medium') || null,
+      utm_campaign: urlParams.get('utm_campaign') || null,
+      utm_content: urlParams.get('utm_content') || null,
+      utm_term: urlParams.get('utm_term') || null,
+      referrer: document.referrer || null
+    };
+
+    try {
+      if (fromUrl.utm_source || fromUrl.utm_medium || fromUrl.utm_campaign) {
+        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(fromUrl));
+        return fromUrl;
+      }
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) return { ...empty, ...JSON.parse(saved) };
+    } catch (e) {
+      // sessionStorage 不可用（隱私模式等）→ 退回只用本次網址
+    }
+    return fromUrl;
   };
 
   // --- MENU & USER DATA ---
@@ -1127,7 +1143,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
 
         setMenuCategories(categories);
-        const isOnlyMenuUrl = typeof window !== 'undefined' && window.location.pathname === '/menu';
+        const isOnlyMenuUrl = typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname);
         setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat) => cat.id)));
       } catch (err) {
         console.error('Failed to load menu categories:', err);
@@ -1205,20 +1221,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   // /menu 專用：分頁標題讓 LINE、Google 連結預覽顯示「甜點目錄」
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.pathname === '/menu') {
+    if (typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname)) {
       const prev = document.title;
       document.title = '月島甜點 | 甜點目錄';
 
-      // GA4 menu_view event
-      if ((window as any).gtag) {
-        const initialParams = new URLSearchParams(getInitialUrlSearch());
-        (window as any).gtag('event', 'menu_view', {
-          site_id: 'moon_map',
-          page_path: '/menu',
-          utm_source: initialParams.get('utm_source') || undefined,
-          mbti: initialParams.get('mbti') || undefined,
-        });
-      }
+      // menu_view 已移至 index.html 的 GA 初始化區塊送出（避免雙計）
 
       return () => { document.title = prev; };
     }
