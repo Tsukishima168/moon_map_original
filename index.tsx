@@ -546,6 +546,7 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 
 const App = () => {
   const [user, setUser] = useState<any>(null);
+  const [isLogoutBusy, setIsLogoutBusy] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showLogin, setShowLogin] = useState(false);
   const [loginMessage, setLoginMessage] = useState('');
@@ -1851,9 +1852,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
   };
 
   const handleLogout = async () => {
-    if (!supabase) return;
-    await supabase.auth.signOut();
-    showUiNotice('已成功登出島民身份。', 'success');
+    if (!supabase || isLogoutBusy) return;
+    setIsLogoutBusy(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      showUiNotice('已成功登出島民身份。', 'success');
+    } catch {
+      showUiNotice('暫時無法登出，請確認網路後重試。', 'warning');
+    } finally {
+      setIsLogoutBusy(false);
+    }
   };
 
   useEffect(() => {
@@ -3031,7 +3040,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             boxShadow: 'var(--shadow-stamp)',
             position: 'relative'
           }}>
-            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.7rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q4</span>
+            <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.75rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q4</span>
             <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
 
             {/* Gold Coin Egg (Hidden in Yellow Background) */}
@@ -3063,46 +3072,22 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button
-                  onClick={() => setShowProfile(true)}
-                  style={{
-                    fontSize: '0.7rem',
-                    color: CONFIG.BRAND_COLORS.grayText,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    padding: '4px 8px',
-                    borderRadius: '8px',
-                    transition: 'background 0.2s'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.05)'}
-                  onMouseOut={(e) => e.currentTarget.style.background = 'none'}
-                >
-                  {profile?.nickname || user.email?.split('@')[0]}
-                  {profile?.mbti_type && (
-                    <span style={{
-                      padding: '2px 8px',
-                      background: CONFIG.BRAND_COLORS.moonSilver,
-                      borderRadius: '10px',
-                      color: 'black',
-                      fontSize: '0.65rem',
-                      fontWeight: 700
-                    }}>
-                      {profile.mbti_type}
-                    </span>
-                  )}
+              <div className="map-account-controls">
+                <button type="button" className="map-account-button" aria-label="查看會員資料" onClick={() => setShowProfile(true)}>
+                  <span className="map-account-name">{profile?.nickname || user.email?.split('@')[0]}</span>
+                  {profile?.mbti_type && <span className="map-account-badge">{profile.mbti_type}</span>}
                 </button>
-                <button onClick={handleLogout} style={{ borderBottom: '1px solid black', fontSize: '0.7rem' }}>LOGOUT</button>
+                <button type="button" className="map-account-button" disabled={isLogoutBusy} aria-busy={isLogoutBusy} onClick={handleLogout}>
+                  {isLogoutBusy ? '登出中…' : '登出'}
+                </button>
               </div>
             ) : (
               <button
+                type="button"
                 onClick={() => setShowLogin(true)}
                 style={{
                   border: '1px solid black',
+                  minHeight: '44px',
                   padding: '6px 16px',
                   borderRadius: '20px',
                   fontSize: '0.75rem',
