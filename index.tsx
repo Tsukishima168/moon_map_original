@@ -2949,6 +2949,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
         )}
 
+        {!onlyMenuView && <>
         <div
           onClick={() => {
             track('click_easter_egg_progress_badge');
@@ -3749,8 +3750,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </div>
           {/* END OF SECTIONS */}
         </section>
+        </>}
       </div>
 
+      {!onlyMenuView && <>
       {/* NEW: CURATED CONTENT */}
       <div className="season04-curated" style={{ marginTop: '80px', padding: '0 20px' }}>
         <h2 className="font-mono" style={{ marginBottom: '30px' }}>CURATED PAUSE / 留下來的片刻</h2>
@@ -4252,6 +4255,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           </p>
         </footer >
       </div >
+      </>}
 
       {/* --- MODALS --- */}
 
