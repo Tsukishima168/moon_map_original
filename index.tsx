@@ -2905,7 +2905,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
             {/* Loading 狀態 */}
             {loadingMenu && (
-              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+              <div role="status" style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🌙</div>
                 <p style={{ fontSize: '0.9rem' }}>菜單載入中…</p>
               </div>
@@ -2917,7 +2917,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div style={{ fontSize: '3rem', marginBottom: '16px' }}>🍰</div>
                 <h2 style={{ fontSize: '1.1rem', marginBottom: '12px' }}>菜單暫時無法載入</h2>
                 <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '24px', lineHeight: 1.7 }}>
-                  系統正在維護中，菜單資料暫時無法取得。<br />
+                  暫時無法取得菜單資料，請確認網路後再試一次。<br />
                   請透過 LINE 官方帳號查詢最新商品。
                 </p>
                 <a
@@ -4265,7 +4265,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)' }}>
             <div className="modal-header" style={{ border: 'none', paddingBottom: 0 }}>
               <div className="font-mono" style={{ fontSize: '0.8rem', color: '#888' }}>PROGRESS</div>
-              <button className="close-btn" onClick={() => setShowDiscoverModal(false)}>×</button>
+              <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowDiscoverModal(false)}>×</button>
             </div>
             <div className="modal-body" style={{ textAlign: 'center', padding: '10px 30px 40px 30px' }}>
               <div style={{ fontSize: '3rem', marginBottom: '20px' }}>🥚</div>
@@ -4384,7 +4384,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>DESSERT MENU</div>
                   <h3 className="font-mono" style={{ margin: 0, fontSize: '1.5rem', letterSpacing: '0.05em' }}>甜點目錄</h3>
                 </div>
-                <button className="close-btn" onClick={() => setShowMenu(false)}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowMenu(false)}>×</button>
               </div>
 
               <div className="modal-body">
@@ -4394,7 +4394,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     載入甜點目錄中...
                   </div>
                 ) : menuCategories.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '60px 20px', color: '#999' }}>
+                  <div role="status" style={{ textAlign: 'center', padding: '60px 20px', color: '#666' }}>
                     <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>🍰</div>
                     菜單暫時無法載入，請透過 LINE 官方帳號查詢最新菜單。
                   </div>
@@ -4614,7 +4614,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
               <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonSilver }}>
                 <h3 className="font-mono" style={{ margin: 0 }}>訂購確認 Check Order</h3>
-                <button className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowCheckoutConfirm(false)}>×</button>
               </div>
               <div className="modal-body">
                 <div style={{ marginBottom: '20px', maxHeight: '30vh', overflowY: 'auto' }}>
@@ -4644,7 +4644,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             aria-label={`${item.name} ${item.spec} 數量`}
                             style={{
                               display: 'grid',
-                              gridTemplateColumns: '32px 38px 32px',
+                              gridTemplateColumns: '44px 38px 44px',
                               alignItems: 'center',
                               border: '1px solid var(--c-line)',
                               borderRadius: '999px',
@@ -4658,7 +4658,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               disabled={submitting}
                               aria-label={`減少 ${item.name} ${item.spec} 數量`}
                               style={{
-                                height: '32px',
+                                height: '44px',
                                 fontSize: '1rem',
                                 fontWeight: 700,
                                 color: '#333',
@@ -4677,7 +4677,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               disabled={submitting}
                               aria-label={`增加 ${item.name} ${item.spec} 數量`}
                               style={{
-                                height: '32px',
+                                height: '44px',
                                 fontSize: '1rem',
                                 fontWeight: 700,
                                 color: '#333',
@@ -4798,7 +4798,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
               <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.moonSilver }}>
                 <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
-                <button className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
               </div>
               <div className="modal-body">
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
@@ -4898,7 +4898,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}
               >
                 <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>HIDDEN EGG NO.9</h3>
-                <button className="close-btn" onClick={() => setShowValentineModal(false)} style={{ color: '#000' }}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowValentineModal(false)} style={{ color: '#000' }}>×</button>
               </div>
 
               <div className="modal-body" style={{ padding: '30px 20px' }}>
@@ -4955,7 +4955,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   marginBottom: '10px'
                 }}>
                   <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '15px', textAlign: 'center', letterSpacing: '1px' }}>
-                    傳送通關密語到 LINE@ 兌換布丁
+                    實體兌換需店員確認，請透過 LINE 官方帳號洽詢
                   </div>
 
                   {/* Code Display */}
@@ -5060,7 +5060,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   paddingBottom: '0'
                 }}
               >
-                <button className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowVipModal(false)} style={{ color: '#000', fontSize: '1.5rem' }}>×</button>
               </div>
 
               <div className="modal-body" style={{ padding: '30px 30px 60px 30px', textAlign: 'center' }}>
@@ -5122,7 +5122,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}
               >
                 <span style={{ fontWeight: 700, fontSize: '0.85rem', letterSpacing: '0.1em' }}>🌙 心情展籤</span>
-                <button className="close-btn" onClick={() => setShowFortuneModal(false)} style={{ color: '#fff', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowFortuneModal(false)} style={{ color: '#fff', fontSize: '1.5rem', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
               </div>
 
               <div className="modal-body" style={{ padding: '30px', textAlign: 'center', background: `linear-gradient(175deg, ${CONFIG.BRAND_COLORS.nightBlue} 0%, ${CONFIG.BRAND_COLORS.nightBlueDeep} 100%)` }}>
@@ -5229,7 +5229,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}
               >
                 <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>LUNAR NEW YEAR SPECIAL</h3>
-                <button className="close-btn" onClick={() => setShowRedEnvelopeModal(false)} style={{ color: '#fff', background: 'rgba(0,0,0,0.2)' }}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowRedEnvelopeModal(false)} style={{ color: '#fff', background: 'rgba(0,0,0,0.2)' }}>×</button>
               </div>
 
               <div className="modal-body" style={{ padding: '30px 20px', textAlign: 'center' }}>
@@ -5296,7 +5296,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 }}
               >
                 <h3 className="font-mono" style={{ margin: 0, fontSize: '1rem', letterSpacing: '2px' }}>WEALTH & FORTUNE</h3>
-                <button className="close-btn" onClick={() => setShowGoldCoinModal(false)} style={{ color: '#000', background: 'rgba(255,255,255,0.4)' }}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowGoldCoinModal(false)} style={{ color: '#000', background: 'rgba(255,255,255,0.4)' }}>×</button>
               </div>
 
               <div className="modal-body" style={{ padding: '30px 20px', textAlign: 'center' }}>
@@ -5356,7 +5356,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', padding: '0', zIndex: 2001 }}>
               <div className="modal-header">
                 <h3 className="font-mono">登島手續：領取島民狀態</h3>
-                <button className="close-btn" onClick={() => setShowLogin(false)}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowLogin(false)}>×</button>
               </div>
               <div className="modal-body" style={{ textAlign: 'center' }}>
                 <div style={{ marginBottom: '25px', padding: '0 10px' }}>
@@ -5413,7 +5413,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '420px', padding: '0', zIndex: 2001 }}>
               <div className="modal-header">
                 <h3 className="font-mono">🌙 島民檔案 RESIDENT PROFILE</h3>
-                <button className="close-btn" onClick={() => setShowProfile(false)}>×</button>
+                <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowProfile(false)}>×</button>
               </div>
               <div className="modal-body">
                 {/* Basic Info */}
