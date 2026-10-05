@@ -362,3 +362,11 @@
 .season04-menu-header > a { display:inline-flex; align-items:center; min-height:44px; }
 .menu-item button:focus-visible, .modal-card button:focus-visible { outline:2px solid var(--ku-lime); outline-offset:2px; box-shadow:0 0 0 4px var(--ku-ink); }
 @media (max-width:40rem) { .modal-card input, .modal-card select, .modal-card textarea { font-size:16px !important; } }
+
+.map-account-controls { display:flex; align-items:center; flex-wrap:wrap; gap:8px; min-width:0; max-width:100%; }
+.map-account-button { display:inline-flex; align-items:center; gap:8px; min-height:44px; min-width:44px; max-width:100%; padding:8px 12px; border:1px solid rgba(17,17,17,.35); border-radius:999px; color:#111111; background:#f4f4f0; font-size:12px; font-weight:700; cursor:pointer; }
+.map-account-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:min(45vw,180px); }
+.map-account-badge { padding:2px 8px; border-radius:10px; background:#c9cdd8; color:#111111; font-size:12px; }
+.map-account-button:hover { background:#fffdf7; }
+.map-account-button:disabled { cursor:wait; opacity:.7; }
+.map-account-button:focus-visible { outline:3px solid #d4ff00; outline-offset:3px; box-shadow:0 0 0 6px #111111; }
