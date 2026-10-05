@@ -7,13 +7,20 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const tsx = readFileSync(new URL('../index.tsx', import.meta.url), 'utf8');
 const gaScript = [...html.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)]
   .map(match => match[1]).find(script => script.includes('__isProdKiwimuHost'))
-  .replace('import.meta.env.VITE_GA4_ID', "'G-TEST'");
+  .replace('import.meta.env.VITE_GA4_ID', "'G-TEST'")
+  .replace(/import \{ resolveEntryFrom \} from [^;]+;/, '');
+const attributionCode = transformSync(readFileSync(new URL('../lib/attribution.ts', import.meta.url), 'utf8'), { loader: 'ts', format: 'cjs' }).code;
+const runGA = (window) => {
+  const context = { window, dataLayer: window.dataLayer, URLSearchParams, module: { exports: {} },
+    document: { cookie: '', createElement: () => ({}), head: { appendChild() {} } } };
+  vm.runInNewContext(attributionCode, context);
+  vm.runInNewContext(gaScript, context);
+};
 
 for (const path of ['/menu', '/menu/', '/MENU']) {
   const window = { location: { hostname: 'map.kiwimu.com', pathname: path, search: '' },
     __MOON_MAP_INITIAL_SEARCH__: '?from=mbti_universe_nav&utm_source=campaign', dataLayer: [] };
-  vm.runInNewContext(gaScript, { window, dataLayer: window.dataLayer, URLSearchParams,
-    document: { createElement: () => ({}), head: { appendChild() {} } } });
+  runGA(window);
   const calls = window.dataLayer.map(call => [...call]);
   assert.equal(calls.filter(call => call[0] === 'event' && call[1] === 'menu_view').length, 1);
   assert.equal(calls.find(call => call[0] === 'config')[2].entry_from, 'mbti_universe_nav');
@@ -22,7 +29,7 @@ for (const path of ['/menu', '/menu/', '/MENU']) {
 
 for (const hostname of ['localhost', 'deployment-test.vercel.app']) {
   const window = { location: { hostname, pathname: '/menu', search: '' }, dataLayer: [] };
-  vm.runInNewContext(gaScript, { window });
+  runGA(window);
   assert.equal(window.dataLayer.length, 0);
 }
 

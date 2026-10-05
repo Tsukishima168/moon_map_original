@@ -211,6 +211,8 @@
        R2 v1.1 決定暫不轉址，所以這裡改成白名單放行，不能讓它繼續量不到）。
        只擋 localhost、127.0.0.1 與其他 *.vercel.app 預覽網址。 -->
   <script type="module">
+    import { resolveEntryFrom } from '/lib/attribution';
+
     const __hostname = window.location.hostname;
     const __LEGACY_VERCEL_ALIAS = 'moon-map-original.vercel.app';
     const __isProdKiwimuHost =
@@ -232,11 +234,15 @@
       function gtag() { dataLayer.push(arguments); }
       window.gtag = gtag;
       gtag('js', new Date());
-      const initialParams = new URLSearchParams(window.__MOON_MAP_INITIAL_SEARCH__ || window.location.search);
-      const from = initialParams.get('from') || '';
-      // Only accept the site's public attribution labels, never arbitrary query values.
-      const entryFrom = /^(mbti|passport|map|gacha|shop)_[a-z_]{1,48}$/.test(from) ? from : undefined;
-      gtag('config', gaId, { entry_from: entryFrom });
+
+      // entry_from：這次著陸的站內入口。上面的 inline script 已把 from 從網址拔掉，
+      // 所以讀 __MOON_MAP_INITIAL_SEARCH__（原始 query）；沒有就不帶這個參數。
+      const entryFrom = resolveEntryFrom(window.__MOON_MAP_INITIAL_SEARCH__);
+      if (entryFrom) {
+        gtag('config', gaId, { entry_from: entryFrom });
+      } else {
+        gtag('config', gaId);
+      }
 
       // menu_view：與 page_view 同時點送出，不等 React 掛載；路徑容錯 /menu、/menu/、大小寫
       if (/^\/menu\/?$/i.test(window.location.pathname)) {
