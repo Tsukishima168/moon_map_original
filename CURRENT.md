@@ -1,6 +1,26 @@
 # Map Current
 
-Last updated: 2026-09-17
+## 2026-10-07｜主對話收尾｜本機驗證完成，待獨立簽收與上線核定
+
+- ✅ 主對話覆讀4檔diff，actual-source登入／未知商品名稱、取貨／訂單／LIFF不變性、JSON-LD營業與12px／對比檢核通過。本機首頁／菜單四種寬度無水平溢出與可見破圖。
+- ⚠️ 本機menu採未改的public/menu.json備援，不能稱為正式商品／库存驗收。LIFF舊endpoint是SDK警告來源，不是本輪Console讀回；需授權者核對ID2008848603-ANGQX0GN的endpoint是否為https://map.kiwimu.com/。
+- ⚠️ 因帳戶額度限制，最終patch尚未獨立簽收；未定位／QR／獎勵／下單／登入或改LINE設定。
+- 📌 最終交付索引與hash：/Users/pensoair/.codex/visualizations/2026/10/07/kiwimu-public-copy-repair/map/final-manifest.json；原作者證據保留為歷史，新的final-manifest才是送審版本。未部署；合併上線需Penso同意。
+
+
+Last updated: 2026-10-07
+
+## 公開文案與可讀性修正 · 2026-10-07（本地已驗，尚未部署）
+
+- 已修正品牌引語／頁尾附註對比（5.141:1／12.469:1），將 20 處 inline 與 5 處季節 CSS 小字提高至 12px；共用 rail／裝飾圓點維持原規格。
+- 內部「PROJECT LOADING」、未提供規格、未取得 MBTI 結果與未開放限定內容皆改成顧客指引；第三方登入錯誤與未知甜點 ID 不再直接顯示原始診斷或編碼。保留已知瀏覽器阻擋／關閉視窗提示。
+- 分支：`codex/map-public-copy-repair-20261007`，fresh `origin/main` 基線 `de3783f2720cc5333530b471598c81e9f9bd5b38`；canonical repo 的三份 untracked script 副本保留。
+- 營業時間採 Tsuki-SSOT `06_行銷企劃/LINE官方帳號_漏斗與設定_2026-10-02.md:44–46` 同日核准值：週一公休；週二至五 13:00–18:00；週六日 11:00–18:00。只同步公開資訊／SEO，取貨日期排程未改。
+- LIFF 後續：`CONFIG.LINKS.liff_id = 2008848603-ANGQX0GN`；主審查觀察到 LINE endpoint 為 `https://moon-map-original.vercel.app/`，建議正式 endpoint 為 `https://map.kiwimu.com/`。設定屬 LINE 後台，本輪未登入／讀回／調整，也未消音 SDK 警告；ID 與初始化碼未改。
+- 作者驗證：`tsc --noEmit --pretty false`、`npm run vercel-build`、entry_from／attribution／5 案 actual-handler logout 全部通過。交付腳本另驗四案登入文字、未知甜點 ID、營業／JSON-LD、既有訂單／集章／定位／取貨排程／LIFF 程式碼不變、12px 宣告與對比；loopback `/`、`/menu`、`/menu.json` HTTP 200。
+- 主審查已回報本地首頁 320／390／768／1280px：橫向溢出 0、可見破圖 0、rail 外小於 12px 文字 0。此為瀏覽器尺寸模擬；fresh-context source review、真人 LINE／iPhone 與正式環境驗收仍待進行。
+- 本機菜單資料明列：Vite `/api/menu` 回 `text/javascript` 而非 JSON，前端走未改的 `public/menu.json` 靜態備援（可見舊品名「奶酒提拉米蘇」「原味巴斯克」）。本地 `/menu` 只驗備援版面，不是正式即時商品／庫存簽收；破圖 0 也不代表每個商品有照片。未讀取／修改 env 或改動商品、圖片、價格。
+- 交付：`/Users/pensoair/.codex/visualizations/2026/10/07/kiwimu-public-copy-repair/map/delivery-index.md`；私有 loopback 預覽 `http://127.0.0.1:5237/`。未 commit／push／部署，未使用正式登入／定位／訂單／付款／抽獎／點數／DB／Email 或修改 env／正式設定。
 
 ## Hero CTA 對齊修正 · 2026-09-17
 

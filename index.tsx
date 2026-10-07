@@ -56,6 +56,13 @@ const getInitialUrlSearch = () => {
   return (window as MoonMapWindow).__MOON_MAP_INITIAL_SEARCH__ || window.location.search;
 };
 
+// Keep known browser guidance; provider diagnostics do not belong in public notices.
+const getPassportLoginErrorMessage = ({ message }: { message?: string }) => {
+  if (message === '登入視窗被瀏覽器阻擋，正在改用整頁登入…' ||
+      message === '登入視窗已關閉，請再試一次。') return message;
+  return '登入暫時無法完成，請確認網路後重試。';
+};
+
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
@@ -86,7 +93,7 @@ const CONFIG = {
     kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
     instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
     address_text: "台南市安南區本原街一段97巷168號",
-    hours_text: "Tue - Sun / 13:00 - 18:00",
+    hours_text: "週一公休；週二至五 13:00–18:00；週六日 11:00–18:00",
     liff_id: "2008848603-ANGQX0GN",
     line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
   }
@@ -724,7 +731,7 @@ const App = () => {
         showUiNotice('登入 Passport 後會替你完成限定徽章領取。', 'info');
         openPassportLogin({
           intent: 'map_egg_master_reward',
-          onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
+          onError: (detail) => showUiNotice(getPassportLoginErrorMessage(detail), 'warning'),
         });
         return;
       }
@@ -1172,7 +1179,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     for (const itemId of itemIds) {
       const matchedItem = findMenuItemById(itemId);
       const fallbackLabel = getMenuCatalogEntry(itemId)?.label;
-      const displayName = matchedItem?.name ?? fallbackLabel ?? itemId;
+      const displayName = matchedItem?.name ?? fallbackLabel ?? '推薦甜點（請以目前菜單為準）';
 
       if (seen.has(displayName)) continue;
       seen.add(displayName);
@@ -1371,7 +1378,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               setStoreBadgeMessage('請先登入島民身份，登入完成後再點一次定位即可領徽章。');
               openPassportLogin({
                 intent: 'map_store_badge_reward',
-                onError: (detail) => showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning'),
+                onError: (detail) => showUiNotice(getPassportLoginErrorMessage(detail), 'warning'),
               });
               return;
             }
@@ -1846,7 +1853,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       },
       onError: (detail) => {
         setLoginMessage('');
-        showUiNotice(detail.message || '登入失敗，請再試一次。', 'warning');
+        showUiNotice(getPassportLoginErrorMessage(detail), 'warning');
       },
     });
   };
@@ -2304,7 +2311,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       marginLeft: '10px',
                       background: CONFIG.BRAND_COLORS.moonSilver,
                       color: 'black',
-                      fontSize: '0.7rem',
+                      fontSize: '0.75rem',
                       padding: '2px 6px',
                       borderRadius: '4px',
                       verticalAlign: 'middle',
@@ -2349,7 +2356,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           right: '10px',
                           background: CONFIG.BRAND_COLORS.emotionBlack,
                           color: CONFIG.BRAND_COLORS.moonSilver,
-                          fontSize: '0.7rem',
+                          fontSize: '0.75rem',
                           fontWeight: 700,
                           padding: '4px 10px',
                           borderRadius: '20px',
@@ -2393,7 +2400,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                showUiNotice('飲品僅供店內飲用，不開放預訂。歡迎來店品嚐，營業時間為週二至週日 13:00 - 18:00。', 'info');
+                                showUiNotice(`飲品僅供店內飲用，不開放預訂。歡迎來店品嚐。營業時間：${CONFIG.LINKS.hours_text}。`, 'info');
                               }}
                               style={{
                                 fontSize: '0.8rem',
@@ -2438,7 +2445,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                                 );
                               })
                             ) : (
-                              <span style={{ fontSize: '0.8rem', color: '#999', fontStyle: 'italic', padding: '4px 0' }}>暫無規格</span>
+                              <span style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, fontStyle: 'italic', padding: '4px 0' }}>預訂規格請透過 LINE 詢問</span>
                             )
                           )}
                         </div>
@@ -2905,7 +2912,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           }}>
             <header className="season04-menu-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
               <div>
-                <span className="font-mono" style={{ fontSize: '0.72rem', letterSpacing: '0.18em', color: CONFIG.BRAND_COLORS.moonSilver }}>DESSERT MENU · SEASON 04</span>
+                <span className="font-mono" style={{ fontSize: '0.75rem', letterSpacing: '0.18em', color: CONFIG.BRAND_COLORS.moonSilver }}>DESSERT MENU · SEASON 04</span>
                 <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>甜點目錄</h1>
                 <p>把本季甜點整理成清楚好選的綠色系列。茶、奶油、果實與咖啡在窗影裡慢慢展開，挑一份今天想停下來的味道。</p>
               </div>
@@ -2980,7 +2987,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             border: '2px solid #000',
             borderRadius: '999px',
             padding: '6px 12px',
-            fontSize: '0.7rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
             letterSpacing: '0.05em',
             boxShadow: 'var(--shadow-stamp)',
@@ -3006,7 +3013,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               border: '2px solid #000',
               borderRadius: '999px',
               padding: '6px 12px',
-              fontSize: '0.7rem',
+              fontSize: '0.75rem',
               fontWeight: 700,
               letterSpacing: '0.05em',
               boxShadow: 'var(--shadow-stamp)',
@@ -3141,7 +3148,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="season04-actions">
           <a href={passportUrl} target="_blank" rel="noreferrer" className="btn-entry" onClick={() => track('click_hero_checkin')}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>01 // INTERACT</span>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>01 // INTERACT</span>
               <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店後，回護照繼續集章</strong>
               <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>開啟到店任務；抵達門市後再定位或掃 QR</div>
             </div>
@@ -3155,7 +3162,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             window.location.href = bookingMenuUrl;
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>02 // ORDER NOW</span>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>02 // ORDER NOW</span>
               <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>我想帶走甜點 (預訂取貨)</strong>
             </div>
             <span>↗</span>
@@ -3165,7 +3172,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             document.getElementById('spotify-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>03 // MUSIC</span>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>03 // MUSIC</span>
               <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>聽一段綠光裡的音樂</strong>
             </div>
             <span>↓</span>
@@ -3175,7 +3182,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             handleStoreBadge();
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>04 // VISIT</span>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>04 // VISIT</span>
               <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>到店解鎖徽章 (100m 內)</strong>
               <div style={{ fontSize: '0.75rem', color: 'var(--c-gray)', marginTop: '4px', fontWeight: 'normal' }}>
                 需開啟定位；成功會跳轉護照
@@ -3207,7 +3214,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             setShowDiscoverModal(true);
           }}>
             <div>
-              <span className="font-mono text-yellow" style={{ fontSize: '0.7rem' }}>05 // DISCOVER</span>
+              <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>05 // DISCOVER</span>
               <strong style={{ display: 'block', fontSize: '1.05rem', marginTop: '6px' }}>找尋彩蛋 ({foundEggs.length}/9)</strong>
             </div>
             <span>↗</span>
@@ -3280,7 +3287,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </p>
             <p style={{ fontSize: '0.9rem', lineHeight: '1.8', color: '#666' }}>
               我們相信，每一口甜點都是一個故事，每一次品嚐都是一場與自己的對話。<br />
-              <em style={{ fontSize: '0.85rem', color: '#999' }}>「每一季一個主題。你路過，也算參展。」</em>
+              <em style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>「每一季一個主題。你路過，也算參展。」</em>
             </p>
             {/* Easter Egg #3 - 為什麼叫 Kiwimu */}
             <img
@@ -3589,7 +3596,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         position: 'absolute',
                         top: '15px',
                         right: '15px',
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         color: '#b0a070',
                         fontWeight: 700,
                         border: '1px solid #b0a070',
@@ -3844,7 +3851,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div>
                   <span className="font-mono text-yellow" style={{ fontSize: '0.75rem' }}>DOWNLOAD</span><br />
                   <strong>WALLPAPER (桌布)</strong>
-                  <div style={{ fontSize: '0.7rem', color: '#888', marginTop: '4px', lineHeight: 1.5 }}>
+                  <div style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '4px', lineHeight: 1.5 }}>
                     小提醒：桌布裡藏著一些小細節，多多放大觀察，說不定會發現限定小彩蛋喔！
                   </div>
                 </div>
@@ -3896,7 +3903,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       transition: 'transform 0.2s, box-shadow 0.2s'
                     }}>
                       <div style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         fontWeight: 700,
                         color: '#333',
                         marginBottom: '6px',
@@ -4039,7 +4046,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                             }}
                           >
                             {eggMasterCode}
-                            <div style={{ fontSize: '0.65rem', color: '#888', marginTop: '4px' }}>
+                            <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '4px' }}>
                               TAP TO COPY
                             </div>
                           </div>
@@ -4138,11 +4145,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 opacity: 0.4,
                 filter: 'grayscale(1)'
               }}>🚧</div>
-              <strong className="font-mono" style={{ fontSize: '0.9rem', letterSpacing: '0.15em', marginBottom: '6px', color: '#888' }}>
-                COMING SOON
+              <strong className="font-mono" style={{ fontSize: '0.9rem', letterSpacing: '0.15em', marginBottom: '6px', color: CONFIG.BRAND_COLORS.grayText }}>
+                新篇章準備中
               </strong>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#aaa' }}>
-                PROJECT LOADING... (準備中)
+              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: CONFIG.BRAND_COLORS.grayText }}>
+                開放消息請留意官方公告
               </div>
 
               {/* Easter Egg #8 - 秘密計畫 */}
@@ -4200,7 +4207,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </p>
               <p>
                 {CONFIG.LINKS.hours_text}<br />
-                <span style={{ fontSize: '0.8rem', color: '#888' }}>(依 Google Maps 與公告為主)</span>
+                <span style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.creamWhite }}>(依 Google Maps 與公告為主)</span>
               </p>
             </div>
             <div>
@@ -4294,7 +4301,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         boxShadow: isFound ? '0 3px 0 rgba(0,0,0,0.16)' : 'none'
                       }}
                     >
-                      <div className="font-mono" style={{ fontSize: '0.7rem', marginBottom: '5px' }}>
+                      <div className="font-mono" style={{ fontSize: '0.75rem', marginBottom: '5px' }}>
                         #{String(egg.id).padStart(2, '0')} {isFound ? 'FOUND' : 'LOCKED'}
                       </div>
                       <div style={{ fontSize: '0.76rem', fontWeight: 700, lineHeight: 1.35 }}>
@@ -4748,7 +4755,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
-                    營業時間：週二至週日 13:00-18:00
+                    營業時間：{CONFIG.LINKS.hours_text}
                   </p>
                 </div>
 
@@ -4962,7 +4969,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       transition: 'all 0.2s'
                     }}
                   >
-                    <div style={{ fontSize: '0.6rem', color: '#666', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    <div style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.creamWhite, marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '1px' }}>
                       SECRET CODE
                     </div>
                     <div style={{
@@ -4974,7 +4981,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     }}>
                       KIWIMU KISS
                     </div>
-                    <div style={{ fontSize: '0.6rem', color: '#444', marginTop: '5px' }}>
+                    <div style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.creamWhite, marginTop: '5px' }}>
                       (TAP TO COPY)
                     </div>
                   </div>
@@ -5022,7 +5029,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </button>
                 </div>
 
-                <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#ccc', marginTop: '20px' }}>
+                <div style={{ textAlign: 'center', fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '20px' }}>
                   LIMITED QUANTITY
                 </div>
               </div>
@@ -5073,13 +5080,13 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                   <p style={{
                     fontSize: '0.8rem',
-                    color: '#999',
+                    color: CONFIG.BRAND_COLORS.grayText,
                     marginTop: '40px',
                     letterSpacing: '2px',
                     fontFamily: 'monospace',
                     fontStyle: 'normal'
                   }}>
-                    COMING SOON...
+                    限定內容尚未開放，敬請留意官方公告。
                   </p>
                 </div>
               </div>
@@ -5146,7 +5153,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   「{currentFortune.text}」
                 </p>
 
-                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.5)', letterSpacing: '0.15em' }}>窗邊計畫 · 來自 Kiwimu 的祝福</p>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(245, 240, 232, 0.75)', letterSpacing: '0.15em' }}>窗邊計畫 · 來自 Kiwimu 的祝福</p>
 
                 {/* IG Promo Message */}
                 <div style={{
@@ -5193,7 +5200,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   下載展籤與任務卡 DOWNLOAD
                 </button>
 
-                <p style={{ fontSize: '0.7rem', color: 'rgba(245, 240, 232, 0.4)', marginTop: '12px' }}>每日一籤 · 明晚再來試試運氣</p>
+                <p style={{ fontSize: '0.75rem', color: 'rgba(245, 240, 232, 0.75)', marginTop: '12px' }}>每日一籤 · 明晚再來試試運氣</p>
               </div>
             </div>
           </div>
@@ -5443,12 +5450,12 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   marginBottom: '25px'
                 }}>
                   <h4 className="font-mono" style={{ fontSize: '0.85rem', marginBottom: '15px', opacity: 0.7 }}>
-                    資料同步狀態
+                    我的島民資訊
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span style={{ fontSize: '0.9rem' }}>
-                        {profile?.mbti_type ? 'MBTI 測驗結果已同步' : '尚未同步 MBTI 結果'}
+                        {profile?.mbti_type ? '已取得你的 MBTI 測驗結果' : '目前沒有你的 MBTI 結果，可前往測驗網站查看或完成測驗'}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
