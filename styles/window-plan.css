@@ -200,7 +200,7 @@ body {
   display: block;
   margin-bottom: 8px;
   color: var(--window-leaf);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   letter-spacing: 0.24em;
   content: '01 / WONDER';
 }
@@ -248,7 +248,7 @@ body {
   color: var(--window-forest-deep);
   border-radius: 999px;
   background: var(--window-sun);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.16em;
 }
@@ -403,7 +403,7 @@ body {
   display: block;
   margin-bottom: 5px;
   color: var(--window-leaf);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.16em;
 }
 
@@ -576,7 +576,7 @@ body {
 .season04-menu-curation-kicker {
   margin-bottom: 12px;
   color: var(--window-sun);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.18em;
 }
 
@@ -618,7 +618,7 @@ body {
 
 .season04-menu-category-axis {
   color: var(--window-forest);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   letter-spacing: 0.14em;
 }
 
