@@ -1,5 +1,11 @@
 # Map Current
 
+## 2026-10-14｜月島深綠風格升級 Phase A（本機已驗，尚未 push／部署）
+
+- 首頁 hero 改「深綠文字面板＋框住中央 Kiwimu 的圖片」分欄（≥1024 兩欄，<1024 上下堆疊），`/menu` 頁首同款；烤字被裁、文字壓 Kiwimu 兩個 P0 已解，七個寬度的 bbox 交集為 0（`docs/DESIGN-SYSTEM.md`「Hero 取景」）。
+- 手機 `/menu` 鎖 body 捲動（49px 空白）、toast 移到 rail 下方、帳號／狀態／彩蛋膠囊改森林語彙、焦點 2px、觸控 ≥44px、對比與字級達標、加 `<main>`、字體單一請求（Noto Sans TC＋JetBrains Mono＋Noto Serif TC 700）、`BRAND_COLORS` 改名（值不變）。
+- 共用 rail 檔與 rail 掛載行 Phase A 未動；rail 的 `@import` 與舊 lime 待 Phase B。分支 `claude/style-upgrade-20261014`；QA 產物在 `.worktrees/style-20261014-qa/map/`（`DELIVERY.md`、`results.json`）。
+
 ## 2026-10-07｜主對話收尾｜本機驗證完成，待獨立簽收與上線核定
 
 - ✅ 主對話覆讀4檔diff，actual-source登入／未知商品名稱、取貨／訂單／LIFF不變性、JSON-LD營業與12px／對比檢核通過。本機首頁／菜單四種寬度無水平溢出與可見破圖。

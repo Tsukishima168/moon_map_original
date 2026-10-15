@@ -1,7 +1,7 @@
 # Moon Map 設計系統契約 — Season 04「甜點目錄」
 
-> 更新：2026-09-07。來源：窗邊計畫三份印刷主視覺＋`index.tsx` 現有功能契約。
-> 本季只重塑 Map 的季節敘事層，不改 Kiwimu Universe 五站導覽、菜單資料來源、購物車、結帳、登入、定位與彩蛋契約。
+> 更新：2026-10-14（月島深綠風格升級 Phase A）。來源：窗邊計畫三份印刷主視覺＋`index.tsx` 現有功能契約＋2026-10-14 五站風格驗收（`kiwimu-com/docs/style-audit-20261014/REPORT.md`）。
+> 本文只描述**現況**。Map 只重塑季節敘事層，不改 Kiwimu Universe 五站導覽、菜單資料來源、購物車、結帳、登入、定位與彩蛋契約。
 
 ## 設計命題
 
@@ -22,46 +22,120 @@
 
 ## 色彩（唯一權威：`index.tsx` 的 `CONFIG.BRAND_COLORS`）
 
+Key 以實際色相命名（2026-10-14 由 `moonSilver`／`moonShadow`／`islandBlue`／`nightBlue`／`nightBlueDeep` 更名，值不變；舊名不再存在）。
+
 | Token | 值 | 角色 |
 |---|---|---|
-| creamWhite | `#F5F0E8` | 商品卡、表單、長文與淺色表面 |
-| emotionBlack | `#2B2018` | 淺底主要文字 |
-| moonSilver / windowSun | `#D7C678` | 窗光、選取狀態、深綠底重點 |
-| moonShadow / windowLeaf | `#587337` | 淺底標籤、底線、focus 與進度 |
-| islandBlue / windowForest | `#304F2F` | 主 CTA、主題表面；舊 key 為相容性保留 |
-| grayText | `#5F6856` | 次階文字 |
-| grayLine | `#D8D7C4` | 分隔線與表單框 |
-| nightBlue / windowForest | `#304F2F` | 深色漸層起點；舊 key 為相容性保留 |
-| nightBlueDeep / windowForestDeep | `#1F2F1F` | 深綠底、頁尾、主 CTA |
-| windowMoss | `#7A893C` | 純裝飾，不承載小字 |
-| --c-line-brand / -alt | `#06C755` / `#00B900` | LINE 第三方品牌色，固定不改 |
+| `forestDeep` | `#1F2F1F` | 深色面（hero 文字面板、頁尾、主卡、深色按鈕）；淺色面上的主行動底色 |
+| `forestMid` | `#304F2F` | 淺色面的焦點與強調、深色漸層起點、主行動 hover |
+| `creamWhite` | `#F5F0E8` | 奶油紙底、商品卡、表單、長文、深綠實心按鈕上的字 |
+| `forestGold` | `#D7C678` | 柔金：深色面上的主行動、目前狀態、深色面焦點、選取狀態 |
+| `moss` | `#587337` | 淺底標籤、底線、進度條（不承載小字：對奶油 4.38:1） |
+| `grayText` | `#5F6856` | 淺色面次要文字（對奶油 5.14:1，不得再淡） |
+| `grayLine` | `#D8D7C4` | 分隔線與表單框；深色面上的次要文字 |
+| `emotionBlack` | `#2B2018` | 淺底主要文字 |
+| `--c-line-brand` / `-alt` | `#06C755` / `#00B900` | LINE 第三方品牌色，固定不改 |
+
+`styles/window-plan.css` 的 `--window-*` 是同一組色票的 CSS 變數（`--window-forest-deep`、`--window-forest`、`--window-sun`、`--window-cream`、`--window-leaf`＝`moss`、`--window-muted-on-dark`、`--window-muted-on-light`）。`--window-moss`（`#7A893C`）目前沒有任何引用，不要拿來承載文字；舊文件裡的 `windowMoss` 不是 `BRAND_COLORS` 的成員。
+
+`index.tsx` 內舊的 CSS 變數名 `--c-yellow`（實際是 `moss`）、`--c-yellow-deep`（實際是 `forestGold`）、`--c-blue`（實際是 `forestMid`）名實倒置，因引用面太廣先保留，新程式碼請直接用 `CONFIG.BRAND_COLORS.*` 或 `--window-*`。
 
 ### 對比準則
 
-- 奶油白 `#F5F0E8` 對森林深綠 `#1F2F1F`：12.47:1。
-- 奶油白對窗景綠 `#304F2F`：8.10:1。
-- 森林深綠對日光黃 `#D7C678`：8.24:1。
-- 苔光綠 `#7A893C` 對奶油白只有 3.38:1，只能作大面積裝飾或非文字圖形。
+- 奶油 `#F5F0E8` 對深綠 `#1F2F1F`：12.47:1。
+- 奶油對中綠 `#304F2F`：8.10:1。
+- 深綠對柔金 `#D7C678`：8.24:1。
+- 淺色面次要文字 `#5F6856` 對奶油：5.14:1；深色面次要文字 `#D8D7C4` 對深綠 ≥9:1。
+- 一般文字 ≥4.5:1，大字（≥24px，或 ≥18.66px 粗體）≥3:1。壓在圖片或漸層上的文字用截圖人工確認。
+
+### 主行動按鈕：依表面決定
+
+| 表面 | 配色 |
+|---|---|
+| 深色面（深綠文字面板、深綠卡、深色主題） | 柔金底 `#D7C678` 配深綠字 `#1F2F1F`（例：`.map-status-button`、`/menu` 的「回首頁」） |
+| 淺色面（奶油或白卡、modal） | 深綠實心 `#1F2F1F` 配奶油字 `#F5F0E8`（例：`.btn-primary`、`.map-egg-reward`） |
+
+沒有黑色硬陰影（offset 的黑色硬影）。彩蛋進度膠囊 `.map-egg-badge` 是狀態指示（不是主行動），照 2026-10-14 規格用柔金底配深綠字、柔和陰影。
+
+### 焦點、觸控、字級
+
+- 焦點環：深色面 2px solid `#D7C678`，淺色面 2px solid `#1F2F1F`，offset 2px。實作在 `styles/forest-a11y.css`：`html :focus-visible` 取 `--focus-ring`，深色面容器（hero 文字面板、`/menu` 頁首文字面板、story 卡、journey、頁尾）把 `--focus-ring` 設成柔金。
+- 背景會變的元素（入口卡跨在深綠面板與奶油底之間、journey 的狀態鈕疊在照片上）用兩段式：外環 2px 深綠＋offset 空隙內 2px 柔金內襯。
+- 共用 rail 內的焦點由 rail 自己負責（2px 柔金）。
+- 觸控目標 ≥44×44px（段落內行內連結除外；頁尾、導覽、分頁、摘要連結不在豁免之列）。
+- 可讀文字 ≥12px（`aria-hidden` 的裝飾元素除外，例如藏在頁面裡的彩蛋小圖示）。
 
 ## 三幕素材
 
 | 幕 | 素材 | 使用位置 |
 |---|---|---|
-| WONDER | `wonder-desktop.avif/webp`、`wonder-mobile.webp` | 首屏 Hero |
+| WONDER | `wonder-desktop.avif/webp`（3000×1230／2400×984）、`wonder-mobile.webp`（900×1350） | 首屏 Hero |
 | JOURNEY | `journey-desktop.avif/webp`、`journey-mobile.webp` | Island Hours／狀態選擇 |
-| PAUSE | `pause-desktop.avif/webp`、`pause-mobile.webp` | 菜單入口與 `/menu` 頁首 |
+| PAUSE | `pause-desktop.avif/webp`（2200×1825／1600×1328）、`pause-mobile.webp`（900×1350） | 菜單入口與 `/menu` 頁首 |
 
-- 圖片放在 `public/assets/season-04/`。
-- 印刷 PDF 不可直接上線。
+- 圖片放在 `public/assets/season-04/`。印刷 PDF 不可直接上線。
 - 圖片中的文字只作視覺元素；主標、說明與 CTA 必須另有 HTML 文字。
-- 手機使用專屬裁切，不能依賴桌機圖 `object-fit: cover` 自動取景。
+- 不改插畫本身；取景只用 `object-fit`／`object-position`／尺寸與位置。
+
+## Hero 取景（2026-10-14）
+
+`wonder-desktop` 把「Kiwimu©」字標烤在左上、「WONDER＋英文副標」烤在右下，另有左右兩隻 Kiwimu。所以首頁 hero 改成「深綠文字面板＋框住中央 Kiwimu 的圖片」，**任何斷點的可見圖片區都只能含中央提蛋糕盒那隻**。
+
+### 原圖座標（3000×1230，px；`wonder-mobile` 為 900×1350）
+
+| 元素 | x | y |
+|---|---|---|
+| 烤字 Kiwimu© | 120–660 | 30–200 |
+| 左側拱門 Kiwimu | 670–870 | 560–890 |
+| 中央提蛋糕盒 Kiwimu | 1330–1700 | 590–930 |
+| 右側坐著 Kiwimu | 2390–2610 | 616–916 |
+| 烤字 WONDER＋副標 | 2320–2920 | 990–1160 |
+| `wonder-mobile` 中央 Kiwimu（無烤字、無其他角色） | 330–725 | 650–1030 |
+
+### 斷點與取景
+
+| 視窗寬 | 版面 | 圖片 |
+|---|---|---|
+| ≥1024 | 兩欄：左 44% 文字面板、右 56% 圖片；stage 最大 1080×（`clamp(620px, 64vw, 760px)`） | `object-fit: cover; object-position: 51% 50%`；交界 40px 深綠漸層 |
+| 600–1023 | 上下堆疊：圖片帶在上（高 360px）、文字面板在下 | 橫圖固定 2400px 寬（0.8 CSS px／原圖 px），以 (1515,760) 為焦點置中 |
+| <600 | 上下堆疊：圖片帶在上（`aspect-ratio: 13/10`、最高 340px） | 改用 `wonder-mobile`，`object-position: 50% 72%`；`<picture>` 的 `<source media>` 同為 `max-width: 599px` |
+
+兩張入口卡（01 // INTERACT、02 // ORDER NOW）在 hero 下方，疊在 stage 底緣 28–54px，不壓角色。
+
+### 驗收（`/Users/pensoair/Desktop/Web-Projects/sites/.worktrees/style-20261014-qa/map/results.json`）
+
+Playwright 以 `object-fit`／`object-position` 換算每個角色與烤字的渲染座標，七個寬度（1920、1440、1280、1024、768、390、320）全數通過：
+
+| 寬 | 可見原圖範圍（x／y） | 烤字∩可見區 | 角色∩文字元素 | 中央 Kiwimu 完整 |
+|---|---|---|---|---|
+| 1920／1440／1280 | 1030–2010／0–1230 | 0 | 0 | 是 |
+| 1024 | 1003–2037／0–1230 | 0 | 0 | 是 |
+| 768 | 1056–1974／535–985 | 0 | 0 | 是 |
+| 390 | 0–900／473–1166（mobile 圖） | 無烤字 | 0 | 是 |
+| 320 | 0–900／474–1166（mobile 圖） | 無烤字 | 0 | 是 |
+
+烤字 bbox 外擴 40 原圖 px（原圖座標誤差 ±40）後再測。另掃 17 個中間寬度（含 599／600、1023／1024 等斷點邊緣）全部通過。
+
+## `/menu` 頁首取景（2026-10-14）
+
+`pause-desktop`（2200×1825）烤有「Kiwimu©」字標（y≈90–190）與「PAUSE」大字（y≈1500–1790）；Kiwimu 本體 x≈920–1445、y≈700–1335，臉部 x≈1030–1295、y≈860–1020。`pause-mobile`（900×1350）左上有「u©」殘片（y≈90–170）。
+
+- ≥520：兩欄（文字面板 11fr／圖片 9fr）。圖片以「頁首高度的 170%」置放並以 (1182, 870) 為焦點置中，可見原圖 y≈334–1407：含整隻 Kiwimu、不含兩處烤字。
+- <520：上下堆疊（圖片在上，`aspect-ratio: 13/10`），改用 `pause-mobile`，`object-position: 50% 91%`，`<source media>` 同為 `max-width: 519px`。
+- 文字只在文字面板，與臉部、本體交集為 0。
+
+### `/menu` 版面鎖定
+
+`/menu` 是 `position: fixed` 的全螢幕目錄，只在自己的容器內捲動。為避免手機版 rail 捲走後頂端出現 49px 空白，`/menu` 開啟時在 `<html>` 加 `map-menu-view`，鎖住 html/body 捲動（樣式見 `styles/forest-a11y.css`）。
 
 ## 字體
 
 - 中文與正文：`"Noto Sans TC"`，400 / 500 / 700。
-- 系統標籤：既有 Menlo / Monaco mono stack，uppercase、`letter-spacing: .05em`。
+- 等寬標籤：`"JetBrains Mono", ui-monospace, Menlo, monospace`（`.font-mono` 與程式碼用的 `MONO_FONT_STACK`），uppercase、`letter-spacing: .05em`。
+- 引語體：`"Noto Serif TC"` 700（展籤 fortune slip，2026-07-12 Penso 決定保留）。其餘 `serif` 維持系統 serif。
+- 三者在 `index.html` 以**同一個** Google Fonts 請求載入（`display=swap`）。Noto Serif TC 依 unicode-range 分段，抽展籤時才下載。
 - WONDER / JOURNEY / PAUSE 的特殊字形由印刷主視覺承擔，不新增顯示字體依賴。
-- 引語與展籤維持既有 serif 策略。
+- Phase A 後仍有一個重複請求：共用 rail 的 `kiwimu-universe.css` 開頭有自己的 `@import`（Noto Sans TC、JetBrains Mono、未使用的 Space Grotesk）。共用檔 Phase A 不改，待 Phase B rail kit 取代。
 
 ## 版面與元件
 
@@ -69,13 +143,20 @@
 - 功能內容維持既有 600 / 720 / 800px 容器。
 - Hero、Journey、Pause 使用 24–36px 大圓角；商品卡、表單與小元件維持 8 / 12 / 20px 階級。
 - `/menu` 以奶油白商品卡為主，綠色只用於頁首、分類層級、選取狀態與 CTA。
-- 黑色 Kiwimu Universe 導覽列保持不變；Map active 狀態沿用跨站 lime。
+- 首頁與 `/menu` 各有一個 `<main>`（`.season04-main`，包住整個頁面內容）；rail 在 `<main>` 外。
+- toast（`uiNotice`）在 rail 下方 12px（`top: calc(var(--ku-rail-height) + 12px)`），深綠底、柔金細框。
+
+## 共用導覽（Kiwimu Universe rail）
+
+森林 rail：深綠底 `#1F2F1F`、奶油字 `#F5F0E8`、次要文字 `#D8D7C4`、目前站點用柔金 `#D7C678` 底線；高度 `--ku-rail-height`（約 49px）；桌機 sticky、手機（≤640px）隨頁面捲走；入口順序為六個站點，手機收成三個入口加「更多」。焦點是 2px 柔金環，沒有螢光色與硬陰影。
+
+rail 元件與 CSS（`components/KiwimuUniverseRail.tsx`、`styles/kiwimu-universe.css`）是跨站共用檔，Phase A 不改；站點自己的樣式覆寫放 `styles/window-plan.css` 與 `styles/forest-a11y.css`。`kiwimu-universe.css` 內仍留有舊 lime 與 `.map-account-*` 舊語彙，已在 `forest-a11y.css` 蓋掉，Phase B 由 rail kit 取代。
 
 ## 動效
 
 - 首屏只做一次 1.2 秒影像 settle，不做循環視差。
 - 互動元件沿用 `--ease-ui` 與 `--ease-playful`。
-- 所有新動效受全域 `prefers-reduced-motion` 規則降級。
+- 所有動效受 `index.tsx` 的全域 `prefers-reduced-motion` catch-all 降級（animation／transition 壓到 0.01ms、關閉 smooth scroll）。
 
 ## 不可破壞
 
@@ -84,10 +165,11 @@
 3. 不改 Passport 登入、GPS 徽章與 9 顆彩蛋的 reward id。
 4. 不把桌機大圖直接套用到手機。
 5. 不讓裝飾文字取代可存取的 HTML 標題。
+6. Kiwimu 角色不可被文字、按鈕或容器邊界遮擋臉部或裁切；不用 AI 重繪或修改角色圖。
 
 ## 驗收尺寸
 
-- Mobile：390 × 844。
+- Mobile：390 × 844（另測 320）。
 - Tablet：768 × 1024。
-- Desktop：1440 × 900。
-- 驗證 `npm run vercel-build`、`npx tsc --noEmit`、首頁與 `/menu` 的 console error、菜單加入購物車與結帳入口。
+- Desktop：1440 × 900（另測 1920、1280、1024）。
+- 驗證：`npm ci`、`npx tsc --noEmit`、`npm run build`（與 `.github/workflows/ci.yml` 相同）；首頁與 `/menu` 的 console error；菜單加入購物車與結帳入口。
