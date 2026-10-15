@@ -6,6 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import KiwimuUniverseRail from './components/KiwimuUniverseRail';
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
+import './styles/forest-a11y.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -63,21 +64,25 @@ const getPassportLoginErrorMessage = ({ message }: { message?: string }) => {
   return '登入暫時無法完成，請確認網路後重試。';
 };
 
+// 等寬標籤／代碼字體堆疊；JetBrains Mono 由 index.html 的 Google Fonts 請求載入。
+const MONO_FONT_STACK = '"JetBrains Mono", ui-monospace, Menlo, monospace';
+
 // --- CONFIGURATION (可在此處編輯) ---
 const CONFIG = {
   STORE_NAME_CN: "月島甜點店",
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
   CURRENT_SEASON: "Season 04｜窗邊計畫",
+  // Key 以實際色相命名（2026-10-14 由 moonSilver/moonShadow/islandBlue/nightBlue/nightBlueDeep 更名，值不變）。
   BRAND_COLORS: {
-    creamWhite: '#F5F0E8',
-    emotionBlack: '#2B2018',
-    forestGold: '#D7C678',
-    moss: '#587337',
-    forestMid: '#304F2F',
-    grayText: '#5F6856',
-    grayLine: '#D8D7C4',
-    forestDeep: '#1F2F1F',
+    creamWhite: '#F5F0E8',   // 奶油紙底
+    emotionBlack: '#2B2018', // 淺底主要文字
+    forestGold: '#D7C678',   // 柔金：主行動、目前狀態、深色面焦點
+    moss: '#587337',         // 苔綠：淺底標籤、底線、進度
+    forestMid: '#304F2F',    // 中綠：淺色面的焦點與強調
+    grayText: '#5F6856',     // 淺色面次要文字
+    grayLine: '#D8D7C4',     // 分隔線／深色面次要文字
+    forestDeep: '#1F2F1F',   // 深綠：深色面、主卡
   },
   LINKS: {
     preorder_pickup_url: "https://map.kiwimu.com/menu",
@@ -1871,6 +1876,16 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
     }
   };
 
+  // /menu 是 position:fixed 的全螢幕目錄，內容只在容器內捲動。手機版 rail 是 position:relative，
+  // 若 body 也能捲，rail 捲走後目錄仍固定在 top:var(--ku-rail-height)，頂部就會留下一條空白。
+  // 所以 /menu 鎖住 html/body 捲動（樣式在 styles/forest-a11y.css 的 html.map-menu-view）。
+  useEffect(() => {
+    if (!onlyMenuView) return;
+    const root = document.documentElement;
+    root.classList.add('map-menu-view');
+    return () => root.classList.remove('map-menu-view');
+  }, [onlyMenuView]);
+
   useEffect(() => {
     // /menu 專用頁已在另一個 effect 把 title 設為「甜點目錄」；這裡若無條件覆寫，
     // mount 時兩個 effect 都會跑一次，此 effect 排在後面就會把 /menu 的 title 蓋掉，
@@ -2237,7 +2252,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           overflow: 'hidden'
         }}>
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <div className="font-mono" style={{ fontSize: '0.75rem', color: '#888', marginBottom: '8px', letterSpacing: '1px' }}>
+            <div className="font-mono" style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.grayText, marginBottom: '8px', letterSpacing: '1px' }}>
               SOUL DESSERT MATCH
             </div>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '8px', color: CONFIG.BRAND_COLORS.emotionBlack }}>
@@ -2320,7 +2335,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     </span>
                   )}
                 </h4>
-                <div className="font-mono" style={{ fontSize: '0.8rem', color: '#999', marginTop: '4px', fontStyle: 'italic' }}>
+                <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '4px', fontStyle: 'italic' }}>
                   {cat.subtitle}
                 </div>
                 {curationNote && (
@@ -2403,7 +2418,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               }}
                               style={{
                                 fontSize: '0.8rem',
-                                color: '#999',
+                                color: CONFIG.BRAND_COLORS.grayText,
                                 fontStyle: 'italic',
                                 padding: '8px 12px',
                                 background: 'rgba(0,0,0,0.03)',
@@ -2586,7 +2601,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         .border-t { border-top: 1px solid var(--c-black); }
         
         /* Typography */
-        .font-mono { font-family: "Menlo", "Monaco", "Courier New", monospace; letter-spacing: 0.05em; text-transform: uppercase; }
+        .font-mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; letter-spacing: 0.05em; text-transform: uppercase; }
         .text-blue { color: var(--c-blue); }
         .text-yellow { color: var(--c-yellow); }
         
@@ -2622,8 +2637,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         
         .btn-primary {
           display: block; width: 100%; text-align: center;
-          background: var(--c-blue);
-          color: white;
+          background: ${CONFIG.BRAND_COLORS.forestDeep};
+          color: ${CONFIG.BRAND_COLORS.creamWhite};
           padding: 16px; border-radius: 40px; font-weight: bold;
           min-height: 50px;
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -2631,7 +2646,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           transition: background 0.2s, box-shadow 0.2s;
         }
         .btn-primary:hover {
-          background: ${CONFIG.BRAND_COLORS.forestDeep};
+          background: ${CONFIG.BRAND_COLORS.forestMid};
           box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
@@ -2894,6 +2909,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         }
       `}</style>
 
+      <main className="season04-main">
       <div className="container season04-shell">
         {/* 僅甜點目錄網址 /menu：全螢幕目錄，購物車與結帳 modal 仍在上層 */}
         {onlyMenuView && (
@@ -2974,7 +2990,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         )}
 
         {!onlyMenuView && <>
-        <div
+        <button
+          type="button"
+          className="map-egg-badge"
           onClick={() => {
             track('click_easter_egg_progress_badge');
             if (isEasterEggComplete) {
@@ -2984,49 +3002,17 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             }
             showUiNotice(`彩蛋收集進度：已發現 ${foundEggs.length}/9。提示：仔細觀察頁面中那些看似不起眼的小圖標，他們藏著 Kiwimu 的秘密。`, 'info');
           }}
-          style={{
-            position: 'fixed',
-            top: 'calc(var(--ku-rail-height) + 16px)',
-            left: '16px',
-            zIndex: 2000,
-            display: onlyMenuView ? 'none' : undefined,
-            background: CONFIG.BRAND_COLORS.forestGold,
-            color: '#000',
-            border: '2px solid #000',
-            borderRadius: '999px',
-            padding: '6px 12px',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            letterSpacing: '0.05em',
-            boxShadow: 'var(--shadow-stamp)',
-            cursor: 'pointer'
-          }}
           title="彩蛋收集進度"
         >
           🥚 {foundEggs.length}/9
-        </div>
+        </button>
         {isEasterEggComplete && !onlyMenuView && (
           <button
+            type="button"
+            className="map-egg-reward"
             onClick={() => {
               track('click_easter_egg_reward');
               document.getElementById('wallpaper-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-            style={{
-              position: 'fixed',
-              top: 'calc(var(--ku-rail-height) + 60px)',
-              left: '16px',
-              zIndex: 2000,
-              background: '#000',
-              color: '#fff',
-              border: '2px solid #000',
-              borderRadius: '999px',
-              padding: '6px 12px',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              boxShadow: 'var(--shadow-stamp)',
-              cursor: 'pointer',
-              textDecoration: 'none'
             }}
             title="下載限定桌布"
           >
@@ -3083,18 +3069,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             ) : (
               <button
                 type="button"
+                className="map-status-button"
                 onClick={() => setShowLogin(true)}
-                style={{
-                  border: '1px solid black',
-                  minHeight: '44px',
-                  padding: '6px 16px',
-                  borderRadius: '20px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  background: CONFIG.BRAND_COLORS.forestGold,
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 0 black'
-                }}
               >
                 領取島民狀態 STATUS
               </button>
@@ -3233,7 +3209,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               pointerEvents: 'none'
             }} />
             <h3 style={{ fontSize: '1.3rem', marginBottom: '15px', color: CONFIG.BRAND_COLORS.forestGold, paddingRight: '60px' }}>{CONFIG.CURRENT_SEASON}</h3>
-            <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: 'rgba(245, 240, 232, 0.85)' }}>
+            <div style={{ lineHeight: '1.9', fontSize: '0.95rem', color: 'rgba(245, 240, 232, 0.94)' }}>
               <p style={{ marginBottom: '15px' }}>
                 「窗邊計畫」是一扇入口；這次的綠色系列，我們把它整理成一份<strong style={{ color: CONFIG.BRAND_COLORS.creamWhite }}>甜點目錄</strong>。
               </p>
@@ -3566,11 +3542,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     }}
                   >
                     <div className="wax-seal"></div>
-                    <div className="font-mono" style={{ fontSize: '0.75rem', color: '#888', marginBottom: '10px', letterSpacing: '0.2em' }}>
+                    <div className="font-mono" style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.grayText, marginBottom: '10px', letterSpacing: '0.2em' }}>
                       TOP SECRET
                     </div>
                     <h3 style={{ fontSize: '1.2rem', margin: 0, opacity: 0.6 }}>本日隱藏限定 / Daily Secret</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: '15px' }}>
+                    <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '15px' }}>
                       島主的私房信籤，揭開今日驚喜
                     </p>
                   </div>
@@ -3876,15 +3852,20 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </div>
               )}
 
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                gap: '10px',
-                filter: isEasterEggComplete ? 'none' : 'blur(8px) grayscale(1)',
-                pointerEvents: isEasterEggComplete ? 'auto' : 'none',
-                opacity: isEasterEggComplete ? 1 : 0.4,
-                transition: 'all 0.5s ease'
-              }}>
+              {/* 鎖定時：整格 inert（不可聚焦、不進無障礙樹），只讓圖片淡出；標籤文字維持全不透明 */}
+              <div
+                className="map-wallpaper-grid"
+                data-locked={!isEasterEggComplete}
+                inert={!isEasterEggComplete}
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                  gap: '10px',
+                  filter: isEasterEggComplete ? 'none' : 'blur(8px) grayscale(1)',
+                  pointerEvents: isEasterEggComplete ? 'auto' : 'none',
+                  transition: 'all 0.5s ease'
+                }}
+              >
                 {WALLPAPERS.map((wp) => (
                   <a key={wp.label} href={wp.url} target="_blank" rel="noreferrer" style={{ textDecoration: 'none' }}>
                     <div style={{
@@ -3897,7 +3878,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       <div style={{
                         fontSize: '0.75rem',
                         fontWeight: 700,
-                        color: '#333',
+                        color: CONFIG.BRAND_COLORS.forestDeep,
                         marginBottom: '6px',
                         display: 'flex',
                         justifyContent: 'space-between'
@@ -3995,7 +3976,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   {(() => {
                     if (rewardClaimStatus === 'saving') {
                       return (
-                        <p style={{ fontSize: '0.85rem', color: '#999' }}>正在產生兌換碼...</p>
+                        <p style={{ fontSize: '0.85rem', color: CONFIG.BRAND_COLORS.grayText }}>正在產生兌換碼...</p>
                       );
                     }
                     if (rewardClaimStatus === 'error' && !eggMasterCode) {
@@ -4012,7 +3993,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                           padding: '15px',
                           marginBottom: '15px'
                         }}>
-                          <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '8px' }}>
+                          <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginBottom: '8px' }}>
                             你的兌換碼（截圖保存）
                           </p>
                           <div
@@ -4029,7 +4010,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                               color: CONFIG.BRAND_COLORS.forestGold,
                               padding: '12px',
                               borderRadius: '8px',
-                              fontFamily: 'monospace',
+                              fontFamily: MONO_FONT_STACK,
                               fontSize: '0.85rem',
                               letterSpacing: '1px',
                               cursor: 'pointer',
@@ -4056,15 +4037,15 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       rel="noopener noreferrer"
                       style={{
                         display: 'inline-block',
-                        background: CONFIG.BRAND_COLORS.forestGold,
-                        color: CONFIG.BRAND_COLORS.emotionBlack,
-                        border: '2px solid #000',
+                        background: CONFIG.BRAND_COLORS.forestDeep,
+                        color: CONFIG.BRAND_COLORS.creamWhite,
+                        border: 'none',
                         padding: '10px 20px',
                         borderRadius: '999px',
                         fontWeight: 700,
                         fontSize: '0.9rem',
                         cursor: 'pointer',
-                        boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                        boxShadow: '0 6px 16px rgba(31, 47, 31, 0.18)',
                         width: '100%',
                         maxWidth: '300px',
                         textDecoration: 'none',
@@ -4240,6 +4221,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </footer >
       </div >
       </>}
+      </main>
 
       {/* --- MODALS --- */}
 
@@ -4248,7 +4230,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         <div className="modal-overlay" onClick={() => setShowDiscoverModal(false)} style={{ zIndex: 1000 }}>
           <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', backgroundColor: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(20px)' }}>
             <div className="modal-header" style={{ border: 'none', paddingBottom: 0 }}>
-              <div className="font-mono" style={{ fontSize: '0.8rem', color: '#888' }}>PROGRESS</div>
+              <div className="font-mono" style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>PROGRESS</div>
               <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowDiscoverModal(false)}>×</button>
             </div>
             <div className="modal-body" style={{ textAlign: 'center', padding: '10px 30px 40px 30px' }}>
@@ -4331,19 +4313,21 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
       {uiNotice && (
         <div
           aria-live="polite"
+          className="map-ui-notice"
+          data-tone={uiNotice.tone}
           style={{
             position: 'fixed',
-            top: '20px',
+            top: 'calc(var(--ku-rail-height) + 12px)',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
             width: 'min(92vw, 560px)',
             background:
-              uiNotice.tone === 'success' ? 'rgba(42, 157, 143, 0.95)' :
-              uiNotice.tone === 'warning' ? 'rgba(216, 224, 56, 0.96)' :
+              uiNotice.tone === 'success' ? CONFIG.BRAND_COLORS.forestMid :
+              uiNotice.tone === 'warning' ? CONFIG.BRAND_COLORS.forestGold :
               uiNotice.tone === 'error' ? 'rgba(145, 29, 29, 0.96)' :
-              'rgba(0, 0, 0, 0.88)',
-            color: uiNotice.tone === 'warning' ? '#111' : '#fff',
+              CONFIG.BRAND_COLORS.forestDeep,
+            color: uiNotice.tone === 'warning' ? CONFIG.BRAND_COLORS.forestDeep : CONFIG.BRAND_COLORS.creamWhite,
             padding: '14px 18px',
             borderRadius: '14px',
             boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
@@ -4373,7 +4357,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               <div className="modal-body">
                 {loadingMenu ? (
-                  <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+                  <div style={{ textAlign: 'center', padding: '60px', color: CONFIG.BRAND_COLORS.grayText }}>
                     <div style={{ fontSize: '1.5rem', marginBottom: '10px' }}>⏳</div>
                     載入甜點目錄中...
                   </div>
@@ -4429,8 +4413,8 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </h3>
                 <p style={{
                   fontSize: '0.75rem',
-                  color: '#888',
-                  fontFamily: 'monospace',
+                  color: CONFIG.BRAND_COLORS.grayText,
+                  fontFamily: MONO_FONT_STACK,
                   letterSpacing: '0.05em'
                 }}>
                   EASTER EGG #{currentEasterEgg}/9
@@ -4548,7 +4532,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <img src={headerImage} alt="Kiwimu" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
                 <h3 className="font-mono" style={{ fontSize: '1.2rem', color: CONFIG.BRAND_COLORS.moss, marginBottom: '5px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>WHO IS KIWIMU?</h3>
-                <p style={{ fontSize: '0.8rem', color: '#888' }}>(The Origin Story)</p>
+                <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>(The Origin Story)</p>
               </div>
 
               <div style={{ lineHeight: '1.8', fontSize: '0.95rem', fontFamily: 'serif', padding: '0 10px', color: '#444' }}>
@@ -4744,7 +4728,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       text-decoration: line-through;
                     }
                   `}</style>
-                  <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '5px' }}>
+                  <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
                     營業時間：{CONFIG.LINKS.hours_text}
@@ -4826,7 +4810,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     maxHeight: '200px',
                     overflowY: 'auto',
                     whiteSpace: 'pre-wrap',
-                    fontFamily: 'monospace',
+                    fontFamily: MONO_FONT_STACK,
                     border: '1px solid #ddd'
                   }}>
                     {orderMessage}
@@ -4859,7 +4843,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   </p>
                 </div>
 
-                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#999' }}>
+                <div style={{ textAlign: 'center', fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText }}>
                   完成付款後，我們會盡快與您確認訂單！
                 </div>
               </div>
@@ -4892,7 +4876,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                   <p style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '8px', color: '#000', letterSpacing: '1px' }}>
                     妳發現了隱藏彩蛋
                   </p>
-                  <p style={{ fontSize: '0.8rem', color: '#999', fontFamily: 'monospace' }}>
+                  <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, fontFamily: MONO_FONT_STACK }}>
                     The Golden Valentine Egg
                   </p>
                 </div>
@@ -4929,7 +4913,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                       我想，這就是愛吧
                     </p>
                   </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '20px', color: '#999', textTransform: 'uppercase', letterSpacing: '2px' }}>
+                  <div style={{ textAlign: 'center', fontSize: '0.75rem', marginTop: '20px', color: CONFIG.BRAND_COLORS.grayText, textTransform: 'uppercase', letterSpacing: '2px' }}>
                     — Kiwimu
                   </div>
                 </div>
@@ -4938,7 +4922,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 <div style={{
                   marginBottom: '10px'
                 }}>
-                  <div style={{ fontSize: '0.75rem', color: '#999', marginBottom: '15px', textAlign: 'center', letterSpacing: '1px' }}>
+                  <div style={{ fontSize: '0.75rem', color: CONFIG.BRAND_COLORS.grayText, marginBottom: '15px', textAlign: 'center', letterSpacing: '1px' }}>
                     實體兌換需店員確認，請透過 LINE 官方帳號洽詢
                   </div>
 
@@ -4967,7 +4951,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     <div style={{
                       fontSize: '1.2rem',
                       fontWeight: 700,
-                      fontFamily: 'monospace',
+                      fontFamily: MONO_FONT_STACK,
                       color: '#fff',
                       letterSpacing: '2px'
                     }}>
@@ -5075,7 +5059,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     color: CONFIG.BRAND_COLORS.grayText,
                     marginTop: '40px',
                     letterSpacing: '2px',
-                    fontFamily: 'monospace',
+                    fontFamily: MONO_FONT_STACK,
                     fontStyle: 'normal'
                   }}>
                     限定內容尚未開放，敬請留意官方公告。
@@ -5257,7 +5241,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 >
                   前往 LINE 領取 (輸入: 新年快樂) ➔
                 </button>
-                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
+                <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '15px' }}>
                   點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#D93025', fontWeight: 700 }}>新年快樂</span>」即可抽獎！
                 </p>
               </div>
@@ -5324,7 +5308,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 >
                   前往 LINE 領取 (輸入: golden pudding) ➔
                 </button>
-                <p style={{ fontSize: '0.8rem', color: '#888', marginTop: '15px' }}>
+                <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '15px' }}>
                   點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#B8860B', fontWeight: 700 }}>golden pudding</span>」<br />獲得布丁買一送一券！
                 </p>
               </div>
@@ -5479,14 +5463,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     rel="noreferrer"
                     style={{
                       display: 'inline-block',
-                      background: CONFIG.BRAND_COLORS.forestGold,
-                      color: CONFIG.BRAND_COLORS.emotionBlack,
+                      background: CONFIG.BRAND_COLORS.forestDeep,
+                      color: CONFIG.BRAND_COLORS.creamWhite,
                       padding: '12px 24px',
                       borderRadius: '24px',
                       fontWeight: 700,
                       textDecoration: 'none',
-                      border: '2px solid #000',
-                      boxShadow: '0 4px 0 rgba(0,0,0,0.2)',
+                      border: 'none',
+                      boxShadow: '0 6px 16px rgba(31, 47, 31, 0.18)',
                       transition: 'transform 0.2s'
                     }}
                     onClick={() => trackOutboundClick(mbtiLabUrl, 'profile_mbti_link', {
