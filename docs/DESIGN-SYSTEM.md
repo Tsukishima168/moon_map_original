@@ -1,6 +1,6 @@
 # Moon Map 設計系統契約 — Season 04「甜點目錄」
 
-> 更新：2026-10-14（月島深綠風格升級 Phase A）。來源：窗邊計畫三份印刷主視覺＋`index.tsx` 現有功能契約＋2026-10-14 五站風格驗收（`kiwimu-com/docs/style-audit-20261014/REPORT.md`）。
+> 更新：2026-10-14（月島深綠風格升級 Phase A＋B：共用森林導覽 kit）。來源：窗邊計畫三份印刷主視覺＋`index.tsx` 現有功能契約＋2026-10-14 五站風格驗收（`kiwimu-com/docs/style-audit-20261014/REPORT.md`）。
 > 本文只描述**現況**。Map 只重塑季節敘事層，不改 Kiwimu Universe 五站導覽、菜單資料來源、購物車、結帳、登入、定位與彩蛋契約。
 
 ## 設計命題
@@ -135,7 +135,8 @@ Playwright 以 `object-fit`／`object-position` 換算每個角色與烤字的�
 - 引語體：`"Noto Serif TC"` 700（展籤 fortune slip，2026-07-12 Penso 決定保留）。其餘 `serif` 維持系統 serif。
 - 三者在 `index.html` 以**同一個** Google Fonts 請求載入（`display=swap`）。Noto Serif TC 依 unicode-range 分段，抽展籤時才下載。
 - WONDER / JOURNEY / PAUSE 的特殊字形由印刷主視覺承擔，不新增顯示字體依賴。
-- Phase A 後仍有一個重複請求：共用 rail 的 `kiwimu-universe.css` 開頭有自己的 `@import`（Noto Sans TC、JetBrains Mono、未使用的 Space Grotesk）。共用檔 Phase A 不改，待 Phase B rail kit 取代。
+- `index.html` 是全站**唯一**的字體來源：共用 rail kit 不再 `@import` 字體（舊檔的 Space Grotesk 無人使用，已隨之消失）。請求涵蓋實際用到的字重：Noto Sans TC 含 900（hero h1、act-label 寫 `font-weight: 800`，要有 900 才會渲染成最粗）、JetBrains Mono 含 600。
+- 要新增字重時改 `index.html` 的那一個請求，不要在 CSS 另外 `@import`。
 
 ## 版面與元件
 
@@ -148,9 +149,14 @@ Playwright 以 `object-fit`／`object-position` 換算每個角色與烤字的�
 
 ## 共用導覽（Kiwimu Universe rail）
 
-森林 rail：深綠底 `#1F2F1F`、奶油字 `#F5F0E8`、次要文字 `#D8D7C4`、目前站點用柔金 `#D7C678` 底線；高度 `--ku-rail-height`（約 49px）；桌機 sticky、手機（≤640px）隨頁面捲走；入口順序為六個站點，手機收成三個入口加「更多」。焦點是 2px 柔金環，沒有螢光色與硬陰影。
+五站共用的森林導覽 kit：`components/KiwimuUniverseRail.tsx`、`styles/kiwimu-universe.css` 與其他四站 **byte-identical**（sha256 見 kit 的 `SHA256SUMS`，用 kit 的 `verify-rail.mjs <worktree> --scan` 檢查）。**不要改這兩個檔**；站點差異走 props 或本站 CSS。
 
-rail 元件與 CSS（`components/KiwimuUniverseRail.tsx`、`styles/kiwimu-universe.css`）是跨站共用檔，Phase A 不改；站點自己的樣式覆寫放 `styles/window-plan.css` 與 `styles/forest-a11y.css`。`kiwimu-universe.css` 內仍留有舊 lime 與 `.map-account-*` 舊語彙，已在 `forest-a11y.css` 蓋掉，Phase B 由 rail kit 取代。
+- 外觀：深綠底 `#1F2F1F`、奶油字 `#F5F0E8`、次要文字 `#D8D7C4`、目前站點柔金 `#D7C678` 底線；高度 `--ku-rail-height`（約 49px，掛載後以實測值覆蓋）；桌機 sticky、手機（≤640px）隨頁面捲走；六個入口，手機收成三個入口加「更多」。map 是「更多」站，手機收合時顯示「島嶼地圖 ＋」。焦點是 2px 柔金環（kit 用 `!important`，站點 CSS 不能蓋）。
+- 層級：收合 z-index 60、展開「更多」z-index 210（`--ku-nav-z`、`--ku-nav-z-open` 可由站點覆寫，map 不覆寫）。`/menu` 的 `.season04-menu-page`（z-index 1000）在 `.container`（z-index 1）的 stacking context 內，所以不會蓋住展開的「更多」；390 的 `/menu` 已用 `elementFromPoint` 驗證三個面板連結都命中自己。
+- 掛載（`index.tsx`，`ErrorBoundary` 內）：`<KiwimuUniverseRail currentSite="map" onTrack={trackEvent} getLoginStatus={getRailLoginStatus} />`。
+  - `onTrack` 是 `lib/crossSiteTracking.ts` 的 `trackEvent`（`gtag('event', …)`，加 `site_id: 'moon_map'`）。每個 rail 連結點擊都送 `universe_nav_click`（12 欄，見 `CROSS_SITE_EVENTS.md`）。
+  - `getLoginStatus` 是 `readSupabaseLoginStatus(supabase)`：讀本站既有的 supabase client（`lib/supabase.ts`），只做 `getSession()` 讀取。不用 `lib/auth.ts` 的 `getAuthClient()`，那會另外建立第二個沒有 pkce 設定的 client。
+- 本站自己的規則在 `styles/forest-a11y.css`：`.map-site-kicker`（hero 眉標，柔金底深綠字）、`.menu-item`／`.modal-card` 的 44px 觸控與手機輸入框 16px、`.map-account-*`（奶油底、深綠字、柔金徽章）。這些原本寫在舊共用 rail CSS，Phase B 搬出 kit。
 
 ## 動效
 
