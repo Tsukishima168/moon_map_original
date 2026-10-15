@@ -2498,8 +2498,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.12);
           --shadow-glow-blue: 0 0 20px rgba(48, 79, 47, 0.3);
           --shadow-glow-yellow: 0 0 20px rgba(215, 198, 120, 0.4);
-          --shadow-stamp: 3px 3px 0 rgba(0, 0, 0, 0.2);
-          --shadow-stamp-strong: 4px 4px 0 rgba(0, 0, 0, 0.6);
+          /* 舊「蓋章」硬陰影已改柔和陰影（2026-10-14）：變數名保留，避免動到引用處 */
+          --shadow-stamp: 0 6px 16px rgba(31, 47, 31, 0.18);
+          --shadow-stamp-strong: 0 8px 22px rgba(31, 47, 31, 0.28);
 
           /* Easing */
           --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
@@ -2727,7 +2728,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           background: var(--c-yellow-deep);
           border-color: rgba(0, 0, 0, 0.2);
           color: var(--c-black);
-          box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+          box-shadow: 0 6px 16px rgba(31, 47, 31, 0.18);
         }
         
         @media (min-width: 768px) {
@@ -4272,7 +4273,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         padding: '8px',
                         cursor: isFound ? 'pointer' : 'default',
                         textAlign: 'left',
-                        boxShadow: isFound ? '0 3px 0 rgba(0,0,0,0.16)' : 'none'
+                        boxShadow: isFound ? '0 6px 14px rgba(31, 47, 31, 0.14)' : 'none'
                       }}
                     >
                       <div className="font-mono" style={{ fontSize: '0.75rem', marginBottom: '5px' }}>
