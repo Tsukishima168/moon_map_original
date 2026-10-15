@@ -2909,13 +2909,22 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             padding: '20px',
             paddingBottom: '120px'
           }}>
-            <header className="season04-menu-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <span className="font-mono" style={{ fontSize: '0.75rem', letterSpacing: '0.18em', color: CONFIG.BRAND_COLORS.forestGold }}>DESSERT MENU · SEASON 04</span>
-                <h1 style={{ fontSize: '1.25rem', fontWeight: 700 }}>甜點目錄</h1>
-                <p>把本季甜點整理成清楚好選的綠色系列。茶、奶油、果實與咖啡在窗影裡慢慢展開，挑一份今天想停下來的味道。</p>
+            <header className="season04-menu-header">
+              <div className="season04-menu-art" aria-hidden="true">
+                <picture>
+                  <source media="(max-width: 519px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
+                  <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
+                  <img src="/assets/season-04/pause-desktop.webp" alt="" decoding="async" fetchPriority="high" />
+                </picture>
               </div>
-              <a href="/" style={{ fontSize: '0.9rem', textDecoration: 'underline' }}>回首頁</a>
+              <div className="season04-menu-copy">
+                <div>
+                  <span className="font-mono season04-menu-kicker">DESSERT MENU · SEASON 04</span>
+                  <h1>甜點目錄</h1>
+                  <p>把本季甜點整理成清楚好選的綠色系列。茶、奶油、果實與咖啡在窗影裡慢慢展開，挑一份今天想停下來的味道。</p>
+                </div>
+                <a href="/">回首頁</a>
+              </div>
             </header>
 
             {/* Loading 狀態 */}
@@ -3030,22 +3039,14 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="season04-hero-stage">
             <div className="season04-hero-art" aria-hidden="true">
               <picture>
-                <source media="(max-width: 767px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
+                <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
                 <source srcSet="/assets/season-04/wonder-desktop.avif" type="image/avif" />
                 <img src="/assets/season-04/wonder-desktop.webp" alt="" decoding="async" fetchPriority="high" />
               </picture>
             </div>
             <div className="season04-hero-copy">
           {/* CURRENT EXHIBITION BANNER - Moved to Top */}
-          <div className="season04-exhibition-badge" style={{
-            marginBottom: '30px',
-            padding: '20px',
-            background: CONFIG.BRAND_COLORS.forestGold,
-            border: '2px solid black',
-            fontSize: '0.9rem',
-            boxShadow: 'var(--shadow-stamp)',
-            position: 'relative'
-          }}>
+          <div className="season04-exhibition-badge">
             <span className="font-mono" style={{ display: 'block', marginBottom: '8px', fontSize: '0.75rem', letterSpacing: '0.1em' }}>CURRENT EXHIBITION / 2026 Q4</span>
             <strong style={{ fontSize: '1.1rem' }}>{CONFIG.CURRENT_SEASON}</strong>
 
@@ -3067,15 +3068,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
           <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Window Plan</div>
-          <div className="font-mono season04-hero-utility" style={{
-            marginBottom: '10px',
-            fontSize: '0.8rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            position: 'relative',
-            zIndex: 10
-          }}>
+          <div className="font-mono season04-hero-utility">
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
               <div className="map-account-controls">
