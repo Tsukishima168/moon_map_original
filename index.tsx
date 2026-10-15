@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import KiwimuUniverseRail from './components/KiwimuUniverseRail';
+import KiwimuUniverseRail, { readSupabaseLoginStatus } from './components/KiwimuUniverseRail';
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import './styles/forest-a11y.css';
@@ -3054,7 +3054,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           >
             <img src={headerImage || "https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744158/Enter-05_nrt403.webp"} alt="Kiwimu" decoding="async" style={{ width: '100%', height: 'auto' }} />
           </div>
-          <div className="ku-site-kicker" style={{ marginBottom: '14px' }}>04 / Window Plan</div>
+          <div className="map-site-kicker" style={{ marginBottom: '14px' }}>04 / Window Plan</div>
           <div className="font-mono season04-hero-utility">
             <span>WELCOME TO MOON ISLAND</span>
             {user ? (
@@ -5656,12 +5656,16 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 }
 
+// 森林導覽的 login_status：直接讀本站既有的 supabase client（./lib/supabase，已在 import 時建立、與頁面用同一個 session）。
+// 刻意不用 lib/auth 的 getAuthClient()：那會另外 createClient 一個沒有 pkce 設定的第二個 client。getSession() 只讀取，不寫入、不送事件。
+const getRailLoginStatus = () => readSupabaseLoginStatus(supabase);
+
 const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
     <ErrorBoundary>
-      <KiwimuUniverseRail currentSite="map" />
+      <KiwimuUniverseRail currentSite="map" onTrack={trackEvent} getLoginStatus={getRailLoginStatus} />
       <App />
     </ErrorBoundary>
   );

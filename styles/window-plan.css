@@ -128,13 +128,9 @@ body {
   line-height: 1.45;
 }
 
-.season04-hero .ku-site-kicker {
+.season04-hero .map-site-kicker {
   width: fit-content;
   margin-top: 28px;
-  color: var(--window-forest-deep);
-  border-color: var(--window-sun);
-  background: var(--window-sun);
-  box-shadow: none;
 }
 
 .season04-hero-utility {

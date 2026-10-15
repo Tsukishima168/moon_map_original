@@ -1,7 +1,7 @@
-/* 月島深綠 · 站點層覆寫（2026-10-14，Phase A）
-   載入順序：kiwimu-universe.css（共用 rail，Phase A 不改）→ window-plan.css → 本檔。
-   本檔只放「站點自己的」覆寫；共用 rail 的 .map-account-* 與 .menu-item／.modal-card 焦點舊語彙
-   （lime 焦點環、#f4f4f0／#111 帳號鈕）在 Phase B 由 rail kit 取代前，先在這裡蓋掉。
+/* 月島深綠 · 站點層規則（2026-10-14）
+   載入順序：kiwimu-universe.css（共用森林導覽 kit，五站 byte-identical，不准改）→ window-plan.css → 本檔。
+   本檔放「站點自己的」規則，包含原本寫在舊共用 rail CSS 裡、Phase B 搬出 kit 的 map 專屬規則：
+   .map-site-kicker、.menu-item／.modal-card 的 44px 觸控與輸入框字級、.map-account-*（已改森林語彙）。
    注意：index.tsx 的 <style> 在 body 內，文件順序比 CSS bundle 晚；要蓋掉它的全域規則，
    選擇器權重必須更高（例如 html :focus-visible），不能只靠同權重的後來者。
 
@@ -41,14 +41,6 @@ html :focus-visible {
 
 .season04-playlist-tab:focus-visible {
   outline-color: var(--window-forest-deep);
-}
-
-/* 共用 rail 檔留下的 lime 焦點（.menu-item／.modal-card 內的按鈕）：改成森林語彙 */
-.menu-item button:focus-visible,
-.modal-card button:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-  box-shadow: none;
 }
 
 /* ── /menu：鎖住 body 捲動（M3）──────────────────────────────────────────────────────
@@ -106,7 +98,42 @@ html.map-menu-view .container {
   background: var(--window-forest-deep);
 }
 
-/* ── 帳號與狀態按鈕（M5）：奶油底、深綠字、柔金徽章（取代共用 rail 檔的舊語彙）──────────── */
+/* ── 搬出共用 rail 檔的 map 專屬規則（Phase B）──────────────────────────────────────── */
+
+/* hero 的「04 / Window Plan」眉標：柔金底深綠字（舊版是白底、黑框、黑色硬陰影） */
+.map-site-kicker {
+  display: inline-flex;
+  min-height: 1.8rem;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  color: var(--window-forest-deep);
+  border: 1px solid var(--window-sun);
+  border-radius: 0.5rem;
+  background: var(--window-sun);
+  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* 菜單項目與 modal 內的按鈕、關閉鈕 ≥44px；手機版 modal 表單欄位 16px 避免 iOS 放大 */
+.menu-item button,
+.modal-card .close-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 40rem) {
+  .modal-card input,
+  .modal-card select,
+  .modal-card textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── 帳號與狀態按鈕（M5）：奶油底、深綠字、柔金徽章 ──────────────────────────────────── */
 .map-status-button {
   display: inline-flex;
   min-height: 44px;
@@ -126,19 +153,54 @@ html.map-menu-view .container {
   background: var(--window-cream);
 }
 
+.map-account-controls {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .map-account-button {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
   color: var(--window-forest-deep);
   border: 1px solid rgba(245, 240, 232, 0.55);
+  border-radius: 999px;
   background: var(--window-cream);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.map-account-name {
+  max-width: min(45vw, 180px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-account-badge {
+  padding: 2px 8px;
   color: var(--window-forest-deep);
+  border-radius: 10px;
   background: var(--window-sun);
+  font-size: 12px;
 }
 
 .map-account-button:hover:not(:disabled) {
   background: var(--window-sun);
+}
+
+.map-account-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .map-account-button:focus-visible {
