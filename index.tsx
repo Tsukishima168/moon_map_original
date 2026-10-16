@@ -32,6 +32,7 @@ import { MBTI_DESSERT_MAPPING } from './src/config/mbtiMapping';
 import { EASTER_EGGS } from './src/config/easterEggs';
 import { APP_STYLES } from './src/styles/appStyles';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { HeroArt } from './src/components/HeroArt';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -2337,14 +2338,7 @@ const App = () => {
         {/* A. HERO */}
         <header className="season04-hero" style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
           <div className="season04-hero-stage">
-            <div className="season04-hero-art" aria-hidden="true">
-              <picture>
-                <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.avif" type="image/avif" />
-                <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
-                <source srcSet="/assets/season-04/wonder-desktop.avif" type="image/avif" />
-                <img src="/assets/season-04/wonder-desktop.webp" alt="" decoding="async" fetchPriority="high" />
-              </picture>
-            </div>
+            <HeroArt />
             <div className="season04-hero-copy">
           {/* CURRENT EXHIBITION BANNER - Moved to Top */}
           <div className="season04-exhibition-badge">
