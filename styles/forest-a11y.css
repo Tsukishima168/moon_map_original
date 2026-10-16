@@ -110,7 +110,7 @@ html.map-menu-view .container {
   border: 1px solid var(--window-sun);
   border-radius: 0.5rem;
   background: var(--window-sun);
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -258,4 +258,35 @@ html.map-menu-view .container {
 /* ── toast（M4）：深綠底在深綠面板上會失去邊界，加一圈柔金細框 ───────────────────────────── */
 .map-ui-notice {
   border: 1px solid rgba(215, 198, 120, 0.55);
+}
+
+/* ── 入口按鈕字級：WebKit 的 <button> 預設字級是 11px，Chromium 是 13.333px ───────────────
+   button.btn-entry（hero 入口卡與 #menu-section 的「島民的VIP島嶼」卡）與 button.season04-menu-cta 沒設
+   font-size，「島民的VIP島嶼」標籤與 ↗／↓ 箭頭在 Safari 只有 11px（低於 12px 下限）。這裡明確寫成 Chromium
+   的預設值，Chromium 畫面不變；內層 strong／span 另有明確字級，不受影響。
+   - 一定要寫 button.：.btn-entry 也套在 <a>（hero 的「回護照」卡、LINE 主題連結），<a> 繼承 16px，
+     若一併設成 13.333px 會把它們縮小（Chromium 首頁整頁高度少 10px）。
+   - 不加 .season04-actions：「島民的VIP島嶼」卡在 #menu-section，不在 .season04-actions 內。
+   - 寫 13.333333px：0.8333rem（13.3328px）、13.3333px 會讓 Chromium 在 .season04-journey 下緣多出 6 個
+     抗鋸齒像素的差，13.333333px 與 UA 預設逐像素相同。
+   - 沒有其他規則設這兩個 class 的 font-size，權重與載入順序都不構成衝突。 */
+button.btn-entry,
+button.season04-menu-cta {
+  font-size: 13.333333px;
+}
+
+/* ── 等寬標籤裡的中文：JetBrains Mono 沒有漢字，原堆疊會讓中文落到系統字（PingFang） ──────────────
+   在 JetBrains Mono 後面補 "Noto Sans TC"：英數字仍用 JetBrains Mono，中文改用站上載入的 Noto Sans TC。
+   三個來源都要蓋，且都不改 index.tsx：
+   1) .map-site-kicker：本檔上方，直接改。
+   2) .font-mono：定義在 index.tsx 的 <style>（body 內，文件順序比 CSS bundle 晚、權重 0,1,0），
+      所以這裡用 body .font-mono（0,1,1）才蓋得過。
+   3) index.tsx 的 MONO_FONT_STACK 以 inline style 套用：只有 !important 蓋得過 inline，
+      用屬性選擇器對應那串字，之後 index.tsx 改 MONO_FONT_STACK 時也不需要同步改這裡。 */
+body .font-mono {
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
+}
+
+[style*="JetBrains Mono"] {
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace !important;
 }
