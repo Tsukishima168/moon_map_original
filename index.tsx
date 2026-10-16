@@ -21,6 +21,10 @@ import {
 } from './lib/menu-shared';
 import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from './lib/store-location';
 import { CONFIG, MONO_FONT_STACK } from './src/config/site';
+import { SPOTIFY_PLAYLISTS } from './src/config/playlists';
+import { MENU_CURATION_NOTES } from './src/config/menuCuration';
+import { WALLPAPERS, cloudinaryResize } from './src/config/wallpapers';
+import { FORTUNES } from './src/config/fortunes';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -65,80 +69,12 @@ const getPassportLoginErrorMessage = ({ message }: { message?: string }) => {
   return '登入暫時無法完成，請確認網路後重試。';
 };
 
-/**
- * 月島的播放清單。索引是「手上正在做的事」，不是星期幾也不是心情。
- * 全部為公開清單 —— embed 只有公開清單訪客才看得到。
- */
-const SPOTIFY_PLAYLISTS: ReadonlyArray<{ id: string; label: string; en: string; note: string }> = [
-  { id: '1Cw8MbGrZgQHHJngRhzX0O', label: '窗邊甜點目錄', en: 'Dessert Menu by the Window', note: '綠色午後的窗邊。清透、慢、一點日系咖啡與奶油感。' },
-  { id: '7ENCiOh49S6QRHWlP0IeE1', label: '開機暖身', en: 'Warm Up', note: '電量夠、但還沒開始。降低啟動阻力——溫、穩、往前，但不推你。' },
-  { id: '23LfLPJ97eXTFZ1V4U8htD', label: '深度專注', en: 'Deep Focus', note: '寫程式、寫文案、看合約、算帳。全程零人聲。' },
-  { id: '74tvil8NwqwgPV0ak41arx', label: '動手時段', en: 'Hands On', note: '做甜點、擺盤、設計、剪片、修圖。不用讀字的專注工作。' },
-  { id: '6txkf5rU2KNcE3ERp9q96f', label: '重複勞動', en: 'Busywork', note: '包貨、盤點、建檔、整理。熟悉度就是功能。' },
-  { id: '2rA0j1T8QRHlpZvDS0FyFF', label: '提振精神', en: 'Boost', note: '電量低於任務需求，但事情非開始不可。只有 20 首，是藥不是飯。' },
-  { id: '4CE0Yv9VnPiQl35ZYxyfL5', label: '收工降溫', en: 'Wind Down', note: '開完會、收工、腦子關不掉。把喚起度拉回地面。' },
-  { id: '2tIu5BSV5JzqufQvxfBDxi', label: '店裡外放', en: 'In Store', note: '有客人、有同事在場。店裡實際在放的就是這張。' },
-];
-
-const MENU_CURATION_NOTES: Record<string, { axis: string; note: string }> = {
-  tiramisu: {
-    axis: '奶油的陰影',
-    note: '咖啡、乳酪與酒香疊成窗邊的深色記憶。',
-  },
-  basque: {
-    axis: '焦糖的土壤',
-    note: '烘烤邊緣留下焦香，中心保持柔軟。',
-  },
-  chiffon: {
-    axis: '果實的光',
-    note: '鮮奶油、果酸與空氣感，讓綠光變得輕。',
-  },
-  mille_crepe: {
-    axis: '時間的層次',
-    note: '一層一層切開時間，茶、奶油與果香在切面裡停住。',
-  },
-  pudding: {
-    axis: '安靜的甜',
-    note: '把焦糖和蛋奶分開，留一點選擇給今天的自己。',
-  },
-  drinks: {
-    axis: '茶與咖啡的流動',
-    note: '抹茶、焙茶、花草與咖啡，把窗邊的停頓延長。',
-  },
-};
-
-// Cloudinary 縮圖：只改 <img src>（f_auto＝依瀏覽器給 avif／webp、q_auto＝自動品質、w_＝符合實際顯示寬度）。
-// 下載連結 href 仍指向原圖，不受影響。
-const cloudinaryResize = (url: string, width: number) =>
-  url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
-
-// Wallpaper assets (Cloudinary)
-const WALLPAPERS = [
-  { label: "2026.01", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg" },
-  { label: "2026.02", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_02_qfvg9i.jpg" },
-  { label: "Spring", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902362/New_year_ueuhsw.jpg" },
-  { label: "Fortune", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902361/New_year-2_i9e9js.jpg" },
-  { label: "2026.03", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_03_tduocw.jpg" }
-];
-
 // In-store badge (GPS) config
 const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
 const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
 const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
-const FORTUNES = [
-  { level: '大吉', text: '今天的光會找到你，不用站得特別顯眼。' },
-  { level: '中吉', text: '慢一點走，下一個轉角可能剛好有甜點。' },
-  { level: '小吉', text: '葉子沒有催你長大，今天也不用急。' },
-  { level: '吉', text: '適合靠近窗邊，也適合把手機放遠一點。' },
-  { level: '大吉', text: '你正在走的路，比你以為的更接近光。' },
-  { level: '中吉', text: '事情可以明天再做，布丁不行，它今天最好吃。' },
-  { level: '吉', text: '今天會有一個小小的好消息，可能還帶著奶油。' },
-  { level: '小吉', text: '光不趕時間，你也不用。' },
-  { level: '大吉', text: '願你走過的地方，都留下一點溫柔的綠。' },
-  { level: '隱藏版', text: 'Kiwimu 偷偷把窗邊的光調亮了一點，因為你來了。' },
-];
 const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
 const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
 
