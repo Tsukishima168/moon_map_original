@@ -31,6 +31,7 @@ import { STATE_DATA } from './src/config/states';
 import { MBTI_DESSERT_MAPPING } from './src/config/mbtiMapping';
 import { EASTER_EGGS } from './src/config/easterEggs';
 import { APP_STYLES } from './src/styles/appStyles';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -4835,67 +4836,6 @@ const App = () => {
     </>
   );
 };
-
-type ErrorBoundaryProps = {
-  children: React.ReactNode;
-};
-
-type ErrorBoundaryState = {
-  hasError: boolean;
-};
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('未預期的錯誤:', error, errorInfo);
-  }
-
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      return (
-        <div
-          style={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: '24px',
-            background: CONFIG.BRAND_COLORS.creamWhite,
-            color: CONFIG.BRAND_COLORS.emotionBlack,
-            fontFamily: '"Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-          }}
-        >
-          <p style={{ fontSize: '18px', marginBottom: '16px' }}>
-            頁面發生錯誤，請重新整理再試一次。
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '10px 24px',
-              fontSize: '16px',
-              cursor: 'pointer',
-            }}
-          >
-            重新整理
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // 森林導覽的 login_status：直接讀本站既有的 supabase client（./lib/supabase，已在 import 時建立、與頁面用同一個 session）。
 // 刻意不用 lib/auth 的 getAuthClient()：那會另外 createClient 一個沒有 pkce 設定的第二個 client。getSession() 只讀取，不寫入、不送事件。
