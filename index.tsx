@@ -27,6 +27,7 @@ import { WALLPAPERS, cloudinaryResize } from './src/config/wallpapers';
 import { FORTUNES } from './src/config/fortunes';
 import { STATE_DATA } from './src/config/states';
 import { MBTI_DESSERT_MAPPING } from './src/config/mbtiMapping';
+import { EASTER_EGGS } from './src/config/easterEggs';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -674,78 +675,6 @@ const App = () => {
       }
     }
   }, []);
-
-  // Easter Egg Data
-  const EASTER_EGGS = [
-    {
-      id: 1,
-      title: '意外的第 101 下',
-      content: `Kiwimu 的誕生純屬意外。
-
-甜點師本來只想打發 100 下，結果手滑多打了一下。
-
-那一瞬間，鮮奶油突然覺得「我不當食材了！」，於是長出了腳，跳出了鋼盆。`
-    },
-    {
-      id: 2,
-      title: '名字的真相',
-      content: `很多人問為什麼叫 Moon Moon。
-
-其實那不是月亮，而是你嘴巴塞滿蛋糕時，
-想說「好吃」卻發不清楚的聲音：
-「Mmm... Moon... Moon...」`
-    },
-    {
-      id: 3,
-      title: '關於身材',
-      content: `「我這不是胖，是蓬鬆。」
-「我是由 90% 的空氣組成的，所以嚴格來說，我比你還輕。」`
-    },
-    {
-      id: 4,
-      title: '關於夏天',
-      content: `「麻煩冷氣再開強一點。」
-「那個靠近窗邊的客人，你的熱情讓我有點融化了。物理上的那種。」`
-    },
-    {
-      id: 5,
-      title: '特殊海域',
-      content: `月島周圍的海水不是鹹的。
-據說是伯爵茶口味的。
-下次漲潮的時候，你可以偷偷沾一點試試看。`
-    },
-    {
-      id: 6,
-      title: '入島限制',
-      content: `這座島有載重限制。
-不是體重的重量，是心事的重量。
-如果你心事太重，島會稍微下沉個 5 公分，直到你吃完甜點為止。`
-    },
-    {
-      id: 7,
-      title: '險些被吃掉',
-      content: `上週有個客人點了巴斯克。
-Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
-幸好在叉子落下的前一秒，他嚇醒飛走了，但屁股還是少了一角。`
-    },
-    {
-      id: 8,
-      title: '落枕危機',
-      content: `Kiwimu 昨天睡姿不良。
-導致那一區的鮮奶油變硬了（結塊）。
-他現在頭轉不回來，走路只能一直往左邊偏。`
-    },
-    {
-      id: 9,
-      title: '對了，我們有出貼圖',
-      content: `Kiwimu 某天決定把自己變成貼圖。
-沒有特別的理由，就是想住進你的手機裡。
-目前有幾款，他說每一款都很像他，
-但有一款連他自己都認不出來。`,
-      link: 'https://store.line.me/stickershop/product/33314326',
-      linkText: '去 LINE 貼圖店看看 ↗'
-    }
-  ];
 
   // Open Easter Egg
   const openEasterEgg = (eggId: number) => {
