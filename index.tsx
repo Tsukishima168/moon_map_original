@@ -7,6 +7,8 @@ import KiwimuUniverseRail, { readSupabaseLoginStatus } from './components/Kiwimu
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import './styles/forest-a11y.css';
+import './styles/hidden-seal.css';
+import './styles/datepicker-overrides.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -4025,25 +4027,6 @@ const App = () => {
                     className="custom-datepicker"
                     required
                   />
-                  <style>{`
-                    .custom-datepicker {
-                      width: 100%;
-                      padding: 12px;
-                      border-radius: 8px;
-                      border: 1px solid var(--c-line);
-                      font-size: 1rem;
-                      box-sizing: border-box;
-                    }
-                    /* Add style overrides for datepicker to make disabled dates look greyed out */
-                    .react-datepicker-wrapper {
-                      width: 100%;
-                    }
-                    .react-datepicker__day--disabled {
-                      color: #ccc !important;
-                      background-color: #f9f9f9 !important;
-                      text-decoration: line-through;
-                    }
-                  `}</style>
                   <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
@@ -4849,63 +4832,6 @@ const App = () => {
         )
       }
 
-      <style>{`
-        .hidden-seal-container {
-          cursor: pointer;
-          position: relative;
-          transition: all 0.5s var(--ease-playful);
-          margin-bottom: 30px;
-        }
-        .hidden-seal-container:hover {
-          transform: translateY(-5px);
-        }
-        .wax-seal {
-          width: 60px;
-          height: 60px;
-          background: #8b0000;
-          border-radius: 50%;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10;
-          transition: all 0.6s ease;
-          border: 2px solid #5d0000;
-        }
-        .wax-seal::after {
-          content: 'M';
-          color: rgba(255,255,255,0.4);
-          font-family: serif;
-          font-size: 24px;
-          font-weight: bold;
-        }
-        .wax-seal.broken {
-          transform: translate(-50%, -50%) scale(1.5);
-          opacity: 0;
-          pointer-events: none;
-        }
-        .hidden-content {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.8s ease-in-out;
-        }
-        .hidden-content.revealed {
-          max-height: 2000px;
-        }
-        @keyframes seal-shake {
-          0% { transform: translate(-50%, -50%) rotate(0); }
-          25% { transform: translate(-52%, -50%) rotate(-5deg); }
-          75% { transform: translate(-48%, -50%) rotate(5deg); }
-          100% { transform: translate(-50%, -50%) rotate(0); }
-        }
-        .hidden-seal-container:hover .wax-seal {
-          animation: seal-shake 0.3s infinite;
-        }
-      `}</style>
     </>
   );
 };
