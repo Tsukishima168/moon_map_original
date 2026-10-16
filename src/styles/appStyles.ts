@@ -175,45 +175,6 @@ export const APP_STYLES = `
           box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
         
-        .btn-small {
-          display: block; width: 100%; text-align: center;
-          border: 1px solid var(--c-black); 
-          background: rgba(255, 255, 255, 0.8);
-          padding: 12px; font-size: 0.9rem;
-          min-height: 44px;
-          backdrop-filter: blur(5px);
-        }
-        .btn-small:hover {
-          background: rgba(255, 255, 255, 1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Timeline */
-        .timeline { 
-          padding-left: 0; 
-          margin-left: 0;
-          background: transparent;
-          backdrop-filter: none;
-          border-radius: 0;
-          padding: 0;
-          border: none;
-          box-shadow: none;
-        }
-        .timeline-item { position: relative; margin-bottom: 30px; border-left: none; padding-left: 0; }
-        .timeline-item::before {
-          content: '•'; position: absolute; left: -15px; top: 0px;
-          font-size: 1.5rem; line-height: 1; color: var(--c-black);
-          display: none; /* Removed dot style to align flush left as requested */
-        }
-        /* Custom bullet for flush alignment */
-        .timeline-item h4::before {
-          content: '●'; 
-          font-size: 0.6em; 
-          vertical-align: middle; 
-          margin-right: 10px;
-          display: inline-block;
-        }
-
         /* Checkin Grid */
         .checkin-grid { 
           display: grid; 
@@ -298,30 +259,6 @@ export const APP_STYLES = `
           100% { transform: translateY(0px) rotate(0deg); }
         }
         
-        .link-list { 
-          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
-          backdrop-filter: blur(16px) saturate(160%);
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          box-shadow: var(--shadow-glass);
-          padding: 0 20px;
-          border-radius: 12px;
-        }
-        .link-list li { 
-          border-bottom: 1px solid var(--c-line); 
-          padding: 18px 0; 
-          display: flex; 
-          justify-content: space-between;
-          align-items: center;
-          min-height: 60px;
-        }
-        .link-list li:last-child { border-bottom: none; }
-        
-        @media (min-width: 768px) {
-          .link-list li {
-            padding: 20px 0;
-          }
-        }
-
         /* Menu Modal */
         .modal-overlay {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
