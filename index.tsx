@@ -560,6 +560,29 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 
 // --- COMPONENTS ---
 
+// 元素進入視窗附近（預設上下 600px）才回傳 true，之後不再變回 false。
+// 只用來延後載入首屏以外的 iframe／背景圖，不影響版面；沒有 IntersectionObserver 時直接視為已進入。
+const useNearViewport = <T extends Element>(ref: React.RefObject<T | null>, rootMargin = '600px 0px') => {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setNear(true);
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setNear(true);
+        io.disconnect();
+      }
+    }, { rootMargin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, rootMargin]);
+  return near;
+};
+
 const App = () => {
   const [user, setUser] = useState<any>(null);
   const [isLogoutBusy, setIsLogoutBusy] = useState(false);
@@ -592,6 +615,11 @@ const App = () => {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
   const [activePlaylist, setActivePlaylist] = useState(0);
+  // Spotify 嵌入與 Journey 背景圖：進入視窗附近才載入（Spotify 嵌入單獨就是 ~0.8MB 的 JS／字體）
+  const spotifyPanelRef = useRef<HTMLDivElement>(null);
+  const spotifyNear = useNearViewport(spotifyPanelRef, '400px 0px');
+  const journeyRef = useRef<HTMLDivElement>(null);
+  const journeyNear = useNearViewport(journeyRef, '800px 0px');
   const [foundEggs, setFoundEggs] = useState<number[]>([]);
   const [eggMasterCode, setEggMasterCode] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem('moonmoon_egg_master_code') : null
@@ -3294,7 +3322,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </section>
 
         {/* C. PEAK EXPERIENCE & D. CHECK-IN (Combined with Background) */}
-        <div className="season04-journey" style={{
+        <div className="season04-journey" ref={journeyRef} data-bg-ready={journeyNear ? 'true' : undefined} style={{
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: '24px',
@@ -3796,11 +3824,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </button>
               ))}
             </div>
-            <div id="playlist-panel" role="tabpanel" aria-labelledby={`playlist-tab-${activePlaylist}`}>
+            <div id="playlist-panel" ref={spotifyPanelRef} role="tabpanel" aria-labelledby={`playlist-tab-${activePlaylist}`}>
               <iframe
                 key={SPOTIFY_PLAYLISTS[activePlaylist].id}
                 title={`Spotify 播放清單 - ${SPOTIFY_PLAYLISTS[activePlaylist].label}`}
-                src={`https://open.spotify.com/embed/playlist/${SPOTIFY_PLAYLISTS[activePlaylist].id}?utm_source=generator&theme=0`}
+                src={spotifyNear ? `https://open.spotify.com/embed/playlist/${SPOTIFY_PLAYLISTS[activePlaylist].id}?utm_source=generator&theme=0` : undefined}
                 width="100%"
                 height="352"
                 frameBorder="0"

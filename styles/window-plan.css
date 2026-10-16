@@ -358,6 +358,11 @@ body {
   box-shadow: var(--window-shadow);
 }
 
+/* 背景圖進入視窗附近（index.tsx 的 useNearViewport，上下 800px）才載入；之前只有深綠底，尺寸與版面不變 */
+.season04-journey:not([data-bg-ready]) {
+  background-image: none !important;
+}
+
 .season04-journey-overlay {
   background: linear-gradient(100deg, rgba(22, 38, 24, 0.8) 0%, rgba(22, 38, 24, 0.42) 58%, rgba(22, 38, 24, 0.16) 100%) !important;
 }
