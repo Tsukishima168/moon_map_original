@@ -916,7 +916,10 @@ body {
     min-height: 820px !important;
     padding: 30px 18px !important;
     border-radius: 24px !important;
-    background-image: url('/assets/season-04/journey-mobile.webp') !important;
+    background-image: image-set(
+      url('/assets/season-04/journey-mobile.avif') type('image/avif'),
+      url('/assets/season-04/journey-mobile.webp') type('image/webp')
+    ) !important;
     background-position: center !important;
   }
 

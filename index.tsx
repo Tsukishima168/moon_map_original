@@ -145,6 +145,11 @@ const MENU_CURATION_NOTES: Record<string, { axis: string; note: string }> = {
   },
 };
 
+// Cloudinary 縮圖：只改 <img src>（f_auto＝依瀏覽器給 avif／webp、q_auto＝自動品質、w_＝符合實際顯示寬度）。
+// 下載連結 href 仍指向原圖，不受影響。
+const cloudinaryResize = (url: string, width: number) =>
+  url.replace('/image/upload/', `/image/upload/f_auto,q_auto,w_${width}/`);
+
 // Wallpaper assets (Cloudinary)
 const WALLPAPERS = [
   { label: "2026.01", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg" },
@@ -2929,6 +2934,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <header className="season04-menu-header">
               <div className="season04-menu-art" aria-hidden="true">
                 <picture>
+                  <source media="(max-width: 519px)" srcSet="/assets/season-04/pause-mobile.avif" type="image/avif" />
                   <source media="(max-width: 519px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
                   <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
                   <img src="/assets/season-04/pause-desktop.webp" alt="" decoding="async" fetchPriority="high" />
@@ -3026,6 +3032,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           <div className="season04-hero-stage">
             <div className="season04-hero-art" aria-hidden="true">
               <picture>
+                <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.avif" type="image/avif" />
                 <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
                 <source srcSet="/assets/season-04/wonder-desktop.avif" type="image/avif" />
                 <img src="/assets/season-04/wonder-desktop.webp" alt="" decoding="async" fetchPriority="high" />
@@ -3080,7 +3087,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Logo Integration */}
           <div className="season04-hero-logo" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" decoding="async" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            <picture style={{ display: 'flex' }}>
+              <source srcSet="/assets/logo-chinese.webp" type="image/webp" />
+              <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" decoding="async" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            </picture>
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
               Dessert Menu
             </h1>
@@ -3091,7 +3101,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <strong>從窗邊開始，把抹茶、柚子、焙茶、咖啡與奶油整理成一份可以慢慢選的甜點目錄。</strong>
             {/* Easter Egg #5 - 島主筆記 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               decoding="async"
@@ -3226,7 +3236,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
             {/* Easter Egg #1 - 北海道誕生 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3260,7 +3270,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </p>
             {/* Easter Egg #3 - 為什麼叫 Kiwimu */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3477,7 +3487,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           })()}
           {/* Easter Egg #7 - 險些被吃掉 */}
           <img
-            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
             alt=""
             aria-hidden="true"
             loading="lazy"
@@ -3505,6 +3515,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         <section id="menu-section" className="section-padding border-t season04-pause" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
           <div className="season04-pause-visual">
             <picture aria-hidden="true">
+              <source media="(max-width: 767px)" srcSet="/assets/season-04/pause-mobile.avif" type="image/avif" />
               <source media="(max-width: 767px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
               <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
               <img src="/assets/season-04/pause-desktop.webp" alt="" loading="lazy" decoding="async" />
@@ -3615,7 +3626,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Easter Egg #6 - 秘密配方 */}
           <img
-            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
             alt=""
             aria-hidden="true"
             loading="lazy"
@@ -3735,7 +3746,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <p>{SPOTIFY_PLAYLISTS[activePlaylist].note}</p>
             {/* Easter Egg #2 - 神秘好友 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3888,7 +3899,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         <span>⬇</span>
                       </div>
                       <div style={{ position: 'relative' }}>
-                        <img src={wp.url} alt={wp.label} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+                        <img src={cloudinaryResize(wp.url, 360)} alt={wp.label} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
 
                         {/* Red Envelope Egg (Hidden in Spring Wallpaper) */}
                         {wp.label === 'Spring' && (
@@ -4071,7 +4082,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </a>
               {/* Easter Egg #9 - 對了，我們有出貼圖 */}
               <img
-                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -4128,7 +4139,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               {/* Easter Egg #8 - 秘密計畫 */}
               <img
-                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
