@@ -1,0 +1,18 @@
+/* 取貨日期欄位與 react-datepicker 的覆寫（原本在結帳表單內的 <style>，內容逐字不變，只改縮排）。要在 react-datepicker.css 之後載入。 */
+.custom-datepicker {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--c-line);
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+/* Add style overrides for datepicker to make disabled dates look greyed out */
+.react-datepicker-wrapper {
+  width: 100%;
+}
+.react-datepicker__day--disabled {
+  color: #ccc !important;
+  background-color: #f9f9f9 !important;
+  text-decoration: line-through;
+}

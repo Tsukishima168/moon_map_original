@@ -7,6 +7,8 @@ import KiwimuUniverseRail, { readSupabaseLoginStatus } from './components/Kiwimu
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import './styles/forest-a11y.css';
+import './styles/hidden-seal.css';
+import './styles/datepicker-overrides.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -20,6 +22,18 @@ import {
   type MenuItemId,
 } from './lib/menu-shared';
 import { STORE_LOCATION, STORE_RADIUS_METERS, distanceMeters } from './lib/store-location';
+import { CONFIG, MONO_FONT_STACK } from './src/config/site';
+import { SPOTIFY_PLAYLISTS } from './src/config/playlists';
+import { MENU_CURATION_NOTES } from './src/config/menuCuration';
+import { WALLPAPERS, cloudinaryResize } from './src/config/wallpapers';
+import { FORTUNES } from './src/config/fortunes';
+import { STATE_DATA } from './src/config/states';
+import { MBTI_DESSERT_MAPPING } from './src/config/mbtiMapping';
+import { EASTER_EGGS } from './src/config/easterEggs';
+import { APP_STYLES } from './src/styles/appStyles';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { HeroArt } from './src/components/HeroArt';
+import { MenuPageHeader } from './src/components/MenuPageHeader';
 
 type MbtiApiRecommendation = {
   mbtiType: string;
@@ -64,114 +78,12 @@ const getPassportLoginErrorMessage = ({ message }: { message?: string }) => {
   return '登入暫時無法完成，請確認網路後重試。';
 };
 
-// 等寬標籤／代碼字體堆疊；JetBrains Mono 由 index.html 的 Google Fonts 請求載入。
-const MONO_FONT_STACK = '"JetBrains Mono", ui-monospace, Menlo, monospace';
-
-// --- CONFIGURATION (可在此處編輯) ---
-const CONFIG = {
-  STORE_NAME_CN: "月島甜點店",
-  STORE_NAME_EN: "MOON MOON",
-  TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
-  CURRENT_SEASON: "Season 04｜窗邊計畫",
-  // Key 以實際色相命名（2026-10-14 由 moonSilver/moonShadow/islandBlue/nightBlue/nightBlueDeep 更名，值不變）。
-  BRAND_COLORS: {
-    creamWhite: '#F5F0E8',   // 奶油紙底
-    emotionBlack: '#2B2018', // 淺底主要文字
-    forestGold: '#D7C678',   // 柔金：主行動、目前狀態、深色面焦點
-    moss: '#587337',         // 苔綠：淺底標籤、底線、進度
-    forestMid: '#304F2F',    // 中綠：淺色面的焦點與強調
-    grayText: '#5F6856',     // 淺色面次要文字
-    grayLine: '#D8D7C4',     // 分隔線／深色面次要文字
-    forestDeep: '#1F2F1F',   // 深綠：深色面、主卡
-  },
-  LINKS: {
-    preorder_pickup_url: "https://map.kiwimu.com/menu",
-    delivery_url: "https://map.kiwimu.com/menu",
-    booking_url: "https://map.kiwimu.com/menu",
-    passport_url: "https://passport.kiwimu.com",
-    line_url: "https://lin.ee/MndRHE2",
-    mbti_lab_url: "https://kiwimu.com",
-    wallpaper_url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg",
-    easter_egg_reward_url: "#wallpaper-section",
-    line_theme_url: "https://line.me/S/shop/theme/detail?id=6dafbfa5-b3db-4ac5-8616-a6c1dd46f1e9&lang=zh-Hant&ref=lsh_themeDetail",
-    kiwimu_ig_url: "https://www.instagram.com/moon_moon_dessert/",
-    instagram_moonmoon_url: "https://www.instagram.com/moon_moon_dessert/",
-    address_text: "台南市安南區本原街一段97巷168號",
-    hours_text: "週一公休；週二至五 13:00–18:00；週六日 11:00–18:00",
-    liff_id: "2008848603-ANGQX0GN",
-    line_pay_qr_code: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1769531708/IMG_1967_k0ila8.png",
-  }
-};
-
-/**
- * 月島的播放清單。索引是「手上正在做的事」，不是星期幾也不是心情。
- * 全部為公開清單 —— embed 只有公開清單訪客才看得到。
- */
-const SPOTIFY_PLAYLISTS: ReadonlyArray<{ id: string; label: string; en: string; note: string }> = [
-  { id: '1Cw8MbGrZgQHHJngRhzX0O', label: '窗邊甜點目錄', en: 'Dessert Menu by the Window', note: '綠色午後的窗邊。清透、慢、一點日系咖啡與奶油感。' },
-  { id: '7ENCiOh49S6QRHWlP0IeE1', label: '開機暖身', en: 'Warm Up', note: '電量夠、但還沒開始。降低啟動阻力——溫、穩、往前，但不推你。' },
-  { id: '23LfLPJ97eXTFZ1V4U8htD', label: '深度專注', en: 'Deep Focus', note: '寫程式、寫文案、看合約、算帳。全程零人聲。' },
-  { id: '74tvil8NwqwgPV0ak41arx', label: '動手時段', en: 'Hands On', note: '做甜點、擺盤、設計、剪片、修圖。不用讀字的專注工作。' },
-  { id: '6txkf5rU2KNcE3ERp9q96f', label: '重複勞動', en: 'Busywork', note: '包貨、盤點、建檔、整理。熟悉度就是功能。' },
-  { id: '2rA0j1T8QRHlpZvDS0FyFF', label: '提振精神', en: 'Boost', note: '電量低於任務需求，但事情非開始不可。只有 20 首，是藥不是飯。' },
-  { id: '4CE0Yv9VnPiQl35ZYxyfL5', label: '收工降溫', en: 'Wind Down', note: '開完會、收工、腦子關不掉。把喚起度拉回地面。' },
-  { id: '2tIu5BSV5JzqufQvxfBDxi', label: '店裡外放', en: 'In Store', note: '有客人、有同事在場。店裡實際在放的就是這張。' },
-];
-
-const MENU_CURATION_NOTES: Record<string, { axis: string; note: string }> = {
-  tiramisu: {
-    axis: '奶油的陰影',
-    note: '咖啡、乳酪與酒香疊成窗邊的深色記憶。',
-  },
-  basque: {
-    axis: '焦糖的土壤',
-    note: '烘烤邊緣留下焦香，中心保持柔軟。',
-  },
-  chiffon: {
-    axis: '果實的光',
-    note: '鮮奶油、果酸與空氣感，讓綠光變得輕。',
-  },
-  mille_crepe: {
-    axis: '時間的層次',
-    note: '一層一層切開時間，茶、奶油與果香在切面裡停住。',
-  },
-  pudding: {
-    axis: '安靜的甜',
-    note: '把焦糖和蛋奶分開，留一點選擇給今天的自己。',
-  },
-  drinks: {
-    axis: '茶與咖啡的流動',
-    note: '抹茶、焙茶、花草與咖啡，把窗邊的停頓延長。',
-  },
-};
-
-// Wallpaper assets (Cloudinary)
-const WALLPAPERS = [
-  { label: "2026.01", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902254/2026_01_abhw1m.jpg" },
-  { label: "2026.02", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_02_qfvg9i.jpg" },
-  { label: "Spring", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902362/New_year_ueuhsw.jpg" },
-  { label: "Fortune", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902361/New_year-2_i9e9js.jpg" },
-  { label: "2026.03", url: "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771902255/2026_03_tduocw.jpg" }
-];
-
 // In-store badge (GPS) config
 const STORE_BADGE_REWARD_ID = 'store_visit_2026_q1';
 const STORE_BADGE_CODE_KEY = 'moonmoon_store_visit_code';
 const PENDING_REWARD_CLAIM_KEY = 'moonmoon_pending_reward_claim';
 
 // -- Fortune Slip (心情展籤) System --
-const FORTUNES = [
-  { level: '大吉', text: '今天的光會找到你，不用站得特別顯眼。' },
-  { level: '中吉', text: '慢一點走，下一個轉角可能剛好有甜點。' },
-  { level: '小吉', text: '葉子沒有催你長大，今天也不用急。' },
-  { level: '吉', text: '適合靠近窗邊，也適合把手機放遠一點。' },
-  { level: '大吉', text: '你正在走的路，比你以為的更接近光。' },
-  { level: '中吉', text: '事情可以明天再做，布丁不行，它今天最好吃。' },
-  { level: '吉', text: '今天會有一個小小的好消息，可能還帶著奶油。' },
-  { level: '小吉', text: '光不趕時間，你也不用。' },
-  { level: '大吉', text: '願你走過的地方，都留下一點溫柔的綠。' },
-  { level: '隱藏版', text: 'Kiwimu 偷偷把窗邊的光調亮了一點，因為你來了。' },
-];
 const FORTUNE_DATE_KEY = 'moonmoon_fortune_date';
 const FORTUNE_RESULT_KEY = 'moonmoon_fortune_result';
 
@@ -279,129 +191,6 @@ function normalizeMenuCategories(categories: MenuCategory[]) {
     })),
   }));
 }
-
-// --- DATA: 狀態與任務 ---
-const STATE_DATA: Record<string, {
-  title: string;
-  advice: string;
-  mission: string;
-  recommendedItemIds: MenuItemId[];
-}> = {
-  noon: {
-    title: "光剛落進來 / 12:00",
-    advice: "窗邊剛亮起來，綠色還很安靜。先讓眼睛停一下，再想今天想吃什麼。",
-    mission: "找一個有光的位置，替今天留一小塊空白。",
-    recommendedItemIds: ['basque_classic', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic']
-  },
-  open: {
-    title: "沿著綠光走 / 13:00",
-    advice: "門開了，甜點與葉影一起醒來。順著光走，不需要急著決定目的地。",
-    mission: "慢一點進門，看看今天第一個吸引你的角落。",
-    recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_honey_black_tea']
-  },
-  three: {
-    title: "葉影最深 / 15:00",
-    advice: "光穿過葉片，留下深深淺淺的影子。你也可以暫時不用把事情看得太清楚。",
-    mission: "選一份有層次的甜點，慢慢吃到心裡安靜下來。",
-    recommendedItemIds: ['pudding_classic', 'tiramisu_pudding_mocha', 'mille_crepe_matcha']
-  },
-  golden: {
-    title: "窗邊變金 / 17:00",
-    advice: "綠色裡多了一點金。今天不必重新開始，只要在這裡接住剩下的光。",
-    mission: "看一眼窗邊，把今天值得留下的片刻記住。",
-    recommendedItemIds: ['tiramisu_baileys', 'basque_classic', 'tiramisu_matcha']
-  },
-  closing: {
-    title: "在甜點旁停下 / 18:00",
-    advice: "路走到這裡，不需要再趕。讓一份甜點替今天收尾，讓自己停在剛好的地方。",
-    mission: "帶一份甜點回家，也把這段綠光帶走。",
-    recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
-  }
-};
-
-// --- MBTI PERSONALIZED RECOMMENDATIONS ---
-const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recommendedItemIds: MenuItemId[]; reason: string }> = {
-  INTJ: {
-    personality: "建築師 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_matcha', 'basque_classic', 'mille_crepe_classic'],
-    reason: "你追求完美與深度，這些甜點層次豐富卻不過分張揚。"
-  },
-  INTP: {
-    personality: "邏輯學家 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_pudding_mocha', 'basque_honey_black_tea'],
-    reason: "你喜歡探索新組合，這些創新口味會激發你的好奇心。"
-  },
-  ENTJ: {
-    personality: "指揮官 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_classic', 'tiramisu_baileys', 'mille_crepe_classic'],
-    reason: "你喜歡經典且有影響力的選擇，這些甜點強勁而直接。"
-  },
-  ENTP: {
-    personality: "辯論家 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_baileys', 'tiramisu_matcha'],
-    reason: "你熱愛挑戰常規，這些創新口味符合你的冒險精神。"
-  },
-  INFJ: {
-    personality: "提倡者 · 夢幻蛋鬼",
-    recommendedItemIds: ['tiramisu_matcha', 'basque_honey_black_tea', 'pudding_classic'],
-    reason: "你重視內在與意義，這些甜點含蓄而深刻。"
-  },
-  INFP: {
-    personality: "調停者 · 夢夢幻蛋鬼",
-    recommendedItemIds: ['pudding_classic', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
-    reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
-  },
-  ENFJ: {
-    personality: "主人公 · 夢幻蛋鬼",
-    recommendedItemIds: ['tiramisu_classic', 'tiramisu_yuzu_apple_cheese', 'basque_classic'],
-    reason: "你熱愛分享與連結，這些甜點適合與人共享。"
-  },
-  ENFP: {
-    personality: "競選者 · 活力奇異鳥",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'mille_crepe_classic', 'tiramisu_baileys'],
-    reason: "你的自由精神需要同樣有趣的甜點來搭配。"
-  },
-  ISTJ: {
-    personality: "物流師 · 活力奇異鳥",
-    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'pudding_classic'],
-    reason: "你信賴經典，這些傳統甜點經得起時間考驗。"
-  },
-  ISFJ: {
-    personality: "守衛者 · 活力奇異鳥",
-    recommendedItemIds: ['pudding_classic', 'basque_honey_black_tea', 'tiramisu_classic'],
-    reason: "你的細心值得同樣用心製作的甜點。"
-  },
-  ESTJ: {
-    personality: "總經理 · 活力奇異鳥",
-    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'mille_crepe_classic'],
-    reason: "你重視效率與品質，這些經典款值得信賴。"
-  },
-  ESFJ: {
-    personality: "執政官 · 活力奇異鳥",
-    recommendedItemIds: ['tiramisu_classic', 'basque_classic', 'tiramisu_pudding_mocha'],
-    reason: "你善於照顧他人，這些甜點適合與朋友分享。"
-  },
-  ISTP: {
-    personality: "鑑賞家 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_baileys', 'tiramisu_yuzu_apple_cheese', 'mille_crepe_classic'],
-    reason: "你喜歡探索新事物，這些口味會帶來驚喜。"
-  },
-  ISFP: {
-    personality: "探險家 · 夢幻蛋鬼",
-    recommendedItemIds: ['tiramisu_matcha', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
-    reason: "你的藝術靈魂需要同樣美麗的甜點。"
-  },
-  ESTP: {
-    personality: "企業家 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_baileys', 'tiramisu_classic', 'tiramisu_yuzu_apple_cheese'],
-    reason: "你的能量需要同樣強勁的甜點來匹配。"
-  },
-  ESFP: {
-    personality: "表演者 · 活力奇異鳥",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_classic', 'tiramisu_baileys'],
-    reason: "你的熱情需要同樣歡樂的甜點來慶祝。"
-  }
-};
 
 const getMbtiTypeKey = (mbtiValue: string | null | undefined) => mbtiValue?.split('-')[0] ?? null;
 
@@ -555,6 +344,29 @@ const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.leng
 
 // --- COMPONENTS ---
 
+// 元素進入視窗附近（預設上下 600px）才回傳 true，之後不再變回 false。
+// 只用來延後載入首屏以外的 iframe／背景圖，不影響版面；沒有 IntersectionObserver 時直接視為已進入。
+const useNearViewport = <T extends Element>(ref: React.RefObject<T | null>, rootMargin = '600px 0px') => {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setNear(true);
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setNear(true);
+        io.disconnect();
+      }
+    }, { rootMargin });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ref, rootMargin]);
+  return near;
+};
+
 const App = () => {
   const [user, setUser] = useState<any>(null);
   const [isLogoutBusy, setIsLogoutBusy] = useState(false);
@@ -587,6 +399,11 @@ const App = () => {
   const [showEasterEgg, setShowEasterEgg] = useState(false);
   const [currentEasterEgg, setCurrentEasterEgg] = useState<number | null>(null);
   const [activePlaylist, setActivePlaylist] = useState(0);
+  // Spotify 嵌入與 Journey 背景圖：進入視窗附近才載入（Spotify 嵌入單獨就是 ~0.8MB 的 JS／字體）
+  const spotifyPanelRef = useRef<HTMLDivElement>(null);
+  const spotifyNear = useNearViewport(spotifyPanelRef, '400px 0px');
+  const journeyRef = useRef<HTMLDivElement>(null);
+  const journeyNear = useNearViewport(journeyRef, '800px 0px');
   const [foundEggs, setFoundEggs] = useState<number[]>([]);
   const [eggMasterCode, setEggMasterCode] = useState<string | null>(() =>
     typeof window !== 'undefined' ? localStorage.getItem('moonmoon_egg_master_code') : null
@@ -864,78 +681,6 @@ const App = () => {
       }
     }
   }, []);
-
-  // Easter Egg Data
-  const EASTER_EGGS = [
-    {
-      id: 1,
-      title: '意外的第 101 下',
-      content: `Kiwimu 的誕生純屬意外。
-
-甜點師本來只想打發 100 下，結果手滑多打了一下。
-
-那一瞬間，鮮奶油突然覺得「我不當食材了！」，於是長出了腳，跳出了鋼盆。`
-    },
-    {
-      id: 2,
-      title: '名字的真相',
-      content: `很多人問為什麼叫 Moon Moon。
-
-其實那不是月亮，而是你嘴巴塞滿蛋糕時，
-想說「好吃」卻發不清楚的聲音：
-「Mmm... Moon... Moon...」`
-    },
-    {
-      id: 3,
-      title: '關於身材',
-      content: `「我這不是胖，是蓬鬆。」
-「我是由 90% 的空氣組成的，所以嚴格來說，我比你還輕。」`
-    },
-    {
-      id: 4,
-      title: '關於夏天',
-      content: `「麻煩冷氣再開強一點。」
-「那個靠近窗邊的客人，你的熱情讓我有點融化了。物理上的那種。」`
-    },
-    {
-      id: 5,
-      title: '特殊海域',
-      content: `月島周圍的海水不是鹹的。
-據說是伯爵茶口味的。
-下次漲潮的時候，你可以偷偷沾一點試試看。`
-    },
-    {
-      id: 6,
-      title: '入島限制',
-      content: `這座島有載重限制。
-不是體重的重量，是心事的重量。
-如果你心事太重，島會稍微下沉個 5 公分，直到你吃完甜點為止。`
-    },
-    {
-      id: 7,
-      title: '險些被吃掉',
-      content: `上週有個客人點了巴斯克。
-Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
-幸好在叉子落下的前一秒，他嚇醒飛走了，但屁股還是少了一角。`
-    },
-    {
-      id: 8,
-      title: '落枕危機',
-      content: `Kiwimu 昨天睡姿不良。
-導致那一區的鮮奶油變硬了（結塊）。
-他現在頭轉不回來，走路只能一直往左邊偏。`
-    },
-    {
-      id: 9,
-      title: '對了，我們有出貼圖',
-      content: `Kiwimu 某天決定把自己變成貼圖。
-沒有特別的理由，就是想住進你的手機裡。
-目前有幾款，他說每一款都很像他，
-但有一款連他自己都認不出來。`,
-      link: 'https://store.line.me/stickershop/product/33314326',
-      linkText: '去 LINE 貼圖店看看 ↗'
-    }
-  ];
 
   // Open Easter Egg
   const openEasterEgg = (eggId: number) => {
@@ -2477,438 +2222,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
   return (
     <>
-      <style>{`
-        :root {
-          /* Existing Colors */
-          --c-cream: ${CONFIG.BRAND_COLORS.creamWhite};
-          --c-black: ${CONFIG.BRAND_COLORS.emotionBlack};
-          --c-yellow: ${CONFIG.BRAND_COLORS.moss};
-          --c-yellow-deep: ${CONFIG.BRAND_COLORS.forestGold};
-          --c-blue: ${CONFIG.BRAND_COLORS.forestMid};
-          --c-gray: ${CONFIG.BRAND_COLORS.grayText};
-          --c-line: ${CONFIG.BRAND_COLORS.grayLine};
-          
-          /* Glassmorphism Variables */
-          --glass-white-light: rgba(255, 255, 255, 0.6);
-          --glass-white-medium: rgba(255, 255, 255, 0.8);
-          --glass-white-strong: rgba(255, 255, 255, 0.95);
-          
-          /* Shadows */
-          --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
-          --shadow-glass-hover: 0 12px 40px 0 rgba(0, 0, 0, 0.12);
-          --shadow-glow-blue: 0 0 20px rgba(48, 79, 47, 0.3);
-          --shadow-glow-yellow: 0 0 20px rgba(215, 198, 120, 0.4);
-          /* 舊「蓋章」硬陰影已改柔和陰影（2026-10-14）：變數名保留，避免動到引用處 */
-          --shadow-stamp: 0 6px 16px rgba(31, 47, 31, 0.18);
-          --shadow-stamp-strong: 0 8px 22px rgba(31, 47, 31, 0.28);
-
-          /* Easing */
-          --ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
-          --ease-playful: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-
-          /* LINE brand green (two shades in use — kept distinct, zero visual change) */
-          --c-line-brand: #06C755;
-          --c-line-brand-alt: #00B900;
-        }
-        
-        * { 
-          box-sizing: border-box; 
-          margin: 0; 
-          padding: 0; 
-        }
-        
-        html {
-          scroll-behavior: smooth;
-        }
-
-        :focus-visible {
-          outline: 2px solid var(--c-blue);
-          outline-offset: 2px;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
-          html {
-            scroll-behavior: auto;
-          }
-        }
-
-        body {
-          background: var(--c-cream);
-          color: var(--c-black);
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-          line-height: 1.6;
-          -webkit-font-smoothing: antialiased;
-          min-height: 100vh;
-          position: relative;
-        }
-
-        
-        a { 
-          text-decoration: none; 
-          color: inherit; 
-          transition: all 0.3s ease; 
-        }
-        a:hover { opacity: 0.8; transform: translateY(-1px); }
-        
-        button { 
-          cursor: pointer; 
-          border: none; 
-          outline: none; 
-          background: none; 
-          font-family: inherit;
-          transition: all 0.3s ease;
-        }
-        
-        .container { 
-          max-width: 600px; 
-          margin: 0 auto; 
-          padding: 0 20px; 
-          position: relative; 
-          min-height: 100vh; 
-          display: flex; 
-          flex-direction: column;
-          z-index: 1;
-        }
-        
-        /* Tablet */
-        @media (min-width: 768px) {
-          .container {
-            max-width: 720px;
-            padding: 0 40px;
-          }
-        }
-        
-        /* Desktop */
-        @media (min-width: 1024px) {
-          .container {
-            max-width: 800px;
-            padding: 0 60px;
-          }
-        }
-        
-        .section-padding { padding: 60px 0; }
-        
-        @media (min-width: 768px) {
-          .section-padding { padding: 80px 0; }
-        }
-        
-        .border-y { border-top: 1px solid var(--c-black); border-bottom: 1px solid var(--c-black); }
-        .border-t { border-top: 1px solid var(--c-black); }
-        
-        /* Typography */
-        .font-mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; letter-spacing: 0.05em; text-transform: uppercase; }
-        .text-blue { color: var(--c-blue); }
-        .text-yellow { color: var(--c-yellow); }
-        
-        /* Components - Glassmorphism */
-        .btn-entry {
-          background: var(--glass-white-medium);
-          backdrop-filter: blur(16px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: var(--shadow-glass),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.6);
-          text-align: left;
-          transition: all 0.4s var(--ease-ui);
-          border-radius: 12px;
-          display: flex; justify-content: space-between; align-items: center;
-          width: 100%; padding: 20px; margin-bottom: 12px;
-          min-height: 60px;
-        }
-        .btn-entry:active { transform: scale(0.98); }
-        .btn-entry:hover { 
-          background: var(--glass-white-strong);
-          backdrop-filter: blur(20px) saturate(200%);
-          box-shadow: var(--shadow-glass-hover),
-                      0 0 0 1px rgba(88, 115, 55, 0.24),
-                      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-          transform: translateY(-4px);
-        }
-        
-        @media (min-width: 768px) {
-          .btn-entry {
-            padding: 24px;
-          }
-        }
-        
-        .btn-primary {
-          display: block; width: 100%; text-align: center;
-          background: ${CONFIG.BRAND_COLORS.forestDeep};
-          color: ${CONFIG.BRAND_COLORS.creamWhite};
-          padding: 16px; border-radius: 40px; font-weight: bold;
-          min-height: 50px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          position: relative; overflow: hidden;
-          transition: background 0.2s, box-shadow 0.2s;
-        }
-        .btn-primary:hover {
-          background: ${CONFIG.BRAND_COLORS.forestMid};
-          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn-small {
-          display: block; width: 100%; text-align: center;
-          border: 1px solid var(--c-black); 
-          background: rgba(255, 255, 255, 0.8);
-          padding: 12px; font-size: 0.9rem;
-          min-height: 44px;
-          backdrop-filter: blur(5px);
-        }
-        .btn-small:hover {
-          background: rgba(255, 255, 255, 1);
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Timeline */
-        .timeline { 
-          padding-left: 0; 
-          margin-left: 0;
-          background: transparent;
-          backdrop-filter: none;
-          border-radius: 0;
-          padding: 0;
-          border: none;
-          box-shadow: none;
-        }
-        .timeline-item { position: relative; margin-bottom: 30px; border-left: none; padding-left: 0; }
-        .timeline-item::before {
-          content: '•'; position: absolute; left: -15px; top: 0px;
-          font-size: 1.5rem; line-height: 1; color: var(--c-black);
-          display: none; /* Removed dot style to align flush left as requested */
-        }
-        /* Custom bullet for flush alignment */
-        .timeline-item h4::before {
-          content: '●'; 
-          font-size: 0.6em; 
-          vertical-align: middle; 
-          margin-right: 10px;
-          display: inline-block;
-        }
-
-        /* Checkin Grid */
-        .checkin-grid { 
-          display: grid; 
-          grid-template-columns: 1fr 1fr; 
-          gap: 12px; 
-          margin-top: 20px; 
-        }
-        
-        @media (min-width: 768px) {
-          .checkin-grid {
-            gap: 16px;
-          }
-        }
-        
-        .state-btn {
-          padding: 24px 12px; 
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(12px) saturate(150%);
-          box-shadow: var(--shadow-glass);
-          text-align: center; 
-          font-size: 0.95rem; 
-          transition: all 0.3s var(--ease-ui);
-          min-height: 80px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-        }
-        .state-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        .state-btn.selected {
-          background: var(--c-yellow-deep);
-          border-color: rgba(0, 0, 0, 0.2);
-          color: var(--c-black);
-          box-shadow: 0 6px 16px rgba(31, 47, 31, 0.18);
-        }
-        
-        @media (min-width: 768px) {
-          .state-btn {
-            padding: 28px 16px;
-            font-size: 1rem;
-          }
-        }
-
-        /* Result Card */
-        .result-card {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
-          backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.5);
-          box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(216, 224, 56, 0.15);
-          border-radius: 20px;
-          padding: 24px;
-          margin-top: 30px;
-          animation: fadeIn 0.5s ease forwards;
-          opacity: 0;
-          position: relative;
-          overflow: hidden;
-        }
-        .result-card::before {
-          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-          background: linear-gradient(90deg, transparent, var(--c-blue), var(--c-yellow), transparent);
-        }
-        
-        @media (min-width: 768px) {
-          .result-card {
-            padding: 32px;
-          }
-        }
-        
-        @keyframes fadeIn { 
-          from { opacity: 0; transform: translateY(20px); } 
-          to { opacity: 1; transform: translateY(0); } 
-        }
-        
-        @keyframes float {
-          0% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-15px) rotate(2deg); }
-          100% { transform: translateY(0px) rotate(0deg); }
-        }
-        
-        .link-list { 
-          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
-          backdrop-filter: blur(16px) saturate(160%);
-          border: 1px solid rgba(255, 255, 255, 0.4);
-          box-shadow: var(--shadow-glass);
-          padding: 0 20px;
-          border-radius: 12px;
-        }
-        .link-list li { 
-          border-bottom: 1px solid var(--c-line); 
-          padding: 18px 0; 
-          display: flex; 
-          justify-content: space-between;
-          align-items: center;
-          min-height: 60px;
-        }
-        .link-list li:last-child { border-bottom: none; }
-        
-        @media (min-width: 768px) {
-          .link-list li {
-            padding: 20px 0;
-          }
-        }
-
-        /* Menu Modal */
-        .modal-overlay {
-          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(0, 0, 0, 0.4);
-          backdrop-filter: blur(8px);
-          z-index: 1000;
-          display: flex; justify-content: center; align-items: center;
-          padding: 20px;
-          animation: fadeIn 0.3s ease;
-        }
-        .modal-card {
-          background: rgba(255, 255, 255, 0.9);
-          backdrop-filter: blur(20px);
-          border-radius: 24px;
-          width: 100%; max-width: 600px;
-          max-height: 85vh;
-          overflow-y: auto;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-          position: relative;
-          display: flex; flex-direction: column;
-        }
-        .modal-header {
-          padding: 20px 24px;
-          border-bottom: 1px solid rgba(0,0,0,0.1);
-          display: flex; justify-content: space-between; align-items: center;
-          position: sticky; top: 0; background: rgba(255,255,255,0.95); z-index: 10;
-        }
-        .modal-body { padding: 24px; }
-        .btn-checkout-loading {
-          position: relative;
-          color: transparent !important;
-          pointer-events: none;
-          cursor: wait;
-        }
-        .btn-checkout-loading::after {
-          content: "";
-          position: absolute;
-          width: 20px;
-          height: 20px;
-          top: 50%;
-          left: 50%;
-          margin: -10px 0 0 -10px;
-          border: 2px solid rgba(255,255,255,0.3);
-          border-top-color: #fff;
-          border-radius: 50%;
-          animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .menu-grid {
-          display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 30px;
-        }
-        @media (min-width: 640px) {
-          .menu-grid { grid-template-columns: 1fr 1fr; }
-        }
-        .menu-item {
-          padding: 16px;
-          background: rgba(255,255,255,0.6);
-          border: 1px solid rgba(0,0,0,0.05);
-          border-radius: 12px;
-          transition: all 0.2s;
-        }
-        .menu-item:hover { background: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .close-btn {
-          width: 32px; height: 32px;
-          border-radius: 50%;
-          background: rgba(0,0,0,0.05);
-          display: flex; justify-content: center; align-items: center;
-          font-size: 1.2rem;
-        }
-        .close-btn:hover { background: rgba(0,0,0,0.1); }
-        
-        .header-bird {
-          position: fixed;
-          top: calc(var(--ku-rail-height) + 20px);
-          right: 20px;
-          width: 80px;
-          animation: float 6s ease-in-out infinite;
-          z-index: 100;
-          transition: transform 0.3s ease;
-          cursor: pointer;
-        }
-        .header-bird img {
-          pointer-events: auto;
-          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.15));
-        }
-        .header-bird:hover {
-          transform: scale(1.1);
-        }
-        .header-bird.modal-open {
-          animation: none;
-          opacity: 0.2;
-          pointer-events: none;
-        }
-                .easter-egg-icon {
-          opacity: 0.22;
-          transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        .easter-egg-icon.found {
-          opacity: 1 !important;
-          filter: drop-shadow(0 0 8px rgba(216, 224, 56, 0.9)) !important;
-        }
-@media (max-width: 768px) {
-          .header-bird {
-            top: calc(var(--ku-rail-height) + 15px);
-            right: 15px;
-            width: 60px;
-          }
-        }
-      `}</style>
+      <style>{APP_STYLES}</style>
 
       <main className="season04-main">
       <div className="container season04-shell">
@@ -2926,23 +2240,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             padding: '20px',
             paddingBottom: '120px'
           }}>
-            <header className="season04-menu-header">
-              <div className="season04-menu-art" aria-hidden="true">
-                <picture>
-                  <source media="(max-width: 519px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
-                  <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
-                  <img src="/assets/season-04/pause-desktop.webp" alt="" decoding="async" fetchPriority="high" />
-                </picture>
-              </div>
-              <div className="season04-menu-copy">
-                <div>
-                  <span className="font-mono season04-menu-kicker">DESSERT MENU · SEASON 04</span>
-                  <h1>甜點目錄</h1>
-                  <p>把本季甜點整理成清楚好選的綠色系列。茶、奶油、果實與咖啡在窗影裡慢慢展開，挑一份今天想停下來的味道。</p>
-                </div>
-                <a href="/">回首頁</a>
-              </div>
-            </header>
+            <MenuPageHeader />
 
             {/* Loading 狀態 */}
             {loadingMenu && (
@@ -3024,13 +2322,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         {/* A. HERO */}
         <header className="season04-hero" style={{ paddingTop: '80px', paddingBottom: '20px', position: 'relative' }}>
           <div className="season04-hero-stage">
-            <div className="season04-hero-art" aria-hidden="true">
-              <picture>
-                <source media="(max-width: 599px)" srcSet="/assets/season-04/wonder-mobile.webp" type="image/webp" />
-                <source srcSet="/assets/season-04/wonder-desktop.avif" type="image/avif" />
-                <img src="/assets/season-04/wonder-desktop.webp" alt="" decoding="async" fetchPriority="high" />
-              </picture>
-            </div>
+            <HeroArt />
             <div className="season04-hero-copy">
           {/* CURRENT EXHIBITION BANNER - Moved to Top */}
           <div className="season04-exhibition-badge">
@@ -3080,7 +2372,10 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Logo Integration */}
           <div className="season04-hero-logo" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-            <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" decoding="async" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            <picture style={{ display: 'flex' }}>
+              <source srcSet="/assets/logo-chinese.webp" type="image/webp" />
+              <img src="/assets/logo-chinese.png" alt="Moon Moon Dessert" decoding="async" style={{ maxWidth: '280px', height: 'auto', filter: 'brightness(0)' }} />
+            </picture>
             <h1 style={{ fontSize: '2rem', lineHeight: '1.2', fontWeight: 700, margin: 0, opacity: 0.8 }}>
               Dessert Menu
             </h1>
@@ -3091,7 +2386,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <strong>從窗邊開始，把抹茶、柚子、焙茶、咖啡與奶油整理成一份可以慢慢選的甜點目錄。</strong>
             {/* Easter Egg #5 - 島主筆記 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               decoding="async"
@@ -3226,7 +2521,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </div>
             {/* Easter Egg #1 - 北海道誕生 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3260,7 +2555,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             </p>
             {/* Easter Egg #3 - 為什麼叫 Kiwimu */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3284,7 +2579,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         </section>
 
         {/* C. PEAK EXPERIENCE & D. CHECK-IN (Combined with Background) */}
-        <div className="season04-journey" style={{
+        <div className="season04-journey" ref={journeyRef} data-bg-ready={journeyNear ? 'true' : undefined} style={{
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           borderRadius: '24px',
@@ -3477,7 +2772,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
           })()}
           {/* Easter Egg #7 - 險些被吃掉 */}
           <img
-            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
             alt=""
             aria-hidden="true"
             loading="lazy"
@@ -3505,6 +2800,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         <section id="menu-section" className="section-padding border-t season04-pause" style={{ background: '#fcfcfc', scrollMarginTop: '20px', position: 'relative' }}>
           <div className="season04-pause-visual">
             <picture aria-hidden="true">
+              <source media="(max-width: 767px)" srcSet="/assets/season-04/pause-mobile.avif" type="image/avif" />
               <source media="(max-width: 767px)" srcSet="/assets/season-04/pause-mobile.webp" type="image/webp" />
               <source srcSet="/assets/season-04/pause-desktop.avif" type="image/avif" />
               <img src="/assets/season-04/pause-desktop.webp" alt="" loading="lazy" decoding="async" />
@@ -3615,7 +2911,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
           {/* Easter Egg #6 - 秘密配方 */}
           <img
-            src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+            src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
             alt=""
             aria-hidden="true"
             loading="lazy"
@@ -3735,7 +3031,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
             <p>{SPOTIFY_PLAYLISTS[activePlaylist].note}</p>
             {/* Easter Egg #2 - 神秘好友 */}
             <img
-              src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+              src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
               alt=""
               aria-hidden="true"
               loading="lazy"
@@ -3785,11 +3081,11 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                 </button>
               ))}
             </div>
-            <div id="playlist-panel" role="tabpanel" aria-labelledby={`playlist-tab-${activePlaylist}`}>
+            <div id="playlist-panel" ref={spotifyPanelRef} role="tabpanel" aria-labelledby={`playlist-tab-${activePlaylist}`}>
               <iframe
                 key={SPOTIFY_PLAYLISTS[activePlaylist].id}
                 title={`Spotify 播放清單 - ${SPOTIFY_PLAYLISTS[activePlaylist].label}`}
-                src={`https://open.spotify.com/embed/playlist/${SPOTIFY_PLAYLISTS[activePlaylist].id}?utm_source=generator&theme=0`}
+                src={spotifyNear ? `https://open.spotify.com/embed/playlist/${SPOTIFY_PLAYLISTS[activePlaylist].id}?utm_source=generator&theme=0` : undefined}
                 width="100%"
                 height="352"
                 frameBorder="0"
@@ -3888,7 +3184,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                         <span>⬇</span>
                       </div>
                       <div style={{ position: 'relative' }}>
-                        <img src={wp.url} alt={wp.label} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
+                        <img src={cloudinaryResize(wp.url, 360)} alt={wp.label} loading="lazy" decoding="async" style={{ width: '100%', height: 'auto', borderRadius: '6px', aspectRatio: '9/16', objectFit: 'cover' }} />
 
                         {/* Red Envelope Egg (Hidden in Spring Wallpaper) */}
                         {wp.label === 'Spring' && (
@@ -4071,7 +3367,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
               </a>
               {/* Easter Egg #9 - 對了，我們有出貼圖 */}
               <img
-                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-03_juymmq.webp"
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-03_juymmq.webp"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -4128,7 +3424,7 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
 
               {/* Easter Egg #8 - 秘密計畫 */}
               <img
-                src="https://res.cloudinary.com/dvizdsv4m/image/upload/v1768744157/Enter-02_t83hem.webp"
+                src="https://res.cloudinary.com/dvizdsv4m/image/upload/f_auto,q_auto,w_96/v1768744157/Enter-02_t83hem.webp"
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -4710,25 +4006,6 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
                     className="custom-datepicker"
                     required
                   />
-                  <style>{`
-                    .custom-datepicker {
-                      width: 100%;
-                      padding: 12px;
-                      border-radius: 8px;
-                      border: 1px solid var(--c-line);
-                      font-size: 1rem;
-                      box-sizing: border-box;
-                    }
-                    /* Add style overrides for datepicker to make disabled dates look greyed out */
-                    .react-datepicker-wrapper {
-                      width: 100%;
-                    }
-                    .react-datepicker__day--disabled {
-                      color: #ccc !important;
-                      background-color: #f9f9f9 !important;
-                      text-decoration: line-through;
-                    }
-                  `}</style>
                   <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
@@ -5534,127 +4811,9 @@ Kiwimu 剛好在旁邊睡午覺，被誤認為是一坨裝飾用的鮮奶油。
         )
       }
 
-      <style>{`
-        .hidden-seal-container {
-          cursor: pointer;
-          position: relative;
-          transition: all 0.5s var(--ease-playful);
-          margin-bottom: 30px;
-        }
-        .hidden-seal-container:hover {
-          transform: translateY(-5px);
-        }
-        .wax-seal {
-          width: 60px;
-          height: 60px;
-          background: #8b0000;
-          border-radius: 50%;
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 0 10px rgba(0,0,0,0.5);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 10;
-          transition: all 0.6s ease;
-          border: 2px solid #5d0000;
-        }
-        .wax-seal::after {
-          content: 'M';
-          color: rgba(255,255,255,0.4);
-          font-family: serif;
-          font-size: 24px;
-          font-weight: bold;
-        }
-        .wax-seal.broken {
-          transform: translate(-50%, -50%) scale(1.5);
-          opacity: 0;
-          pointer-events: none;
-        }
-        .hidden-content {
-          max-height: 0;
-          overflow: hidden;
-          transition: max-height 0.8s ease-in-out;
-        }
-        .hidden-content.revealed {
-          max-height: 2000px;
-        }
-        @keyframes seal-shake {
-          0% { transform: translate(-50%, -50%) rotate(0); }
-          25% { transform: translate(-52%, -50%) rotate(-5deg); }
-          75% { transform: translate(-48%, -50%) rotate(5deg); }
-          100% { transform: translate(-50%, -50%) rotate(0); }
-        }
-        .hidden-seal-container:hover .wax-seal {
-          animation: seal-shake 0.3s infinite;
-        }
-      `}</style>
     </>
   );
 };
-
-type ErrorBoundaryProps = {
-  children: React.ReactNode;
-};
-
-type ErrorBoundaryState = {
-  hasError: boolean;
-};
-
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(): ErrorBoundaryState {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error('未預期的錯誤:', error, errorInfo);
-  }
-
-  render(): React.ReactNode {
-    if (this.state.hasError) {
-      return (
-        <div
-          style={{
-            minHeight: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            padding: '24px',
-            background: CONFIG.BRAND_COLORS.creamWhite,
-            color: CONFIG.BRAND_COLORS.emotionBlack,
-            fontFamily: '"Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-          }}
-        >
-          <p style={{ fontSize: '18px', marginBottom: '16px' }}>
-            頁面發生錯誤，請重新整理再試一次。
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            style={{
-              padding: '10px 24px',
-              fontSize: '16px',
-              cursor: 'pointer',
-            }}
-          >
-            重新整理
-          </button>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 // 森林導覽的 login_status：直接讀本站既有的 supabase client（./lib/supabase，已在 import 時建立、與頁面用同一個 session）。
 // 刻意不用 lib/auth 的 getAuthClient()：那會另外 createClient 一個沒有 pkce 設定的第二個 client。getSession() 只讀取，不寫入、不送事件。

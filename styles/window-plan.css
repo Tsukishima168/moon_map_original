@@ -351,11 +351,24 @@ body {
   border: 1px solid rgba(215, 198, 120, 0.5);
   border-radius: 36px !important;
   background-color: var(--window-forest-deep);
-  background-image: image-set(
-    url('/assets/season-04/journey-desktop.avif') type('image/avif'),
-    url('/assets/season-04/journey-desktop.webp') type('image/webp')
-  ) !important;
+  /* 預設 webp；支援 image-set() type() 的瀏覽器在下方 @supports 改用 avif。
+     不能把兩條寫在同一個規則裡：build 的 CSS 壓縮會刪掉前一條，舊引擎就失去備援。 */
+  background-image: url('/assets/season-04/journey-desktop.webp') !important;
   box-shadow: var(--window-shadow);
+}
+
+@supports (background-image: image-set(url("a.avif") type("image/avif"))) {
+  .season04-journey {
+    background-image: image-set(
+      url('/assets/season-04/journey-desktop.avif') type('image/avif'),
+      url('/assets/season-04/journey-desktop.webp') type('image/webp')
+    ) !important;
+  }
+}
+
+/* 背景圖進入視窗附近（index.tsx 的 useNearViewport，上下 800px）才載入；之前只有深綠底，尺寸與版面不變 */
+.season04-journey:not([data-bg-ready]) {
+  background-image: none !important;
 }
 
 .season04-journey-overlay {
@@ -916,8 +929,18 @@ body {
     min-height: 820px !important;
     padding: 30px 18px !important;
     border-radius: 24px !important;
+    /* 預設 webp；下方 @supports 改用 avif（理由同桌機規則）。 */
     background-image: url('/assets/season-04/journey-mobile.webp') !important;
     background-position: center !important;
+  }
+
+  @supports (background-image: image-set(url("a.avif") type("image/avif"))) {
+    .season04-journey {
+      background-image: image-set(
+        url('/assets/season-04/journey-mobile.avif') type('image/avif'),
+        url('/assets/season-04/journey-mobile.webp') type('image/webp')
+      ) !important;
+    }
   }
 
   .season04-journey-overlay {
