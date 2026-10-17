@@ -440,7 +440,7 @@ const STATE_DATA = {
             textAlign: 'left',
             padding: '12px',
             background: 'white',
-            border: `2px solid ${CONFIG.BRAND_COLORS.islandBlue}`
+            border: `2px solid ${CONFIG.BRAND_COLORS.forestMid}`
           }}
         >
           💫 {item} →

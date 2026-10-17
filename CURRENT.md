@@ -1,5 +1,17 @@
 # Map Current
 
+## 2026-10-14｜月島深綠風格升級 Phase A（本機已驗，尚未 push／部署）
+
+- 首頁 hero 改「深綠文字面板＋框住中央 Kiwimu 的圖片」分欄（≥1024 兩欄，<1024 上下堆疊），`/menu` 頁首同款；烤字被裁、文字壓 Kiwimu 兩個 P0 已解，七個寬度的 bbox 交集為 0（`docs/DESIGN-SYSTEM.md`「Hero 取景」）。
+- 手機 `/menu` 鎖 body 捲動（49px 空白）、toast 移到 rail 下方、帳號／狀態／彩蛋膠囊改森林語彙、焦點 2px、觸控 ≥44px、對比與字級達標、加 `<main>`、字體單一請求（Noto Sans TC＋JetBrains Mono＋Noto Serif TC 700）、`BRAND_COLORS` 改名（值不變）。
+- 分支 `claude/style-upgrade-20261014`；QA 產物在 `.worktrees/style-20261014-qa/map/`（`DELIVERY.md`、`results.json`）。
+
+## 2026-10-14｜Phase B：安裝共用森林導覽 kit 並統一 `universe_nav_click`（本機已驗，尚未 push／部署）
+
+- `components/KiwimuUniverseRail.tsx`、`styles/kiwimu-universe.css` 換成五站 byte-identical 的 kit（不再 `@import` 字體、z 210 與安全區已內建）；map 掛載加 `onTrack={trackEvent}`、`getLoginStatus`（讀本站既有 supabase client，無副作用）。rail 點擊現在送 `universe_nav_click` 12 欄（`CROSS_SITE_EVENTS.md`）。
+- 原本寫在舊 rail CSS 的 map 規則（眉標、`.menu-item`／`.modal-card` 44px、`.map-account-*`）合併進 `styles/forest-a11y.css`；眉標 class 改名 `map-site-kicker`。字體只剩 `index.html` 一處（補 Noto Sans TC 900、JetBrains Mono 600，字形不變）。
+- 驗證：rail 以外像素差 0（39 屏）；390 `/menu` 開「更多」三個面板連結 `elementFromPoint` 全命中自己。
+
 ## 2026-10-07｜主對話收尾｜本機驗證完成，待獨立簽收與上線核定
 
 - ✅ 主對話覆讀4檔diff，actual-source登入／未知商品名稱、取貨／訂單／LIFF不變性、JSON-LD營業與12px／對比檢核通過。本機首頁／菜單四種寬度無水平溢出與可見破圖。

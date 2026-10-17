@@ -1,0 +1,292 @@
+/* 月島深綠 · 站點層規則（2026-10-14）
+   載入順序：kiwimu-universe.css（共用森林導覽 kit，五站 byte-identical，不准改）→ window-plan.css → 本檔。
+   本檔放「站點自己的」規則，包含原本寫在舊共用 rail CSS 裡、Phase B 搬出 kit 的 map 專屬規則：
+   .map-site-kicker、.menu-item／.modal-card 的 44px 觸控與輸入框字級、.map-account-*（已改森林語彙）。
+   注意：index.tsx 的 <style> 在 body 內，文件順序比 CSS bundle 晚；要蓋掉它的全域規則，
+   選擇器權重必須更高（例如 html :focus-visible），不能只靠同權重的後來者。
+
+   色票只用月島深綠表：深綠 #1f2f1f、中綠 #304f2f、奶油 #f5f0e8、柔金 #d7c678、
+   深色面次要文字 #d8d7c4、淺色面次要文字 #5f6856（皆已在 window-plan.css 的 :root 定義）。 */
+
+/* ── 焦點：淺色面 2px 深綠、深色面 2px 柔金，offset 2px ───────────────────────────── */
+:root {
+  --focus-ring: var(--window-forest-deep);
+}
+
+html :focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* 深色面：焦點環改柔金 */
+.season04-hero-copy,
+.season04-menu-copy,
+.season04-story-card,
+.season04-journey,
+.season04-pause-visual,
+.season04-menu-curation,
+.season04-footer,
+.map-surface-dark {
+  --focus-ring: var(--window-sun);
+}
+
+/* 背景會變的元素（入口卡跨在深綠面板與奶油底之間、狀態鈕疊在照片上）：單色環在某一側會消失，
+   改兩段式——外環 2px 深綠（對奶油／亮處 ≥3:1）＋ offset 空隙內 2px 柔金內襯（對深綠面板 ≥3:1）。 */
+.season04-actions .btn-entry:focus-visible,
+.season04-journey .state-btn:focus-visible {
+  outline: 2px solid var(--window-forest-deep);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--window-sun);
+}
+
+.season04-playlist-tab:focus-visible {
+  outline-color: var(--window-forest-deep);
+}
+
+/* ── /menu：鎖住 body 捲動（M3）──────────────────────────────────────────────────────
+   目錄是 position:fixed 的全螢幕層，只在自己的容器內捲動。手機版 rail 是 position:relative，
+   body 若可捲，rail 捲走後目錄仍固定在 top:var(--ku-rail-height)，頂端就留下 49px 空白。 */
+html.map-menu-view,
+html.map-menu-view body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.map-menu-view .container {
+  min-height: 0;
+}
+
+.season04-menu-page {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── 彩蛋進度膠囊（M12）與限定桌布按鈕：柔金／深綠，無硬陰影 ──────────────────────────── */
+.map-egg-badge,
+.map-egg-reward {
+  position: fixed;
+  left: 16px;
+  z-index: 2000;
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(31, 47, 31, 0.18);
+}
+
+.map-egg-badge {
+  top: calc(var(--ku-rail-height) + 12px);
+  color: var(--window-forest-deep);
+  border: 1px solid rgba(31, 47, 31, 0.45);
+  background: var(--window-sun);
+}
+
+/* 主行動依表面決定：淺色面（奶油頁）→ 深綠實心配奶油字；深色面 → 柔金底配深綠字（見 .map-status-button） */
+.map-egg-reward {
+  top: calc(var(--ku-rail-height) + 64px);
+  color: var(--window-cream);
+  border: 1px solid var(--window-forest-deep);
+  background: var(--window-forest-deep);
+}
+
+/* ── 搬出共用 rail 檔的 map 專屬規則（Phase B）──────────────────────────────────────── */
+
+/* hero 的「04 / Window Plan」眉標：柔金底深綠字（舊版是白底、黑框、黑色硬陰影） */
+.map-site-kicker {
+  display: inline-flex;
+  min-height: 1.8rem;
+  align-items: center;
+  padding: 0.3rem 0.6rem;
+  color: var(--window-forest-deep);
+  border: 1px solid var(--window-sun);
+  border-radius: 0.5rem;
+  background: var(--window-sun);
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+/* 菜單項目與 modal 內的按鈕、關閉鈕 ≥44px；手機版 modal 表單欄位 16px 避免 iOS 放大 */
+.menu-item button,
+.modal-card .close-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (max-width: 40rem) {
+  .modal-card input,
+  .modal-card select,
+  .modal-card textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── 帳號與狀態按鈕（M5）：奶油底、深綠字、柔金徽章 ──────────────────────────────────── */
+.map-status-button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  padding: 6px 16px;
+  color: var(--window-forest-deep);
+  border: 1px solid var(--window-sun);
+  border-radius: 999px;
+  background: var(--window-sun);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.map-status-button:hover {
+  border-color: var(--window-cream);
+  background: var(--window-cream);
+}
+
+.map-account-controls {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.map-account-button {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 100%;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--window-forest-deep);
+  border: 1px solid rgba(245, 240, 232, 0.55);
+  border-radius: 999px;
+  background: var(--window-cream);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.map-account-name {
+  max-width: min(45vw, 180px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-account-badge {
+  padding: 2px 8px;
+  color: var(--window-forest-deep);
+  border-radius: 10px;
+  background: var(--window-sun);
+  font-size: 12px;
+}
+
+.map-account-button:hover:not(:disabled) {
+  background: var(--window-sun);
+}
+
+.map-account-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.map-account-button:focus-visible {
+  outline: 2px solid var(--window-sun);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* ── 觸控目標 ≥44px（M7）：頁尾連結、playlist 分頁 ──────────────────────────────────── */
+.season04-footer ul li {
+  margin-bottom: 4px !important;
+}
+
+.season04-footer a {
+  min-height: 44px;
+}
+
+.season04-footer p a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.season04-playlist-tab {
+  min-height: 44px;
+  padding: 8px 14px;
+}
+
+/* ── 對比與字級（M8）─────────────────────────────────────────────────────────────────── */
+.season04-playlist-tab {
+  color: var(--window-muted-on-light);
+}
+
+.season04-playlist-tab.is-active {
+  color: var(--window-cream);
+}
+
+.season04-footer h5 {
+  font-size: 0.8rem;
+}
+
+/* 入口卡上的等寬眉標（01 // INTERACT 等）：moss #587337 對奶油只有 4.38:1，淺色卡改中綠；深綠卡（第 2 張）維持柔金 */
+.season04-actions .btn-entry .text-yellow {
+  color: var(--window-forest);
+}
+
+/* 桌布「鎖定」預覽：只讓圖片變淡（整格 opacity 會把日期標淡到 2.2:1），標籤文字維持全不透明 */
+.map-wallpaper-grid img {
+  transition: opacity 0.5s ease;
+}
+
+.map-wallpaper-grid[data-locked='true'] img {
+  opacity: 0.4;
+}
+
+/* ── toast（M4）：深綠底在深綠面板上會失去邊界，加一圈柔金細框 ───────────────────────────── */
+.map-ui-notice {
+  border: 1px solid rgba(215, 198, 120, 0.55);
+}
+
+/* ── 入口按鈕字級：WebKit 的 <button> 預設字級是 11px，Chromium 是 13.333px ───────────────
+   button.btn-entry（hero 入口卡與 #menu-section 的「島民的VIP島嶼」卡）與 button.season04-menu-cta 沒設
+   font-size，「島民的VIP島嶼」標籤與 ↗／↓ 箭頭在 Safari 只有 11px（低於 12px 下限）。這裡明確寫成 Chromium
+   的預設值，Chromium 畫面不變；內層 strong／span 另有明確字級，不受影響。
+   - 一定要寫 button.：.btn-entry 也套在 <a>（hero 的「回護照」卡、LINE 主題連結），<a> 繼承 16px，
+     若一併設成 13.333px 會把它們縮小（Chromium 首頁整頁高度少 10px）。
+   - 不加 .season04-actions：「島民的VIP島嶼」卡在 #menu-section，不在 .season04-actions 內。
+   - 寫 13.333333px：0.8333rem（13.3328px）、13.3333px 會讓 Chromium 在 .season04-journey 下緣多出 6 個
+     抗鋸齒像素的差，13.333333px 與 UA 預設逐像素相同。
+   - 沒有其他規則設這兩個 class 的 font-size，權重與載入順序都不構成衝突。 */
+button.btn-entry,
+button.season04-menu-cta {
+  font-size: 13.333333px;
+}
+
+/* ── 等寬標籤裡的中文：JetBrains Mono 沒有漢字，原堆疊會讓中文落到系統字（PingFang） ──────────────
+   在 JetBrains Mono 後面補 "Noto Sans TC"：英數字仍用 JetBrains Mono，中文改用站上載入的 Noto Sans TC。
+   三個來源都要蓋，且都不改 index.tsx：
+   1) .map-site-kicker：本檔上方，直接改。
+   2) .font-mono：定義在 index.tsx 的 <style>（body 內，文件順序比 CSS bundle 晚、權重 0,1,0），
+      所以這裡用 body .font-mono（0,1,1）才蓋得過。
+   3) index.tsx 的 MONO_FONT_STACK 以 inline style 套用：只有 !important 蓋得過 inline，
+      用屬性選擇器對應那串字，之後 index.tsx 改 MONO_FONT_STACK 時也不需要同步改這裡。 */
+body .font-mono {
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
+}
+
+[style*="JetBrains Mono"] {
+  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace !important;
+}

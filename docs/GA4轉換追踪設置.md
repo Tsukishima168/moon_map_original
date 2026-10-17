@@ -225,6 +225,28 @@
 
 ---
 
+### 1️⃣1️⃣ `universe_nav_click` - 森林導覽（Kiwimu Universe rail）點擊
+
+共用導覽 rail 的每個連結點擊都會送（五站、森林展覽、本站連結、手機「更多」面板內的連結）。rail 不再送 `outbound_click`。
+欄位共 12 個（再加 map 的 `trackEvent` 附上 `site_id: 'moon_map'`）：
+
+| 欄位 | 值 |
+|---|---|
+| `source_site` | `map` |
+| `target_site` | `kiwimu`／`passport`／`map`／`gacha`／`shop`／`canopy` |
+| `viewport`、`viewport_width`、`viewport_height` | 例 `390x844`、390、844 |
+| `viewport_category` | `mobile`（≤640）／`tablet`（≤1024）／`desktop`／`unknown` |
+| `login_status` | `authenticated`／`anonymous`／`unknown`（掛載時用本站 supabase client 讀一次） |
+| `surface`、`entry_surface` | `universe_rail` |
+| `link_name` | `MBTI`／`Passport`／`Map`／`Gacha`／`Shop`／`Canopy` |
+| `destination_type` | 五站 `cross_site_nav`；森林展覽 `external` |
+| `transport_type` | `beacon` |
+
+- 本站連結（`source_site` = `target_site`）也會送，統計跨站導覽請加 `source_site != target_site`。
+- 新欄位若要在報表出現，需在 GA4 後台另行登錄自訂維度。
+
+---
+
 ## 📈 完整購物漏斗（Conversion Funnel）
 
 ```
