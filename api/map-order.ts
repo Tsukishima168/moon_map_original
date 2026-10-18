@@ -129,9 +129,11 @@ const DEFAULT_SPEC_LABEL = '標準'
 // 飲品現做、冷熱當場決定：一律門市供應，不開放線上訂購。判斷式與 shop
 // lib/orderable.ts 的 STORE_ONLY_CATEGORY 一致（Penso 2026-10-18）。
 const STORE_ONLY_CATEGORY = /drink|飲品|飲料/i
-// 資料庫 menu_variants.price 是數字字串（例如 "1990"）；只接受純數字（可帶 $ 與千分位），
-// 負號、空字串、其他文字一律視為價格設定異常，不做「刪掉非數字字元」這種寬鬆解析。
-const MENU_PRICE_PATTERN = /^\$?\d{1,3}(,\d{3})*(\.\d+)?$|^\$?\d+(\.\d+)?$/
+// 資料庫 menu_variants.price 多數是純數字字串（"1990"），但正式資料也有 "$450"、"$1,490"
+// （2026-10-18 實查：經典｜提拉米蘇、母親節限定｜北海道十勝戚風千層）。
+// 只接受「可選的 $ 或 NT$ 開頭 + 數字（可帶千分位逗號與小數）」；負號、空字串、其他文字
+// 一律視為價格設定異常。不做「刪掉所有非數字字元」的寬鬆解析（那會把 "-100" 變成 100）。
+const MENU_PRICE_PATTERN = /^(?:NT\$|\$)?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)$/i
 
 // Inferred from other Kiwimu sites' usage of the shared `orders.status` column
 // (no DB CHECK constraint / enum exists to source this from — see
@@ -299,9 +301,10 @@ const normalizeSpecLabel = (value: unknown) => normalizeLookupKey(value) || DEFA
 export function parseMenuPrice(raw: unknown): number {
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : NaN
   if (typeof raw !== 'string') return NaN
-  const trimmed = raw.trim()
-  if (!MENU_PRICE_PATTERN.test(trimmed)) return NaN
-  return Number(trimmed.replace(/[$,]/g, ''))
+  const match = MENU_PRICE_PATTERN.exec(raw.trim())
+  if (!match) return NaN
+  const value = Number(match[1].replace(/,/g, ''))
+  return Number.isFinite(value) ? value : NaN
 }
 
 /** 線上可訂購的價格：有限數字且大於 0（與 shop lib/orderable.ts isOrderablePrice 一致）。 */
@@ -381,33 +384,31 @@ export async function priceOrderItemsFromMenu(
       }
     }
 
+    // 同名同規格可能有多筆資料（正式庫實例：母親節限定｜北海道十勝戚風千層，同價、分類
+    // 分別是 chiffon 與 mille_crepe）。規則：任一筆不可訂購或是飲品就依該防線拒單；
+    // 只是分類不同、價格一致時照常接受；價格不一致則不猜、直接拒單。
     // 與菜單頁一致：只有 is_available === true 的品項會顯示，也只有它們可訂購。
-    const available = candidates.filter(({ menuItem }) => menuItem.is_available === true)
-    if (available.length === 0) {
+    if (candidates.some(({ menuItem }) => menuItem.is_available !== true)) {
       return { ok: false, status: 400, error: `商品「${displayName}」目前不可訂購，請重新整理菜單` }
     }
 
-    // 同名同規格有多筆可訂購資料時，價格與門市限定判斷必須一致，否則不猜、直接拒單。
-    const [chosen, ...others] = available
-    const chosenPrice = parseMenuPrice(chosen.variant.price)
-    const chosenStoreOnly = isStoreOnlyCategory(chosen.menuItem.category_id)
-    const ambiguous = others.some(
-      ({ menuItem, variant }) =>
-        !Object.is(parseMenuPrice(variant.price), chosenPrice) ||
-        isStoreOnlyCategory(menuItem.category_id) !== chosenStoreOnly
-    )
-    if (ambiguous) {
-      console.error('[map-order] 同名同規格有多筆價格不一致的菜單資料:', displayName, wantedSpec)
-      return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
-    }
-
     // 飲品一律門市供應（現做、冷熱當場決定），即使有價格也不開放線上預訂。
-    if (chosenStoreOnly) {
+    if (candidates.some(({ menuItem }) => isStoreOnlyCategory(menuItem.category_id))) {
       return { ok: false, status: 400, error: `「${displayName}」為門市現做飲品，請至門市點購，無法線上預訂` }
     }
 
-    if (Number.isNaN(chosenPrice)) {
-      console.error('[map-order] menu_variants.price 無法解析:', chosen.variant.id, chosen.variant.price)
+    const [chosen] = candidates
+    const candidatePrices = candidates.map(({ variant }) => parseMenuPrice(variant.price))
+    const chosenPrice = candidatePrices[0]
+    if (candidatePrices.some((price) => Number.isNaN(price))) {
+      console.error(
+        '[map-order] menu_variants.price 無法解析:',
+        candidates.map(({ variant }) => [variant.id, variant.price])
+      )
+      return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
+    }
+    if (candidatePrices.some((price) => price !== chosenPrice)) {
+      console.error('[map-order] 同名同規格有多筆價格不一致的菜單資料:', displayName, wantedSpec)
       return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
     }
 
