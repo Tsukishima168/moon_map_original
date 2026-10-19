@@ -36,6 +36,9 @@ export default async function handler(
     orderNote,
     items,
     source = 'moon_map_original',
+    // 菜單頁在建單 API 失敗（5xx／網路）時仍照常轉 LINE，此時金額是前端預估、未經伺服器
+    // 依資料庫價格確認，會送 amountConfirmed: false。未帶此欄位的舊呼叫端維持原樣。
+    amountConfirmed,
   } = request.body || {};
 
   try {
@@ -46,8 +49,16 @@ export default async function handler(
     if (customerName || customerPhone) {
       lines.push(`👤 訂購人：${customerName || '（未填）'} ${customerPhone ? `(${customerPhone})` : ''}`);
     }
+    const amountUnconfirmed = amountConfirmed === false;
+    if (amountUnconfirmed) {
+      lines.push(`⚠️ 金額未經系統確認（建單 API 失敗或回應異常）：請到後台確認是否已建單，並人工核對品項與金額`);
+    }
     if (typeof totalAmount === 'number') {
-      lines.push(`💰 總金額：$${totalAmount}`);
+      lines.push(
+        amountUnconfirmed
+          ? `💰 預估金額：$${totalAmount}（待門市確認）`
+          : `💰 總金額：$${totalAmount}`
+      );
     }
     if (pickupDate) {
       lines.push(`🗓 取貨日期：${pickupDate}`);
@@ -57,7 +68,10 @@ export default async function handler(
       lines.push(`\n🧁 訂購內容：`);
       for (const item of items) {
         lines.push(
-          `• ${item.name ?? '未知品項'} | ${item.spec ?? ''} x ${item.count ?? 1}`
+          `• ${item.name ?? '未知品項'} | ${item.spec ?? ''} x ${item.count ?? 1}` +
+            (typeof item.price === 'number' && Number.isFinite(item.price)
+              ? `（單價 $${item.price}）`
+              : '')
         );
       }
     }

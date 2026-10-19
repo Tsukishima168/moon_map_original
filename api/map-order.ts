@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
+import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } from '../lib/menu-catalog.js'
 
 export interface OrderPayload {
   order_number: string
@@ -32,6 +33,42 @@ export interface OrderItemPayload {
   unit_price: number
   quantity: number
   subtotal: number
+}
+
+/**
+ * 伺服器端依 menu_items／menu_variants 重算後的品項。形狀與 OrderItemPayload 相同，
+ * 但 item_name／item_spec 取資料庫正本、unit_price／subtotal 是資料庫價格算出來的。
+ */
+export type PricedOrderItem = OrderItemPayload
+
+export interface ServerOrderPricing {
+  items: PricedOrderItem[]
+  total: number
+}
+
+export interface PriceMismatch {
+  index: number
+  item_name: string
+  client_unit_price: unknown
+  unit_price: number
+}
+
+export type OrderPricingResult =
+  | { ok: true; pricing: ServerOrderPricing; mismatches: PriceMismatch[] }
+  | { ok: false; status: 400 | 500; error: string }
+
+interface MenuItemRow {
+  id: string
+  name: string | null
+  category_id: string | null
+  is_available: boolean | null
+}
+
+interface MenuVariantRow {
+  id: string
+  menu_item_id: string
+  spec: string | null
+  price: number | string | null
 }
 
 interface CanonicalOrderItem {
@@ -86,6 +123,21 @@ const MAX_QUANTITY = 1000
 // 只代表「沒有歸因」，不代表訂單本身無效）。
 const MAX_ATTRIBUTION_STRING_LENGTH = 64
 const MBTI_TYPE_PATTERN = /^[EI][NS][TF][JP](-[AT])?$/
+
+// 菜單頁對 spec 為空的規格顯示「標準」（lib/menu-shared.ts、api/_utils/menu-source.ts），
+// 前端送單時也帶「標準」，比對時兩邊用同一個預設值。
+const DEFAULT_SPEC_LABEL = '標準'
+// 飲品現做、冷熱當場決定：一律門市供應，不開放線上訂購。判斷式與 shop
+// lib/orderable.ts 的 STORE_ONLY_CATEGORY 一致（Penso 2026-10-18）。
+const STORE_ONLY_CATEGORY = /drink|飲品|飲料/i
+// PostgREST 單次回應預設最多 1000 列（max-rows）。菜單表一旦被截斷，品項會「憑空消失」，
+// 讀到滿頁就當成讀取失敗（5xx），不要把截斷造成的找不到誤報成顧客的 400。
+const POSTGREST_PAGE_LIMIT = 1000
+// 資料庫 menu_variants.price 多數是純數字字串（"1990"），但正式資料也有 "$450"、"$1,490"
+// （2026-10-18 實查：經典｜提拉米蘇、母親節限定｜北海道十勝戚風千層）。
+// 只接受「可選的 $ 或 NT$ 開頭 + 數字（可帶千分位逗號與小數）」；負號、空字串、其他文字
+// 一律視為價格設定異常。不做「刪掉所有非數字字元」的寬鬆解析（那會把 "-100" 變成 100）。
+const MENU_PRICE_PATTERN = /^(?:NT\$|\$)?\s*((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)$/i
 
 // Inferred from other Kiwimu sites' usage of the shared `orders.status` column
 // (no DB CHECK constraint / enum exists to source this from — see
@@ -228,12 +280,246 @@ export function validateOrderRequestPayload(order: unknown, items: unknown): str
     if (!isFiniteNumberInRange(item.unit_price, 0, MAX_TOTAL_AMOUNT)) {
       return `Invalid unit_price at index ${index}`
     }
-    if (!isFiniteNumberInRange(item.quantity, 1, MAX_QUANTITY) || !Number.isInteger(item.quantity)) {
-      return `Invalid quantity at index ${index}`
+    if (!isValidQuantity(item.quantity)) {
+      return quantityErrorMessage(index)
     }
   }
 
   return null
+}
+
+function isValidQuantity(value: unknown): value is number {
+  return isFiniteNumberInRange(value, 1, MAX_QUANTITY) && Number.isInteger(value)
+}
+
+function quantityErrorMessage(index: number) {
+  return `第 ${index + 1} 項商品的數量需為 1 到 ${MAX_QUANTITY} 的整數，請修改後再送出`
+}
+
+const normalizeLookupKey = (value: unknown) =>
+  typeof value === 'string' ? value.trim().replace(/\s+/g, ' ') : ''
+
+const normalizeSpecLabel = (value: unknown) => normalizeLookupKey(value) || DEFAULT_SPEC_LABEL
+
+/** 嚴格解析 menu_variants.price；無法解析回傳 NaN（由呼叫端拒單）。 */
+export function parseMenuPrice(raw: unknown): number {
+  if (typeof raw === 'number') return Number.isFinite(raw) ? raw : NaN
+  if (typeof raw !== 'string') return NaN
+  const match = MENU_PRICE_PATTERN.exec(raw.trim())
+  if (!match) return NaN
+  const value = Number(match[1].replace(/,/g, ''))
+  return Number.isFinite(value) ? value : NaN
+}
+
+/** 線上可訂購的價格：有限數字且大於 0（與 shop lib/orderable.ts isOrderablePrice 一致）。 */
+export function isOrderablePrice(price: number): boolean {
+  return Number.isFinite(price) && price > 0
+}
+
+export function isStoreOnlyCategory(categoryId: unknown): boolean {
+  return typeof categoryId === 'string' && STORE_ONLY_CATEGORY.test(categoryId)
+}
+
+const isInactiveCatalogItem = (name: unknown) => {
+  const catalogId = resolveMenuItemId(typeof name === 'string' ? name : null)
+  return catalogId !== null && INACTIVE_MENU_ITEM_IDS.has(catalogId)
+}
+
+/**
+ * 依顯示名稱找資料庫品項，分兩層：
+ * 1. 精確品名：與 menu_items.name 完全相同（菜單 API 回資料庫正本時，品名就是 menu_items.name）。
+ * 2. 別名：用 lib/menu-catalog.ts 把靜態菜單／舊命名（例：「經典提拉米蘇」）對應到同一個
+ *    catalog id，取資料庫中名稱解析到同一 id 的品項（例：「經典｜提拉米蘇」）。
+ *
+ * 別名層是必要的：/api/menu 或前端在資料庫讀取失敗時會改回 public/menu.json，
+ * 靜態菜單的品名和資料庫不同，若只比對精確品名，每一張訂單都會被當成「找不到商品」。
+ * 別名只用來「找到同一個資料庫品項」，價格、可訂購狀態、飲品與 $0 防線仍全部以資料庫為準。
+ * 精確品名層若已有可訂購的列就只用它；沒有時（含：精確品名那幾列已下架、或沒有該規格）
+ * 才把別名層的列併進來，一起套用同一組資料庫防線——見 priceOrderItemsFromMenu。
+ */
+function findExactNamedItems(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
+  return menuItems.filter((row) => normalizeLookupKey(row.name) === displayName)
+}
+
+function findAliasNamedItems(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
+  const catalogId = resolveMenuItemId(displayName)
+  if (!catalogId) return []
+  return menuItems.filter((row) => resolveMenuItemId(row.name) === catalogId)
+}
+
+/**
+ * $0 漏洞修正（2026-10-18）：前端送來的 unit_price／subtotal／total_amount 一律不採信，
+ * 依資料庫 menu_items + menu_variants 重算每一項的單價與小計。
+ *
+ * 品項識別：菜單頁購物車只帶 item_name（= 菜單上顯示的品名）與 item_spec
+ * （= menu_variants.spec，空值顯示為「標準」），沒有 uuid，所以用「品名 + 規格」比對；
+ * 品名先比對資料庫的 menu_items.name，對不上再走 lib/menu-catalog.ts 別名（見 findMenuItemsByName）。
+ *
+ * 前端價格與資料庫不符時「用資料庫價格、不拒單」，只回報 mismatches 給呼叫端記 log：
+ * 菜單 API 有 CDN 快取（s-maxage=300 + stale-while-revalidate=600），改價後 15 分鐘內
+ * 送出的正常訂單會帶舊價，拒單會擋掉正常顧客；寫進 orders 的金額永遠是資料庫算的，
+ * 竄改前端價格拿不到好處，菜單頁也會在價格不同時提示顧客以訂單訊息金額為準。
+ *
+ * 拒單（400）與菜單頁行為相連：菜單頁收到 400 會停在結帳視窗顯示原因，不轉 LINE、
+ * 不發 Discord、不送 GA4，所以這裡的拒單確實擋得住 LINE 訊息。只有 5xx／網路失敗，
+ * 菜單頁才會照常轉 LINE，並把金額標成「預估、待門市確認」。因此「讀不到菜單、讀取被截斷」
+ * 這類不是顧客造成的問題一律回 5xx，不可回 400。
+ */
+export async function priceOrderItemsFromMenu(
+  adminClient: Pick<ReturnType<typeof createAdminClient>, 'from'>,
+  items: OrderItemPayload[]
+): Promise<OrderPricingResult> {
+  // 數量在 validateOrderRequestPayload 已檢查過；這裡再擋一次，讓本函式單獨呼叫時也安全。
+  for (let index = 0; index < items.length; index += 1) {
+    if (!isValidQuantity(items[index]?.quantity)) {
+      return { ok: false, status: 400, error: quantityErrorMessage(index) }
+    }
+  }
+
+  const [menuItemsResult, menuVariantsResult] = await Promise.all([
+    adminClient.from('menu_items').select('id,name,category_id,is_available'),
+    adminClient.from('menu_variants').select('id,menu_item_id,spec,price'),
+  ])
+
+  if (menuItemsResult.error || menuVariantsResult.error) {
+    console.error(
+      '[map-order] 無法讀取菜單價格，拒絕建立訂單:',
+      menuItemsResult.error ?? menuVariantsResult.error
+    )
+    return { ok: false, status: 500, error: '目前無法確認商品價格，請稍後再試或直接聯繫門市' }
+  }
+
+  const menuItems = (menuItemsResult.data ?? []) as MenuItemRow[]
+  const menuVariants = (menuVariantsResult.data ?? []) as MenuVariantRow[]
+
+  // 讀到滿頁代表很可能被 PostgREST 截斷：此時「找不到商品」不可信，回 5xx 讓菜單頁走
+  // 「預估金額、待門市確認」，而不是對正常顧客誤報 400。
+  if (menuItems.length >= POSTGREST_PAGE_LIMIT || menuVariants.length >= POSTGREST_PAGE_LIMIT) {
+    console.error(
+      '[map-order] 菜單資料筆數已達單次查詢上限，可能被截斷，拒絕建立訂單:',
+      menuItems.length,
+      menuVariants.length
+    )
+    return { ok: false, status: 500, error: '目前無法確認商品價格，請稍後再試或直接聯繫門市' }
+  }
+
+  const pricedItems: PricedOrderItem[] = []
+  const mismatches: PriceMismatch[] = []
+
+  for (let index = 0; index < items.length; index += 1) {
+    const item = items[index]
+    const displayName = normalizeLookupKey(item.item_name)
+    const wantedSpec = normalizeSpecLabel(item.item_spec)
+
+    // 可訂購的列：is_available === true（與菜單頁一致，只有 true 會顯示），且不是菜單端已隱藏的
+    // 品項（INACTIVE_MENU_ITEM_IDS，例：母親節限定；資料庫那邊可能仍標 available，但前端看不到，
+    // 手工組的請求也不能訂）。
+    const requestedNameInactive = isInactiveCatalogItem(displayName)
+    const isOrderableRow = (menuItem: MenuItemRow) =>
+      menuItem.is_available === true && !requestedNameInactive && !isInactiveCatalogItem(menuItem.name)
+    const collectCandidates = (rows: MenuItemRow[]) =>
+      rows.flatMap((menuItem) =>
+        menuVariants
+          .filter(
+            (variant) =>
+              variant.menu_item_id === menuItem.id && normalizeSpecLabel(variant.spec) === wantedSpec
+          )
+          .map((variant) => ({ menuItem, variant }))
+      )
+
+    // 先看精確品名；精確品名沒有任何可訂購的列（品項不在、已下架、或沒有這個規格）時，
+    // 把別名層的列併進來，對合併後的候選套用同一組防線。
+    // 這是為了：資料庫留有與靜態菜單同名、但已下架的舊列時，走靜態備援的訂單不會被舊列擋掉；
+    // 合併後若有多筆可訂購的列價格不一致，仍走下面的價格不一致拒單，不會挑便宜的那筆。
+    const exactItems = findExactNamedItems(menuItems, displayName)
+    let namedItems = exactItems
+    let candidates = collectCandidates(namedItems)
+    let orderable = candidates.filter(({ menuItem }) => isOrderableRow(menuItem))
+    if (orderable.length === 0) {
+      const aliasOnlyItems = findAliasNamedItems(menuItems, displayName).filter(
+        (row) => !exactItems.includes(row)
+      )
+      if (aliasOnlyItems.length > 0) {
+        namedItems = [...exactItems, ...aliasOnlyItems]
+        candidates = collectCandidates(namedItems)
+        orderable = candidates.filter(({ menuItem }) => isOrderableRow(menuItem))
+      }
+    }
+
+    if (namedItems.length === 0) {
+      return { ok: false, status: 400, error: `找不到商品「${displayName}」，請重新整理菜單後再試` }
+    }
+    if (candidates.length === 0) {
+      return {
+        ok: false,
+        status: 400,
+        error: `商品「${displayName}」沒有「${wantedSpec}」規格，請重新整理菜單後再試`,
+      }
+    }
+
+    // 同名同規格可能有多筆資料（正式庫實例：母親節限定｜北海道十勝戚風千層，同價、分類
+    // 分別是 chiffon 與 mille_crepe）。規則：
+    // 1. 不可訂購的列先丟掉（上面的 orderable）；
+    // 2. 一列都不剩 → 拒單；剩下的列若有任一筆是飲品 → 依飲品防線拒單；
+    // 3. 剩下的列價格不一致 → 不猜、直接拒單；價格一致（只是分類不同）→ 照常接受。
+    if (orderable.length === 0) {
+      return { ok: false, status: 400, error: `商品「${displayName}」目前不可訂購，請重新整理菜單` }
+    }
+
+    // 飲品一律門市供應（現做、冷熱當場決定），即使有價格也不開放線上預訂。
+    if (orderable.some(({ menuItem }) => isStoreOnlyCategory(menuItem.category_id))) {
+      return { ok: false, status: 400, error: `「${displayName}」為門市現做飲品，請至門市點購，無法線上預訂` }
+    }
+
+    const [chosen] = orderable
+    const candidatePrices = orderable.map(({ variant }) => parseMenuPrice(variant.price))
+    const chosenPrice = candidatePrices[0]
+    if (candidatePrices.some((price) => Number.isNaN(price))) {
+      console.error(
+        '[map-order] menu_variants.price 無法解析:',
+        orderable.map(({ variant }) => [variant.id, variant.price])
+      )
+      return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
+    }
+    if (candidatePrices.some((price) => price !== chosenPrice)) {
+      console.error('[map-order] 同名同規格有多筆價格不一致的菜單資料:', displayName, wantedSpec)
+      return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
+    }
+
+    // 0 元＝門市展示／門市限定，不得以 $0 成立訂單。
+    if (!isOrderablePrice(chosenPrice)) {
+      return { ok: false, status: 400, error: `商品「${displayName}」（${wantedSpec}）為門市限定，無法線上預訂` }
+    }
+
+    const quantity = item.quantity
+    pricedItems.push({
+      item_name: chosen.menuItem.name ?? displayName,
+      item_spec: normalizeSpecLabel(chosen.variant.spec),
+      unit_price: chosenPrice,
+      quantity,
+      subtotal: chosenPrice * quantity,
+    })
+
+    if (!Object.is(item.unit_price, chosenPrice)) {
+      mismatches.push({
+        index,
+        item_name: displayName,
+        client_unit_price: item.unit_price,
+        unit_price: chosenPrice,
+      })
+    }
+  }
+
+  const total = pricedItems.reduce((sum, pricedItem) => sum + pricedItem.subtotal, 0)
+  if (total > MAX_TOTAL_AMOUNT) {
+    return {
+      ok: false,
+      status: 400,
+      error: `訂單金額超過線上預訂上限 $${MAX_TOTAL_AMOUNT.toLocaleString('en-US')}，請直接聯繫門市`,
+    }
+  }
+
+  return { ok: true, pricing: { items: pricedItems, total }, mismatches }
 }
 
 const buildOrderNumber = () => {
@@ -283,10 +569,11 @@ const normalizeOrderItems = (items: OrderItemPayload[]): CanonicalOrderItem[] =>
 
 export const toCanonicalOrder = (
   order: OrderPayload,
-  items: OrderItemPayload[],
+  pricing: ServerOrderPricing,
   orderId: string
 ): CanonicalOrderPayload => {
-  const totalAmount = Number(order.total_amount) || 0
+  // 金額只來自伺服器端重算（priceOrderItemsFromMenu），不讀 order.total_amount／item.unit_price。
+  const totalAmount = pricing.total
   // R4: from_mbti_test 不直接信任前端傳來的布林值，一律由伺服器端根據
   // mbti_type 是否驗證通過重新計算（Boolean(mbti)），避免不一致。
   const normalizedMbtiType = normalizeMbtiType(order.mbti_type)
@@ -297,7 +584,7 @@ export const toCanonicalOrder = (
     phone: order.customer_phone,
     email: order.customer_email || null,
     pickup_time: normalizePickupTime(order.pickup_date),
-    items: normalizeOrderItems(items),
+    items: normalizeOrderItems(pricing.items),
     total_price: totalAmount,
     original_price: totalAmount,
     final_price: totalAmount,
@@ -326,14 +613,14 @@ export const toCanonicalOrder = (
 const insertOrderWithRetry = async (
   adminClient: ReturnType<typeof createAdminClient>,
   order: OrderPayload,
-  items: OrderItemPayload[]
+  pricing: ServerOrderPricing
 ) => {
   const maxAttempts = 4
   let nextOrderNumber = order.order_number || buildOrderNumber()
   let lastError: { code?: string; message?: string } | null = null
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const canonicalOrder = toCanonicalOrder(order, items, nextOrderNumber)
+    const canonicalOrder = toCanonicalOrder(order, pricing, nextOrderNumber)
     const { data, error } = await adminClient
       .from('orders')
       .insert(canonicalOrder)
@@ -379,11 +666,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const adminClient = createAdminClient()
+    const orderPayload = order as OrderPayload
+
+    const pricingResult = await priceOrderItemsFromMenu(adminClient, items as OrderItemPayload[])
+    if (!pricingResult.ok) {
+      return res.status(pricingResult.status).json({ error: pricingResult.error })
+    }
+
+    const { pricing, mismatches } = pricingResult
+    if (mismatches.length > 0 || !Object.is(orderPayload.total_amount, pricing.total)) {
+      // 只記金額與訂單編號，不記顧客個資；寫入的一律是資料庫價格。
+      console.warn('[map-order] 前端價格與資料庫不符，已改用資料庫價格:', {
+        order_number: orderPayload.order_number ?? null,
+        client_total: orderPayload.total_amount,
+        server_total: pricing.total,
+        mismatches,
+      })
+    }
 
     const { data: createdOrder, error: orderError } = await insertOrderWithRetry(
       adminClient,
-      order as OrderPayload,
-      items as OrderItemPayload[]
+      orderPayload,
+      pricing
     )
 
     if (orderError) {

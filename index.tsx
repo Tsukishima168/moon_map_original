@@ -15,6 +15,13 @@ import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from '.
 import { trackUserEvent } from './lib/eventTracker';
 import { getOrderAttribution, syncAttributionFromUrl } from './lib/attribution';
 import {
+  PRICE_UPDATED_NOTICE,
+  buildDiscordOrderPayload,
+  buildGaPurchasePayload,
+  buildLineOrderMessage,
+  resolveMapOrderOutcome,
+} from './lib/map-order-client';
+import {
   attachMenuItemIds,
   getMenuCatalogEntry,
   hasRenderableMenu,
@@ -703,6 +710,8 @@ const App = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // 伺服器明確拒單（400）時顯示在結帳視窗裡的原因（不自動消失）
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   // Desktop Order Success Modal
   const [showDesktopOrderSuccess, setShowDesktopOrderSuccess] = useState(false);
   const [orderMessage, setOrderMessage] = useState('');
@@ -1302,6 +1311,7 @@ const App = () => {
       }))
     });
 
+    setCheckoutError(null);
     setShowCheckoutConfirm(true);
   };
 
@@ -1313,6 +1323,7 @@ const App = () => {
     }
     if (submitting) return;
     setSubmitting(true);
+    setCheckoutError(null);
 
     // 1. Validation
     if (!customerName || customerName.length < 2) {
@@ -1364,10 +1375,10 @@ const App = () => {
             utm_term: utmParams.utm_term,
           };
 
-      let confirmedOrderId = proposedOrderId;
-      let orderSuccess = false;
+      let apiStatus: number | null = null;
+      let apiBody: unknown = null;
 
-      // 3. Save order via API (shop_orders + shop_order_items)
+      // 3. Save order via API（伺服器依資料庫價格重算金額，前端價格只作參考）
       try {
         const orderRes = await fetch('/api/map-order', {
           method: 'POST',
@@ -1400,70 +1411,49 @@ const App = () => {
           }),
         });
 
-        if (orderRes.ok) {
-          const { order } = await orderRes.json();
-          confirmedOrderId = order?.order_number || proposedOrderId;
-          orderSuccess = true;
-        } else {
-          console.error('訂單儲存錯誤 (API):', await orderRes.text().catch(() => ''));
+        apiStatus = orderRes.status;
+        apiBody = await orderRes.json().catch(() => null);
+        if (!orderRes.ok) {
+          console.error('訂單儲存錯誤 (API):', orderRes.status, apiBody);
         }
       } catch (err) {
         console.error('訂單 API 網路錯誤:', err);
       }
 
-      if (!orderSuccess) {
-        console.warn('Fallback: DB API failed, but proceeding to LINE redirect anyway.');
+      // 4. 依 API 回應決定下一步（規則見 lib/map-order-client.ts）
+      const outcome = resolveMapOrderOutcome({ status: apiStatus, body: apiBody, proposedOrderId, cart });
+
+      // 伺服器明確拒單（找不到品項、0 元、飲品、數量不合…）：停在結帳視窗說明原因，
+      // 購物車保留讓顧客調整；不轉 LINE、不發 Discord、不送 GA4。
+      if (outcome.kind === 'rejected') {
+        setCheckoutError(outcome.message);
+        showUiNotice(outcome.message, 'error');
+        return;
       }
 
-      // 5. GA4 event — v1.1：只在訂單真的存進 DB 時才送 purchase（orderSuccess），
-      // 避免「送出 purchase 但實際上沒有訂單」的幽靈轉換污染 GA4。
+      if (outcome.kind === 'unconfirmed') {
+        console.warn('Fallback: DB API failed, but proceeding to LINE redirect anyway (amount pending store confirmation).');
+      }
+
+      const orderContact = { customerName, customerPhone, pickupDate: pickupDateStr, orderNote };
+
+      // 5. GA4 event — v1.1：只在訂單真的存進 DB 時才送 purchase（confirmed），
+      // 避免「送出 purchase 但實際上沒有訂單」的幽靈轉換污染 GA4；金額用伺服器算的。
       // R5: beacon + event_callback（≤800ms 逾時），送出後才繼續跳 LINE，避免像過去
       // 一樣事件被導頁打斷、GA4 量不到。
-      if (orderSuccess) {
-        await sendReliableGaEvent('purchase', {
-          transaction_id: confirmedOrderId,
-          value: totalAmount,
-          currency: 'TWD',
-          items: cart.map(item => ({
-            item_name: item.name,
-            item_variant: item.spec,
-            price: parseInt(item.price.replace(/[^\d]/g, ''), 10),
-            quantity: item.count
-          }))
-        });
+      if (outcome.kind === 'confirmed') {
+        await sendReliableGaEvent('purchase', buildGaPurchasePayload(outcome));
       }
 
-      // 6. Discord 通知（避免手機跳 LINE 時取消請求）
-      await notifyDiscordOrder({
-        orderId: confirmedOrderId,
-        totalAmount,
-        pickupDate: pickupDateStr,
-        customerName,
-        customerPhone,
-        orderNote,
-        items: cart,
-        source: 'moon_map_menu',
-      });
+      // 6. Discord 通知（避免手機跳 LINE 時取消請求）；未確認時標示「待門市確認」
+      await notifyDiscordOrder(buildDiscordOrderPayload(outcome, orderContact, cart));
 
-      // 7. Build LINE message
-      let msg = `【月島甜點訂單確認】\n`;
-      msg += `訂單編號：${confirmedOrderId}\n`;
-      msg += `訂購人：${customerName} (${customerPhone})\n`;
-      msg += `手機號碼：${customerPhone}\n`;
-      msg += `總金額：$${totalAmount}\n`;
-      msg += `取貨日期：${pickupDateStr}\n`;
-      if (orderNote) msg += `備註：${orderNote}\n`;
-      msg += `\n訂購內容：\n`;
-      cart.forEach(item => {
-        msg += `● ${item.name} | ${item.spec} x ${item.count}\n`;
-      });
-      msg += `\n\n付款方式：\n`;
-      msg += `LINE Bank (824) 連線商業銀行\n`;
-      msg += `帳號：111007479473\n`;
-      msg += `備註欄請填寫：${customerName}\n`;
-      msg += `（方便我們快速對單，謝謝！）\n`;
-      msg += `\n付款完成後請回傳「後五碼」\n`;
-      msg += `   （轉帳通知中的後五碼數字）`;
+      // 7. Build LINE message（確認：伺服器金額；未確認：預估金額＋待門市確認）
+      const msg = buildLineOrderMessage(outcome, orderContact, cart);
+
+      if (outcome.kind === 'confirmed' && outcome.priceUpdated) {
+        showUiNotice(PRICE_UPDATED_NOTICE, 'info');
+      }
 
       // 8. Redirect
       const encodedMsg = encodeURIComponent(msg);
@@ -4022,6 +4012,24 @@ const App = () => {
                     style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--c-line)', fontSize: '1rem', minHeight: '80px' }}
                   />
                 </div>
+
+                {checkoutError && (
+                  <p
+                    role="alert"
+                    style={{
+                      background: 'rgba(145, 29, 29, 0.08)',
+                      border: '1px solid rgba(145, 29, 29, 0.35)',
+                      color: 'rgb(145, 29, 29)',
+                      padding: '10px 12px',
+                      borderRadius: '8px',
+                      fontSize: '0.9rem',
+                      lineHeight: 1.6,
+                      marginBottom: '12px'
+                    }}
+                  >
+                    {checkoutError}
+                  </p>
+                )}
 
                 <button
                   onClick={confirmAndSend}
