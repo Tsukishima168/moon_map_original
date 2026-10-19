@@ -326,19 +326,22 @@ const isInactiveCatalogItem = (name: unknown) => {
 }
 
 /**
- * 依顯示名稱找資料庫品項。先比對完全相同的品名（菜單 API 回資料庫正本時，品名就是
- * menu_items.name）；找不到時改用 lib/menu-catalog.ts 的別名表，把靜態菜單／舊命名
- * （例：「經典提拉米蘇」）對應到同一個 catalog id，再取資料庫中名稱解析到同一 id 的品項
- * （例：「經典｜提拉米蘇」）。
+ * 依顯示名稱找資料庫品項，分兩層：
+ * 1. 精確品名：與 menu_items.name 完全相同（菜單 API 回資料庫正本時，品名就是 menu_items.name）。
+ * 2. 別名：用 lib/menu-catalog.ts 把靜態菜單／舊命名（例：「經典提拉米蘇」）對應到同一個
+ *    catalog id，取資料庫中名稱解析到同一 id 的品項（例：「經典｜提拉米蘇」）。
  *
- * 這是必要的：/api/menu 或前端在資料庫讀取失敗時會改回 public/menu.json，
- * 靜態菜單的品名和資料庫不同，若只比對完全相同的品名，每一張訂單都會被當成「找不到商品」。
+ * 別名層是必要的：/api/menu 或前端在資料庫讀取失敗時會改回 public/menu.json，
+ * 靜態菜單的品名和資料庫不同，若只比對精確品名，每一張訂單都會被當成「找不到商品」。
  * 別名只用來「找到同一個資料庫品項」，價格、可訂購狀態、飲品與 $0 防線仍全部以資料庫為準。
+ * 精確品名層若已有可訂購的列就只用它；沒有時（含：精確品名那幾列已下架、或沒有該規格）
+ * 才把別名層的列併進來，一起套用同一組資料庫防線——見 priceOrderItemsFromMenu。
  */
-function findMenuItemsByName(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
-  const exactMatches = menuItems.filter((row) => normalizeLookupKey(row.name) === displayName)
-  if (exactMatches.length > 0) return exactMatches
+function findExactNamedItems(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
+  return menuItems.filter((row) => normalizeLookupKey(row.name) === displayName)
+}
 
+function findAliasNamedItems(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
   const catalogId = resolveMenuItemId(displayName)
   if (!catalogId) return []
   return menuItems.filter((row) => resolveMenuItemId(row.name) === catalogId)
@@ -408,19 +411,44 @@ export async function priceOrderItemsFromMenu(
     const displayName = normalizeLookupKey(item.item_name)
     const wantedSpec = normalizeSpecLabel(item.item_spec)
 
-    const namedItems = findMenuItemsByName(menuItems, displayName)
+    // 可訂購的列：is_available === true（與菜單頁一致，只有 true 會顯示），且不是菜單端已隱藏的
+    // 品項（INACTIVE_MENU_ITEM_IDS，例：母親節限定；資料庫那邊可能仍標 available，但前端看不到，
+    // 手工組的請求也不能訂）。
+    const requestedNameInactive = isInactiveCatalogItem(displayName)
+    const isOrderableRow = (menuItem: MenuItemRow) =>
+      menuItem.is_available === true && !requestedNameInactive && !isInactiveCatalogItem(menuItem.name)
+    const collectCandidates = (rows: MenuItemRow[]) =>
+      rows.flatMap((menuItem) =>
+        menuVariants
+          .filter(
+            (variant) =>
+              variant.menu_item_id === menuItem.id && normalizeSpecLabel(variant.spec) === wantedSpec
+          )
+          .map((variant) => ({ menuItem, variant }))
+      )
+
+    // 先看精確品名；精確品名沒有任何可訂購的列（品項不在、已下架、或沒有這個規格）時，
+    // 把別名層的列併進來，對合併後的候選套用同一組防線。
+    // 這是為了：資料庫留有與靜態菜單同名、但已下架的舊列時，走靜態備援的訂單不會被舊列擋掉；
+    // 合併後若有多筆可訂購的列價格不一致，仍走下面的價格不一致拒單，不會挑便宜的那筆。
+    const exactItems = findExactNamedItems(menuItems, displayName)
+    let namedItems = exactItems
+    let candidates = collectCandidates(namedItems)
+    let orderable = candidates.filter(({ menuItem }) => isOrderableRow(menuItem))
+    if (orderable.length === 0) {
+      const aliasOnlyItems = findAliasNamedItems(menuItems, displayName).filter(
+        (row) => !exactItems.includes(row)
+      )
+      if (aliasOnlyItems.length > 0) {
+        namedItems = [...exactItems, ...aliasOnlyItems]
+        candidates = collectCandidates(namedItems)
+        orderable = candidates.filter(({ menuItem }) => isOrderableRow(menuItem))
+      }
+    }
+
     if (namedItems.length === 0) {
       return { ok: false, status: 400, error: `找不到商品「${displayName}」，請重新整理菜單後再試` }
     }
-
-    const candidates = namedItems.flatMap((menuItem) =>
-      menuVariants
-        .filter(
-          (variant) =>
-            variant.menu_item_id === menuItem.id && normalizeSpecLabel(variant.spec) === wantedSpec
-        )
-        .map((variant) => ({ menuItem, variant }))
-    )
     if (candidates.length === 0) {
       return {
         ok: false,
@@ -431,18 +459,9 @@ export async function priceOrderItemsFromMenu(
 
     // 同名同規格可能有多筆資料（正式庫實例：母親節限定｜北海道十勝戚風千層，同價、分類
     // 分別是 chiffon 與 mille_crepe）。規則：
-    // 1. 先丟掉不可訂購的列：is_available !== true（與菜單頁一致，只有 true 會顯示），
-    //    或是菜單端已隱藏的品項（INACTIVE_MENU_ITEM_IDS，例：母親節限定；資料庫那邊可能
-    //    仍標 available，但前端看不到，手工組的請求也不能訂）。
+    // 1. 不可訂購的列先丟掉（上面的 orderable）；
     // 2. 一列都不剩 → 拒單；剩下的列若有任一筆是飲品 → 依飲品防線拒單；
     // 3. 剩下的列價格不一致 → 不猜、直接拒單；價格一致（只是分類不同）→ 照常接受。
-    const requestedNameInactive = isInactiveCatalogItem(displayName)
-    const orderable = candidates.filter(
-      ({ menuItem }) =>
-        menuItem.is_available === true &&
-        !requestedNameInactive &&
-        !isInactiveCatalogItem(menuItem.name)
-    )
     if (orderable.length === 0) {
       return { ok: false, status: 400, error: `商品「${displayName}」目前不可訂購，請重新整理菜單` }
     }

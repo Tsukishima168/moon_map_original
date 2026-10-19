@@ -308,6 +308,80 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
   assert.deepEqual(inserts[0].items.map((item) => item.price), [111, 222]);
 }
 
+// 別名層會把「同一個 catalog id」底下的資料庫列全部納入，不是只看第一列：
+// 兩筆都可訂購、同規格、價格不同 → 不猜、拒單（不能默默挑第一筆，也不能挑便宜的那筆）。
+// 兩個順序都測，避免「只拿第一列」的實作剛好因為排序而過關。
+{
+  const aliasRow = (id, name, price) => ({
+    item: { id, name, category_id: 'tiramisu', is_available: true },
+    variant: { id: `v-${id}`, menu_item_id: id, spec: '200ml', price },
+  });
+  const clientOf = (...rows) => createStubClient({ menuItems: rows.map((row) => row.item), menuVariants: rows.map((row) => row.variant) });
+  // 「經典｜提拉米蘇」與「經典提拉米蘇鐵盒(600ml)」都是 tiramisu_classic 的別名，精確品名「經典提拉米蘇」不在資料庫。
+  const pricey = aliasRow('alias-pricey', '經典｜提拉米蘇', '$170');
+  const cheap = aliasRow('alias-cheap', '經典提拉米蘇鐵盒(600ml)', '$150');
+  for (const rows of [[cheap, pricey], [pricey, cheap]]) {
+    assertRejected(await submit([line('經典提拉米蘇', '200ml', 150, 1)], { client: clientOf(...rows) }), /價格設定異常/);
+  }
+  // 同一個 id 底下的列價格一致 → 照常接受。
+  const twin = aliasRow('alias-twin', '經典提拉米蘇鐵盒(600ml)', '170');
+  for (const rows of [[twin, pricey], [pricey, twin]]) {
+    const { res, inserts } = await submit([line('經典提拉米蘇', '200ml', 1, 1)], { client: clientOf(...rows) });
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(inserts[0].items[0].price, 170);
+  }
+}
+
+// 精確品名那幾列沒有可訂購的列時（已下架），別名層的列要一起納入，套用同一組資料庫防線：
+// 資料庫留有與靜態菜單同名的下架舊列，走靜態備援的訂單不能因此被擋。
+{
+  const legacy = (price, extra = {}) => ({
+    item: { id: 'legacy-exact', name: '經典提拉米蘇', category_id: 'tiramisu', is_available: false, ...extra },
+    variant: { id: 'v-legacy-exact', menu_item_id: 'legacy-exact', spec: '200ml', price },
+  });
+  const live = (id, price, extra = {}) => ({
+    item: { id, name: '經典｜提拉米蘇', category_id: 'tiramisu', is_available: true, ...extra },
+    variant: { id: `v-${id}`, menu_item_id: id, spec: '200ml', price },
+  });
+  const clientOf = (...rows) => createStubClient({ menuItems: rows.map((row) => row.item), menuVariants: rows.map((row) => row.variant) });
+  const order = (client) => submit([line('經典提拉米蘇', '200ml', 1, 2)], { client, order: { total_amount: 2 } });
+
+  // 下架的精確品名列 + 可訂購的別名列，同價 → 接受，用資料庫（別名列）的品名與價格。
+  {
+    const { res, inserts } = await order(clientOf(legacy('$170'), live('live-a', '$170')));
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(inserts[0].items[0].name, '經典｜提拉米蘇');
+    assert.equal(inserts[0].items[0].price, 170);
+    assert.equal(inserts[0].total_price, 340);
+  }
+  // 下架的舊列價格不同（更便宜）也不得被採用：只採可訂購那一列的價格。
+  for (const rows of [[legacy('$100'), live('live-a', '$170')], [live('live-a', '$170'), legacy('$100')]]) {
+    const { res, inserts } = await order(clientOf(...rows));
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(inserts[0].items[0].price, 170);
+  }
+  // 合併後可訂購的別名列價格不一致 → 照樣拒單，不挑便宜的。
+  for (const rows of [[legacy('$170'), live('live-a', '$170'), live('live-b', '$120')], [legacy('$170'), live('live-b', '$120'), live('live-a', '$170')]]) {
+    assertRejected(await order(clientOf(...rows)), /價格設定異常/);
+  }
+  // 精確品名的列沒有這個規格（只有別名那邊有）→ 也併入別名層。
+  {
+    const noSpec = { item: { id: 'legacy-exact', name: '經典提拉米蘇', category_id: 'tiramisu', is_available: true }, variant: { id: 'v-legacy-exact', menu_item_id: 'legacy-exact', spec: '鐵盒', price: '$450' } };
+    const { res, inserts } = await order(clientOf(noSpec, live('live-a', '$170')));
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(inserts[0].items[0].price, 170);
+  }
+  // 精確品名與別名的列全部下架 → 仍然拒單。
+  assertRejected(await order(clientOf(legacy('$170'), live('live-a', '$170', { is_available: false }))), /目前不可訂購/);
+  // 精確品名那邊有可訂購的列 → 不碰別名層（精確品名優先），別名那筆更便宜也不採用、也不拒單。
+  {
+    const exactLive = { item: { id: 'exact-live', name: '經典提拉米蘇', category_id: 'tiramisu', is_available: true }, variant: { id: 'v-exact-live', menu_item_id: 'exact-live', spec: '200ml', price: '$170' } };
+    const { res, inserts } = await order(clientOf(exactLive, live('live-a', '$120')));
+    assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+    assert.equal(inserts[0].items[0].price, 170);
+  }
+}
+
 // ── 靜態菜單（public/menu.json）打進來的訂單 ──────────────────────────────────────
 // /api/menu 在資料庫失敗時回 public/menu.json，前端也會直接讀它；購物車帶的是靜態品名
 // （例：「經典提拉米蘇」），資料庫正本是「經典｜提拉米蘇」。伺服器必須靠 lib/menu-catalog.ts
