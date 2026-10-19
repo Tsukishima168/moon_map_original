@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
+import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } from '../lib/menu-catalog.js'
 
 export interface OrderPayload {
   order_number: string
@@ -129,6 +130,9 @@ const DEFAULT_SPEC_LABEL = '標準'
 // 飲品現做、冷熱當場決定：一律門市供應，不開放線上訂購。判斷式與 shop
 // lib/orderable.ts 的 STORE_ONLY_CATEGORY 一致（Penso 2026-10-18）。
 const STORE_ONLY_CATEGORY = /drink|飲品|飲料/i
+// PostgREST 單次回應預設最多 1000 列（max-rows）。菜單表一旦被截斷，品項會「憑空消失」，
+// 讀到滿頁就當成讀取失敗（5xx），不要把截斷造成的找不到誤報成顧客的 400。
+const POSTGREST_PAGE_LIMIT = 1000
 // 資料庫 menu_variants.price 多數是純數字字串（"1990"），但正式資料也有 "$450"、"$1,490"
 // （2026-10-18 實查：經典｜提拉米蘇、母親節限定｜北海道十勝戚風千層）。
 // 只接受「可選的 $ 或 NT$ 開頭 + 數字（可帶千分位逗號與小數）」；負號、空字串、其他文字
@@ -316,17 +320,47 @@ export function isStoreOnlyCategory(categoryId: unknown): boolean {
   return typeof categoryId === 'string' && STORE_ONLY_CATEGORY.test(categoryId)
 }
 
+const isInactiveCatalogItem = (name: unknown) => {
+  const catalogId = resolveMenuItemId(typeof name === 'string' ? name : null)
+  return catalogId !== null && INACTIVE_MENU_ITEM_IDS.has(catalogId)
+}
+
+/**
+ * 依顯示名稱找資料庫品項。先比對完全相同的品名（菜單 API 回資料庫正本時，品名就是
+ * menu_items.name）；找不到時改用 lib/menu-catalog.ts 的別名表，把靜態菜單／舊命名
+ * （例：「經典提拉米蘇」）對應到同一個 catalog id，再取資料庫中名稱解析到同一 id 的品項
+ * （例：「經典｜提拉米蘇」）。
+ *
+ * 這是必要的：/api/menu 或前端在資料庫讀取失敗時會改回 public/menu.json，
+ * 靜態菜單的品名和資料庫不同，若只比對完全相同的品名，每一張訂單都會被當成「找不到商品」。
+ * 別名只用來「找到同一個資料庫品項」，價格、可訂購狀態、飲品與 $0 防線仍全部以資料庫為準。
+ */
+function findMenuItemsByName(menuItems: MenuItemRow[], displayName: string): MenuItemRow[] {
+  const exactMatches = menuItems.filter((row) => normalizeLookupKey(row.name) === displayName)
+  if (exactMatches.length > 0) return exactMatches
+
+  const catalogId = resolveMenuItemId(displayName)
+  if (!catalogId) return []
+  return menuItems.filter((row) => resolveMenuItemId(row.name) === catalogId)
+}
+
 /**
  * $0 漏洞修正（2026-10-18）：前端送來的 unit_price／subtotal／total_amount 一律不採信，
  * 依資料庫 menu_items + menu_variants 重算每一項的單價與小計。
  *
- * 品項識別：菜單頁購物車只帶 item_name（= menu_items.name）與 item_spec
- * （= menu_variants.spec，空值顯示為「標準」），沒有 uuid，所以用「品名 + 規格」比對。
+ * 品項識別：菜單頁購物車只帶 item_name（= 菜單上顯示的品名）與 item_spec
+ * （= menu_variants.spec，空值顯示為「標準」），沒有 uuid，所以用「品名 + 規格」比對；
+ * 品名先比對資料庫的 menu_items.name，對不上再走 lib/menu-catalog.ts 別名（見 findMenuItemsByName）。
  *
  * 前端價格與資料庫不符時「用資料庫價格、不拒單」，只回報 mismatches 給呼叫端記 log：
  * 菜單 API 有 CDN 快取（s-maxage=300 + stale-while-revalidate=600），改價後 15 分鐘內
- * 送出的正常訂單會帶舊價；而前端在 API 失敗時仍會照常導去 LINE，拒單只會讓 orders
- * 少一筆紀錄、擋不住 LINE 訊息。寫進 orders 的金額永遠是資料庫算的，竄改前端價格拿不到好處。
+ * 送出的正常訂單會帶舊價，拒單會擋掉正常顧客；寫進 orders 的金額永遠是資料庫算的，
+ * 竄改前端價格拿不到好處，菜單頁也會在價格不同時提示顧客以訂單訊息金額為準。
+ *
+ * 拒單（400）與菜單頁行為相連：菜單頁收到 400 會停在結帳視窗顯示原因，不轉 LINE、
+ * 不發 Discord、不送 GA4，所以這裡的拒單確實擋得住 LINE 訊息。只有 5xx／網路失敗，
+ * 菜單頁才會照常轉 LINE，並把金額標成「預估、待門市確認」。因此「讀不到菜單、讀取被截斷」
+ * 這類不是顧客造成的問題一律回 5xx，不可回 400。
  */
 export async function priceOrderItemsFromMenu(
   adminClient: Pick<ReturnType<typeof createAdminClient>, 'from'>,
@@ -355,6 +389,17 @@ export async function priceOrderItemsFromMenu(
   const menuItems = (menuItemsResult.data ?? []) as MenuItemRow[]
   const menuVariants = (menuVariantsResult.data ?? []) as MenuVariantRow[]
 
+  // 讀到滿頁代表很可能被 PostgREST 截斷：此時「找不到商品」不可信，回 5xx 讓菜單頁走
+  // 「預估金額、待門市確認」，而不是對正常顧客誤報 400。
+  if (menuItems.length >= POSTGREST_PAGE_LIMIT || menuVariants.length >= POSTGREST_PAGE_LIMIT) {
+    console.error(
+      '[map-order] 菜單資料筆數已達單次查詢上限，可能被截斷，拒絕建立訂單:',
+      menuItems.length,
+      menuVariants.length
+    )
+    return { ok: false, status: 500, error: '目前無法確認商品價格，請稍後再試或直接聯繫門市' }
+  }
+
   const pricedItems: PricedOrderItem[] = []
   const mismatches: PriceMismatch[] = []
 
@@ -363,7 +408,7 @@ export async function priceOrderItemsFromMenu(
     const displayName = normalizeLookupKey(item.item_name)
     const wantedSpec = normalizeSpecLabel(item.item_spec)
 
-    const namedItems = menuItems.filter((row) => normalizeLookupKey(row.name) === displayName)
+    const namedItems = findMenuItemsByName(menuItems, displayName)
     if (namedItems.length === 0) {
       return { ok: false, status: 400, error: `找不到商品「${displayName}」，請重新整理菜單後再試` }
     }
@@ -385,25 +430,35 @@ export async function priceOrderItemsFromMenu(
     }
 
     // 同名同規格可能有多筆資料（正式庫實例：母親節限定｜北海道十勝戚風千層，同價、分類
-    // 分別是 chiffon 與 mille_crepe）。規則：任一筆不可訂購或是飲品就依該防線拒單；
-    // 只是分類不同、價格一致時照常接受；價格不一致則不猜、直接拒單。
-    // 與菜單頁一致：只有 is_available === true 的品項會顯示，也只有它們可訂購。
-    if (candidates.some(({ menuItem }) => menuItem.is_available !== true)) {
+    // 分別是 chiffon 與 mille_crepe）。規則：
+    // 1. 先丟掉不可訂購的列：is_available !== true（與菜單頁一致，只有 true 會顯示），
+    //    或是菜單端已隱藏的品項（INACTIVE_MENU_ITEM_IDS，例：母親節限定；資料庫那邊可能
+    //    仍標 available，但前端看不到，手工組的請求也不能訂）。
+    // 2. 一列都不剩 → 拒單；剩下的列若有任一筆是飲品 → 依飲品防線拒單；
+    // 3. 剩下的列價格不一致 → 不猜、直接拒單；價格一致（只是分類不同）→ 照常接受。
+    const requestedNameInactive = isInactiveCatalogItem(displayName)
+    const orderable = candidates.filter(
+      ({ menuItem }) =>
+        menuItem.is_available === true &&
+        !requestedNameInactive &&
+        !isInactiveCatalogItem(menuItem.name)
+    )
+    if (orderable.length === 0) {
       return { ok: false, status: 400, error: `商品「${displayName}」目前不可訂購，請重新整理菜單` }
     }
 
     // 飲品一律門市供應（現做、冷熱當場決定），即使有價格也不開放線上預訂。
-    if (candidates.some(({ menuItem }) => isStoreOnlyCategory(menuItem.category_id))) {
+    if (orderable.some(({ menuItem }) => isStoreOnlyCategory(menuItem.category_id))) {
       return { ok: false, status: 400, error: `「${displayName}」為門市現做飲品，請至門市點購，無法線上預訂` }
     }
 
-    const [chosen] = candidates
-    const candidatePrices = candidates.map(({ variant }) => parseMenuPrice(variant.price))
+    const [chosen] = orderable
+    const candidatePrices = orderable.map(({ variant }) => parseMenuPrice(variant.price))
     const chosenPrice = candidatePrices[0]
     if (candidatePrices.some((price) => Number.isNaN(price))) {
       console.error(
         '[map-order] menu_variants.price 無法解析:',
-        candidates.map(({ variant }) => [variant.id, variant.price])
+        orderable.map(({ variant }) => [variant.id, variant.price])
       )
       return { ok: false, status: 400, error: `商品「${displayName}」價格設定異常，請直接聯繫門市` }
     }
