@@ -25,14 +25,25 @@ const SERVER_ORDER = {
   ],
 };
 const REJECT_MESSAGE = '商品「門市展示禮盒」（一般）為門市限定，無法線上預訂';
+// 400 的結帳視窗訊息：伺服器原因 + 固定的「問題持續就聯繫門市」提示（只是文字，不自動開 LINE）。
+const REJECT_UI_MESSAGE = `${REJECT_MESSAGE}。${client.LINE_CONTACT_HINT}`;
 
 // ── 1. 純函式：依 API 回應決定下一步 ─────────────────────────────────────────
 {
   const resolve = (status, body, cart = CART) => client.resolveMapOrderOutcome({ status, body, proposedOrderId: 'ORD-PROP', cart });
-  assert.deepEqual(plain(resolve(400, { error: REJECT_MESSAGE })), { kind: 'rejected', message: REJECT_MESSAGE });
+  assert.deepEqual(plain(resolve(400, { error: REJECT_MESSAGE })), { kind: 'rejected', message: REJECT_UI_MESSAGE });
   for (const body of [{ error: 'Invalid total_amount: must be a finite positive number <= 100000' }, null, { error: '' }, { error: '超'.repeat(201) }]) {
     assert.equal(resolve(400, body).message, client.ORDER_REJECTED_FALLBACK_MESSAGE);
   }
+  // 400 一律以「聯繫門市」提示收尾，而且只出現一次：伺服器中文訊息、已帶句號的訊息、通用說明都一樣。
+  for (const body of [{ error: REJECT_MESSAGE }, { error: `${REJECT_MESSAGE}。` }, { error: '找不到商品「X」，請重新整理菜單後再試' }, { error: 'Invalid payment_status' }, null, { error: '' }]) {
+    const { message } = resolve(400, body);
+    assert.ok(message.endsWith(client.LINE_CONTACT_HINT), `400 message must end with the LINE hint: ${message}`);
+    assert.match(message, /LINE/);
+    assert.equal(message.split(client.LINE_CONTACT_HINT).length - 1, 1, `hint must appear exactly once: ${message}`);
+    assert.doesNotMatch(message, /。。/);
+  }
+  assert.equal(resolve(400, { error: `${REJECT_MESSAGE}。` }).message, REJECT_UI_MESSAGE);
   for (const status of [null, 401, 404, 429, 500, 502, 503]) {
     assert.deepEqual(plain(resolve(status, { error: 'x' })), { kind: 'unconfirmed', orderNumber: 'ORD-PROP' });
   }
@@ -98,8 +109,9 @@ async function runCheckout(api, { mobile = true, cart = CART } = {}) {
 {
   const { calls, href, lineMessage } = await runCheckout({ status: 400, body: { error: REJECT_MESSAGE } });
   assert.equal(calls.fetch.length, 1);
-  assert.equal(calls.checkoutErrors.at(-1), REJECT_MESSAGE);
-  assert.deepEqual(calls.notices, [{ message: REJECT_MESSAGE, tone: 'error' }]);
+  assert.equal(calls.checkoutErrors.at(-1), REJECT_UI_MESSAGE);
+  assert.ok(calls.checkoutErrors.at(-1).endsWith(client.LINE_CONTACT_HINT), 'rejected UI must end with the LINE contact hint');
+  assert.deepEqual(calls.notices, [{ message: REJECT_UI_MESSAGE, tone: 'error' }]);
   assert.equal(calls.discord.length, 0, 'rejected order must not notify Discord');
   assert.equal(calls.ga.length, 0, 'rejected order must not send GA4 purchase');
   assert.equal(lineMessage, null, 'rejected order must not redirect to LINE');

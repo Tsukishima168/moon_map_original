@@ -29,8 +29,10 @@ export type MapOrderOutcome =
 
 export type ForwardableOutcome = Exclude<MapOrderOutcome, { kind: 'rejected' }>;
 
-export const ORDER_REJECTED_FALLBACK_MESSAGE =
-  '這筆訂單目前無法線上送出，請重新整理菜單後再試；若仍無法送出，請直接以 LINE 聯繫門市。';
+// 400 的結帳視窗訊息一律以這句收尾：顧客停在視窗裡時，永遠看得到「問題持續就聯繫門市」的出路。
+// 只是文字提示，不會自動開 LINE、也不發 Discord／GA4。
+export const LINE_CONTACT_HINT = '若問題持續，請直接以 LINE 聯繫門市。';
+export const ORDER_REJECTED_FALLBACK_MESSAGE = `這筆訂單目前無法線上送出，請重新整理菜單後再試。${LINE_CONTACT_HINT}`;
 export const PRICE_UPDATED_NOTICE = '價格已依最新菜單更新，請以訂單訊息中的金額為準。';
 
 const DEFAULT_SPEC_LABEL = '標準';
@@ -96,7 +98,9 @@ export function resolveMapOrderOutcome(input: {
   if (status === 400) {
     const error = typeof record?.error === 'string' ? record.error.trim() : '';
     const readable = error && error.length <= MAX_ERROR_MESSAGE_LENGTH && CUSTOMER_READABLE.test(error);
-    return { kind: 'rejected', message: readable ? error : ORDER_REJECTED_FALLBACK_MESSAGE };
+    // 伺服器訊息（中文、不帶句號）後面固定補上聯繫門市的提示；通用說明本身已包含這句。
+    const message = readable ? `${error.replace(/[。.!！\s]+$/, '')}。${LINE_CONTACT_HINT}` : ORDER_REJECTED_FALLBACK_MESSAGE;
+    return { kind: 'rejected', message };
   }
 
   // 401／404／429／5xx／網路失敗：不是顧客訂單內容的問題，維持照常轉 LINE 的韌性做法。
