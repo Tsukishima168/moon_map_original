@@ -398,6 +398,12 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
     const entry = MENU_ITEM_CATALOG.find((candidate) => candidate.id === catalogId);
     return entry.aliases.find((alias) => alias.includes('｜') && alias !== entry.label);
   };
+  // 靜態品名 → 資料庫品名：catalog 內的品項靜態短名與資料庫「X｜Y」不同（走別名層）；
+  // 現行新品（例：北海道十勝戚風蛋糕）不在 catalog，靜態品名就是資料庫品名（走精確品名）。
+  const dbNameForStatic = (item) => {
+    const catalogId = resolveMenuItemId(item.name);
+    return catalogId ? dbNameOf(catalogId) : item.name;
+  };
   const toNumber = (staticPrice) => Number(String(staticPrice).replace(/[^\d]/g, ''));
   // 正式庫價格格式輪流用：純數字、$、$ 加千分位；資料庫價格一律比靜態價格多 10 元（代表靜態菜單已過期）。
   const formatDbPrice = (value, index) => [String(value), `$${value}`, `$${value.toLocaleString('en-US')}`][index % 3];
@@ -407,14 +413,16 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
   const expectedDbPrice = new Map(); // `${靜態品名}|${規格}` → 資料庫價格
   orderableStaticItems.forEach((item, itemIndex) => {
     const catalogId = resolveMenuItemId(item.name);
-    assert.ok(catalogId, `static item should be in catalog: ${item.name}`);
-    const dbName = dbNameOf(catalogId);
-    assert.ok(dbName && dbName !== item.name, `fixture must use a different production-style DB name for ${item.name}`);
-    assert.equal(resolveMenuItemId(dbName), catalogId);
-    dbItems.push({ id: `db-${catalogId}`, name: dbName, category_id: item.categoryId, is_available: true });
+    const dbName = dbNameForStatic(item);
+    if (catalogId) {
+      assert.ok(dbName && dbName !== item.name, `fixture must use a different production-style DB name for ${item.name}`);
+      assert.equal(resolveMenuItemId(dbName), catalogId);
+    }
+    const dbKey = catalogId ?? `exact-${itemIndex}`;
+    dbItems.push({ id: `db-${dbKey}`, name: dbName, category_id: item.categoryId, is_available: true });
     item.prices.forEach((variant, variantIndex) => {
       const dbPrice = toNumber(variant.price) + 10;
-      dbVariants.push({ id: `db-${catalogId}-${variantIndex}`, menu_item_id: `db-${catalogId}`, spec: variant.spec, price: formatDbPrice(dbPrice, itemIndex + variantIndex) });
+      dbVariants.push({ id: `db-${dbKey}-${variantIndex}`, menu_item_id: `db-${dbKey}`, spec: variant.spec, price: formatDbPrice(dbPrice, itemIndex + variantIndex) });
       expectedDbPrice.set(`${item.name}|${variant.spec}`, dbPrice);
     });
   });
@@ -436,8 +444,8 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
     return createStubClient({ menuItems: items, menuVariants: variants });
   };
 
-  // 靜態菜單目前 19 個可訂購甜點（共 34 個品名＋規格），全部都要被接受，金額是資料庫價格。
-  assert.ok(orderableStaticItems.length >= 19, `expected >= 19 orderable static items, got ${orderableStaticItems.length}`);
+  // 靜態菜單目前 22 個可訂購甜點（共 40 個品名＋規格），全部都要被接受，金額是資料庫價格。
+  assert.ok(orderableStaticItems.length >= 22, `expected >= 22 orderable static items, got ${orderableStaticItems.length}`);
   const staticLines = orderableStaticItems.flatMap((item) => item.prices.map((variant) => ({ item, variant })));
   assert.equal(staticLines.length, expectedDbPrice.size);
   for (const { item, variant } of staticLines) {
@@ -448,7 +456,7 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
     });
     const dbPrice = expectedDbPrice.get(`${item.name}|${variant.spec}`);
     assert.equal(res.statusCode, 200, `${item.name}／${variant.spec}: ${JSON.stringify(res.body)}`);
-    assert.equal(inserts[0].items[0].name, dbNameOf(resolveMenuItemId(item.name)), 'stored name should be the DB name');
+    assert.equal(inserts[0].items[0].name, dbNameForStatic(item), 'stored name should be the DB name');
     assert.equal(inserts[0].items[0].price, dbPrice, `${item.name}／${variant.spec} should be priced from the DB`);
     assert.equal(inserts[0].total_price, dbPrice * 2);
   }
@@ -463,12 +471,10 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
     assert.equal(inserts[0].total_price, [...expectedDbPrice.values()].reduce((sum, price) => sum + price, 0));
   }
 
-  // 靜態菜單裡被隱藏的母親節限定：資料庫即使兩筆都 available，也拒。
-  const hiddenStaticNames = rawStaticMenu.flatMap((category) => category.items).filter((item) => INACTIVE_MENU_ITEM_IDS.has(resolveMenuItemId(item.name)));
-  assert.ok(hiddenStaticNames.length > 0, 'static menu should still carry the hidden item');
-  for (const item of hiddenStaticNames) {
-    assertRejected(await submit([line(item.name, item.prices[0].spec, 1490, 1)], { client: withDb(() => {}) }), /目前不可訂購/);
-  }
+  // 被隱藏的母親節限定（2026-10-28 起 public/menu.json 已不再收錄，舊版快取的前端仍可能送來）：
+  // 資料庫即使兩筆都 available，也拒。
+  assert.ok(INACTIVE_MENU_ITEM_IDS.has(resolveMenuItemId('母親節限定｜北海道十勝戚風千層')));
+  assertRejected(await submit([line('母親節限定｜北海道十勝戚風千層', '六寸｜三種醬料組合', 1490, 1)], { client: withDb(() => {}) }), /目前不可訂購/);
 
   const lemonBasque = { name: '檸檬巴斯克', spec: '四吋', price: 299 };
   // 別名對到的資料庫品項已下架 → 拒（別名不能繞過 is_available）。
