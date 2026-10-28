@@ -915,7 +915,9 @@ const App = () => {
     return null;
   };
 
-  const resolveRecommendedItemNames = (itemIds: string[], skipMissing = menuCategories.length > 0): string[] => {
+  const resolveRecommendedItemNames = (itemIds: string[]): string[] => {
+    const GENERIC_RECOMMENDED_NAME = '推薦甜點（請以目前菜單為準）';
+    const skipMissing = menuCategories.length > 0;
     const seen = new Set<string>();
     const names: string[] = [];
 
@@ -925,15 +927,15 @@ const App = () => {
       // 菜單尚未載入才用 catalog 標籤墊底。
       if (skipMissing && !matchedItem) continue;
       const fallbackLabel = getMenuCatalogEntry(itemId)?.label;
-      const displayName = matchedItem?.name ?? fallbackLabel ?? '推薦甜點（請以目前菜單為準）';
+      const displayName = matchedItem?.name ?? fallbackLabel ?? GENERIC_RECOMMENDED_NAME;
 
       if (seen.has(displayName)) continue;
       seen.add(displayName);
       names.push(displayName);
     }
 
-    // 全部都不在現行菜單時，退回原行為（避免卡片出現空白項目）
-    return names.length === 0 && skipMissing ? resolveRecommendedItemNames(itemIds, false) : names;
+    // 全部都不在現行菜單時，不退回已下架的名稱，改用通用字樣（避免卡片出現空白項目）
+    return names.length === 0 && skipMissing ? [GENERIC_RECOMMENDED_NAME] : names;
   };
 
   const profileMbtiRecommendation = resolveMbtiDisplayRecommendation(
@@ -1653,7 +1655,11 @@ const App = () => {
     const recommendedItemsForCard = resolveRecommendedItemNames(
       profileMbtiRecommendation ? profileMbtiRecommendation.recommendedItemIds : data.recommendedItemIds
     );
-    const [cardItem1 = '', cardItem2 = '', cardItem3 = ''] = recommendedItemsForCard;
+    // 推薦不足 3 項時，只印有品名的行（不印空的「• 」）
+    const cardItemLines = recommendedItemsForCard
+      .slice(0, 3)
+      .map((itemName, idx) => `<text x="40" y="${225 + idx * 30}" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${itemName}</text>`)
+      .join('\n        ');
 
     // 隨機展籤優惠（皆為「續杯半價」，但語氣不同）
     const commonVariants = [
@@ -1714,9 +1720,7 @@ const App = () => {
         <line x1="40" y1="160" x2="360" y2="160" stroke="#000" stroke-width="0.5"/>
         
         <text x="40" y="195" font-family="'Noto Sans TC', sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
-        <text x="40" y="225" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem1}</text>
-        <text x="40" y="255" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem2}</text>
-        <text x="40" y="285" font-family="serif" font-size="15" font-style="italic" fill="#333">• ${cardItem3}</text>
+        ${cardItemLines}
         
         <line x1="40" y1="315" x2="360" y2="315" stroke="#000" stroke-width="0.5"/>
         
