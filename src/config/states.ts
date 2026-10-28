@@ -17,7 +17,7 @@ export const STATE_DATA: Record<string, {
     title: "沿著綠光走 / 13:00",
     advice: "門開了，甜點與葉影一起醒來。順著光走，不需要急著決定目的地。",
     mission: "慢一點進門，看看今天第一個吸引你的角落。",
-    recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_honey_black_tea']
+    recommendedItemIds: ['tiramisu_classic', 'mille_crepe_classic', 'basque_lemon']
   },
   three: {
     title: "葉影最深 / 15:00",
@@ -35,6 +35,6 @@ export const STATE_DATA: Record<string, {
     title: "在甜點旁停下 / 18:00",
     advice: "路走到這裡，不需要再趕。讓一份甜點替今天收尾，讓自己停在剛好的地方。",
     mission: "帶一份甜點回家，也把這段綠光帶走。",
-    recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_honey_black_tea']
+    recommendedItemIds: ['tiramisu_classic', 'pudding_classic', 'basque_classic']
   }
 };

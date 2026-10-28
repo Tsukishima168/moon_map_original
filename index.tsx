@@ -649,21 +649,6 @@ const App = () => {
     }
   };
 
-  // LINE Direct Message Helper
-  const handleLineDirectMessage = (message: string) => {
-    // 這裡會直接把文字帶到 LINE 輸入框，讓顧客「打開就可以按送出」
-    const encodedMsg = encodeURIComponent(message);
-    const lineUrl = `https://line.me/R/oaMessage/@931cxefd/?text=${encodedMsg}`;
-
-    if (isMobileDevice()) {
-      // 手機：直接跳轉到 LINE 官方帳號聊天視窗（已帶入訊息）
-      window.location.href = lineUrl;
-    } else {
-      // 桌機：開新分頁一樣帶入訊息，顧客只要按送出即可
-      window.open(lineUrl, '_blank');
-    }
-  };
-
   // Existing unlock effect
   const [showAllCompleteModal, setShowAllCompleteModal] = useState(false); // Added this state variable
   useEffect(() => {
@@ -930,12 +915,15 @@ const App = () => {
     return null;
   };
 
-  const resolveRecommendedItemNames = (itemIds: string[]) => {
+  const resolveRecommendedItemNames = (itemIds: string[], skipMissing = menuCategories.length > 0): string[] => {
     const seen = new Set<string>();
     const names: string[] = [];
 
     for (const itemId of itemIds) {
       const matchedItem = findMenuItemById(itemId);
+      // 現行菜單已載入時，不在菜單裡的品項（已下架／改名）不再顯示過期品名；
+      // 菜單尚未載入才用 catalog 標籤墊底。
+      if (skipMissing && !matchedItem) continue;
       const fallbackLabel = getMenuCatalogEntry(itemId)?.label;
       const displayName = matchedItem?.name ?? fallbackLabel ?? '推薦甜點（請以目前菜單為準）';
 
@@ -944,7 +932,8 @@ const App = () => {
       names.push(displayName);
     }
 
-    return names;
+    // 全部都不在現行菜單時，退回原行為（避免卡片出現空白項目）
+    return names.length === 0 && skipMissing ? resolveRecommendedItemNames(itemIds, false) : names;
   };
 
   const profileMbtiRecommendation = resolveMbtiDisplayRecommendation(
@@ -4494,7 +4483,7 @@ const App = () => {
                   lineHeight: '1.8',
                   color: '#444',
                   whiteSpace: 'pre-line',
-                  marginBottom: '25px',
+                  marginBottom: 0,
                   fontStyle: 'italic'
                 }}>
                   "這包不是壓歲錢，是壓驚錢。<br />
@@ -4505,31 +4494,6 @@ const App = () => {
                   — Kiwimu (遞)
                 </p>
 
-                <button
-                  className="btn-primary"
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    background: '#D93025',
-                    color: '#fff',
-                    textDecoration: 'none',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 15px rgba(217, 48, 37, 0.4)',
-                    border: 'none',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    handleLineDirectMessage('新年快樂');
-                    track('lny_action_click', { type: 'red_envelope' });
-                  }}
-                >
-                  前往 LINE 領取 (輸入: 新年快樂) ➔
-                </button>
-                <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '15px' }}>
-                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#D93025', fontWeight: 700 }}>新年快樂</span>」即可抽獎！
-                </p>
               </div>
             </div>
           </div>
@@ -4561,7 +4525,7 @@ const App = () => {
                   lineHeight: '1.8',
                   color: '#444',
                   whiteSpace: 'pre-line',
-                  marginBottom: '25px',
+                  marginBottom: 0,
                   fontStyle: 'italic'
                 }}>
                   "錢不是萬能的，但沒有錢買甜點是萬萬不能的。<br />
@@ -4572,31 +4536,6 @@ const App = () => {
                   — Kiwimu (拍肚皮)
                 </p>
 
-                <button
-                  className="btn-primary"
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    background: '#FFD700',
-                    color: '#000',
-                    textDecoration: 'none',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 15px rgba(255, 215, 0, 0.4)',
-                    border: 'none',
-                    padding: '12px',
-                    fontSize: '1rem',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => {
-                    handleLineDirectMessage('golden pudding');
-                    track('lny_action_click', { type: 'gold_coin' });
-                  }}
-                >
-                  前往 LINE 領取 (輸入: golden pudding) ➔
-                </button>
-                <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '15px' }}>
-                  點擊按鈕加入 LINE@，輸入關鍵字「<span style={{ color: '#B8860B', fontWeight: 700 }}>golden pudding</span>」<br />獲得布丁買一送一券！
-                </p>
               </div>
             </div>
           </div>
