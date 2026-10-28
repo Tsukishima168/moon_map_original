@@ -9,7 +9,7 @@ export const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recomme
   },
   INTP: {
     personality: "邏輯學家 · 睿智巴斯貓",
-    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_pudding_mocha', 'basque_honey_black_tea'],
+    recommendedItemIds: ['tiramisu_yuzu_apple_cheese', 'tiramisu_pudding_mocha', 'mille_crepe_lemon_yuzu'],
     reason: "你喜歡探索新組合，這些創新口味會激發你的好奇心。"
   },
   ENTJ: {
@@ -24,12 +24,12 @@ export const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recomme
   },
   INFJ: {
     personality: "提倡者 · 夢幻蛋鬼",
-    recommendedItemIds: ['tiramisu_matcha', 'basque_honey_black_tea', 'pudding_classic'],
+    recommendedItemIds: ['tiramisu_matcha', 'mille_crepe_honey_black_tea_latte', 'pudding_classic'],
     reason: "你重視內在與意義，這些甜點含蓄而深刻。"
   },
   INFP: {
     personality: "調停者 · 夢幻蛋鬼",
-    recommendedItemIds: ['pudding_classic', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
+    recommendedItemIds: ['pudding_classic', 'tiramisu_yuzu_apple_cheese', 'chiffon_pudding'],
     reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
   },
   ENFJ: {
@@ -49,7 +49,7 @@ export const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recomme
   },
   ISFJ: {
     personality: "守衛者 · 活力奇異鳥",
-    recommendedItemIds: ['pudding_classic', 'basque_honey_black_tea', 'tiramisu_classic'],
+    recommendedItemIds: ['pudding_classic', 'basque_classic', 'tiramisu_classic'],
     reason: "你的細心值得同樣用心製作的甜點。"
   },
   ESTJ: {
@@ -69,7 +69,7 @@ export const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recomme
   },
   ISFP: {
     personality: "探險家 · 夢幻蛋鬼",
-    recommendedItemIds: ['tiramisu_matcha', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
+    recommendedItemIds: ['tiramisu_matcha', 'tiramisu_yuzu_apple_cheese', 'basque_lemon'],
     reason: "你的藝術靈魂需要同樣美麗的甜點。"
   },
   ESTP: {
