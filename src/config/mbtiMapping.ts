@@ -28,7 +28,7 @@ export const MBTI_DESSERT_MAPPING: Record<string, { personality: string; recomme
     reason: "你重視內在與意義，這些甜點含蓄而深刻。"
   },
   INFP: {
-    personality: "調停者 · 夢夢幻蛋鬼",
+    personality: "調停者 · 夢幻蛋鬼",
     recommendedItemIds: ['pudding_classic', 'tiramisu_yuzu_apple_cheese', 'basque_honey_black_tea'],
     reason: "你的溫柔需要同樣溫暖的甜點來呼應。"
   },
