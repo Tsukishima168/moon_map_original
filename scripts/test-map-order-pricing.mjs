@@ -383,10 +383,11 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
 }
 
 // ── 靜態菜單（public/menu.json）打進來的訂單 ──────────────────────────────────────
-// /api/menu 在資料庫失敗時回 public/menu.json，前端也會直接讀它；購物車帶的是靜態品名
-// （例：「經典提拉米蘇」），資料庫正本是「經典｜提拉米蘇」。伺服器必須靠 lib/menu-catalog.ts
-// 的別名找到同一個資料庫品項，而不是回 400 找不到商品、讓所有訂單都下不了。
-// 資料庫列由 menu-catalog 的別名（資料庫命名「X｜Y」）與 menu.json 的規格／分類組成，不查正式庫。
+// /api/menu 在資料庫失敗時回 public/menu.json，前端也會直接讀它。2026-10-28 起 menu.json 的品名、
+// lib/menu-catalog.ts 的 label 都對齊正式站 /api/menu 的現行品名（例：「經典｜提拉米蘇」）；
+// 改名前的短名（例：「經典提拉米蘇」）只留在 aliases，舊版快取的前端、舊訂單文字送來時，
+// 伺服器仍須靠別名找到同一個資料庫品項，而不是回 400 找不到商品。
+// 資料庫列由 menu.json 的品名／規格／分類組成，不查正式庫。
 {
   const rawStaticMenu = JSON.parse(readFileSync(new URL('../public/menu.json', import.meta.url), 'utf8'));
   // 前端／api/menu 靜態備援實際顯示的菜單（已排除隱藏品項）。
@@ -394,16 +395,17 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
   const shownItems = shownStaticMenu.flatMap((category) => category.items.map((item) => ({ ...item, categoryId: category.id })));
   const orderableStaticItems = shownItems.filter((item) => item.prices.length > 0); // 飲品在靜態菜單沒有價格
 
-  const dbNameOf = (catalogId) => {
-    const entry = MENU_ITEM_CATALOG.find((candidate) => candidate.id === catalogId);
-    return entry.aliases.find((alias) => alias.includes('｜') && alias !== entry.label);
-  };
-  // 靜態品名 → 資料庫品名：catalog 內的品項靜態短名與資料庫「X｜Y」不同（走別名層）；
-  // 現行新品（例：北海道十勝戚風蛋糕）不在 catalog，靜態品名就是資料庫品名（走精確品名）。
-  const dbNameForStatic = (item) => {
-    const catalogId = resolveMenuItemId(item.name);
-    return catalogId ? dbNameOf(catalogId) : item.name;
-  };
+  // 資料庫品名 = 現行菜單品名 = catalog label；改名前的短名固定放在 aliases[0]。
+  const catalogEntryOfId = (catalogId) => MENU_ITEM_CATALOG.find((candidate) => candidate.id === catalogId);
+  const dbNameOf = (catalogId) => catalogEntryOfId(catalogId).label;
+  const legacyNameOf = (catalogId) => catalogEntryOfId(catalogId).aliases[0];
+  // 不在 catalog 的現行新品（品名就是資料庫品名，走精確比對）只能是這 3 款明列的戚風；
+  // 其他靜態品項一律要在 catalog 且品名等於現行 label，備援菜單的品名打錯字會在這裡被抓出來。
+  const NON_CATALOG_STATIC_DESSERTS = new Set(['北海道十勝戚風蛋糕', '檸檬蘋果戚風蛋糕', '綜合水果戚風蛋糕']);
+  for (const name of NON_CATALOG_STATIC_DESSERTS) {
+    assert.equal(resolveMenuItemId(name), null, `${name} is allow-listed as non-catalog; add it to the catalog instead if it becomes one`);
+    assert.ok(orderableStaticItems.some((item) => item.name === name), `allow-listed static dessert missing from menu.json: ${name}`);
+  }
   const toNumber = (staticPrice) => Number(String(staticPrice).replace(/[^\d]/g, ''));
   // 正式庫價格格式輪流用：純數字、$、$ 加千分位；資料庫價格一律比靜態價格多 10 元（代表靜態菜單已過期）。
   const formatDbPrice = (value, index) => [String(value), `$${value}`, `$${value.toLocaleString('en-US')}`][index % 3];
@@ -413,13 +415,15 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
   const expectedDbPrice = new Map(); // `${靜態品名}|${規格}` → 資料庫價格
   orderableStaticItems.forEach((item, itemIndex) => {
     const catalogId = resolveMenuItemId(item.name);
-    const dbName = dbNameForStatic(item);
     if (catalogId) {
-      assert.ok(dbName && dbName !== item.name, `fixture must use a different production-style DB name for ${item.name}`);
-      assert.equal(resolveMenuItemId(dbName), catalogId);
+      assert.equal(item.name, dbNameOf(catalogId), `static menu name must be the current menu name (catalog label): ${item.name}`);
+      assert.notEqual(legacyNameOf(catalogId), item.name, `legacy short name should stay in aliases: ${item.name}`);
+      assert.equal(resolveMenuItemId(legacyNameOf(catalogId)), catalogId);
+    } else {
+      assert.ok(NON_CATALOG_STATIC_DESSERTS.has(item.name), `static item should be in catalog: ${item.name}`);
     }
     const dbKey = catalogId ?? `exact-${itemIndex}`;
-    dbItems.push({ id: `db-${dbKey}`, name: dbName, category_id: item.categoryId, is_available: true });
+    dbItems.push({ id: `db-${dbKey}`, name: item.name, category_id: item.categoryId, is_available: true });
     item.prices.forEach((variant, variantIndex) => {
       const dbPrice = toNumber(variant.price) + 10;
       dbVariants.push({ id: `db-${dbKey}-${variantIndex}`, menu_item_id: `db-${dbKey}`, spec: variant.spec, price: formatDbPrice(dbPrice, itemIndex + variantIndex) });
@@ -456,9 +460,25 @@ assertRejected(await submit([line('巴斯克乳酪蛋糕', '6吋', 1, 1000)]), /
     });
     const dbPrice = expectedDbPrice.get(`${item.name}|${variant.spec}`);
     assert.equal(res.statusCode, 200, `${item.name}／${variant.spec}: ${JSON.stringify(res.body)}`);
-    assert.equal(inserts[0].items[0].name, dbNameForStatic(item), 'stored name should be the DB name');
+    assert.equal(inserts[0].items[0].name, item.name, 'stored name should be the DB name');
     assert.equal(inserts[0].items[0].price, dbPrice, `${item.name}／${variant.spec} should be priced from the DB`);
     assert.equal(inserts[0].total_price, dbPrice * 2);
+  }
+  // 改名前的短名（舊版快取的前端、舊訂單文字）走別名層：找到同一個資料庫品項、同一個價格、存的是資料庫品名。
+  const legacyLines = staticLines
+    .filter(({ item }) => resolveMenuItemId(item.name))
+    .map(({ item, variant }) => ({ item, variant, legacyName: legacyNameOf(resolveMenuItemId(item.name)) }));
+  // 19 個 catalog 甜點、共 34 組品名＋規格（另外 3 款戚風不在 catalog，沒有舊短名）。
+  assert.ok(legacyLines.length >= 34, `expected >= 34 legacy-name lines, got ${legacyLines.length}`);
+  for (const { item, variant, legacyName } of legacyLines) {
+    const clientPrice = toNumber(variant.price);
+    const { res, inserts } = await submit([line(legacyName, variant.spec, clientPrice, 1)], {
+      order: { total_amount: clientPrice },
+      client: withDb(() => {}),
+    });
+    assert.equal(res.statusCode, 200, `${legacyName}／${variant.spec}: ${JSON.stringify(res.body)}`);
+    assert.equal(inserts[0].items[0].name, item.name, `${legacyName} should resolve to the DB item ${item.name}`);
+    assert.equal(inserts[0].items[0].price, expectedDbPrice.get(`${item.name}|${variant.spec}`));
   }
   // 整張靜態菜單一次送出也行（金額 = 資料庫價格加總）。
   {
