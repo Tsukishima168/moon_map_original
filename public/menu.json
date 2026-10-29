@@ -5,7 +5,7 @@
         "subtitle": "Layers of Memory",
         "items": [
             {
-                "name": "經典提拉米蘇",
+                "name": "經典｜提拉米蘇",
                 "description": "濃郁咖啡酒香與綿密馬斯卡彭乳酪的完美平衡，層層交織的義式經典。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282853/dessert/menu_item_fdf76c2c-121e-4069-bdf0-5662c214c622.webp",
                 "prices": [
@@ -20,7 +20,7 @@
                 ]
             },
             {
-                "name": "烤焦糖布丁摩卡米蘇",
+                "name": "烤焦糖布丁摩卡｜提拉米蘇",
                 "description": "焦糖脆片與摩卡咖啡的雙重奏鳴，帶來意想不到的層次驚喜。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282893/dessert/menu_item_63cd7340-1b89-47a6-b49a-1ee0c1eb86fe.webp",
                 "prices": [
@@ -35,7 +35,7 @@
                 ]
             },
             {
-                "name": "小山園抹茶米蘇",
+                "name": "小山園抹茶｜提拉米蘇",
                 "description": "嚴選日本小山園抹茶，苦甜交融，呈現和洋融合的細膩風味。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282897/dessert/menu_item_a9a834ed-39ca-4524-8f03-2183db366d1f.webp",
                 "prices": [
@@ -50,7 +50,7 @@
                 ]
             },
             {
-                "name": "日本柚子蘋果乳酪米蘇",
+                "name": "日本柚子蘋果乳酪｜提拉米蘇",
                 "description": "清新柚子香氣搭配蘋果果酸，輕盈爽口的夏日版提拉米蘇。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282902/dessert/menu_item_ed08801b-55f5-4d51-9db4-37cc03688bef.webp",
                 "prices": [
@@ -65,7 +65,7 @@
                 ]
             },
             {
-                "name": "奶酒提拉米蘇",
+                "name": "貝里詩奶酒｜提拉米蘇",
                 "description": "加入 Baileys 奶酒增添醇厚酒香，成熟大人味的溫柔甜蜜。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282893/dessert/menu_item_63cd7340-1b89-47a6-b49a-1ee0c1eb86fe.webp",
                 "prices": [
@@ -87,8 +87,8 @@
         "subtitle": "Texture of Island",
         "items": [
             {
-                "name": "原味巴斯克",
-                "description": "外酥內軟的焦糖外殼，包裹著半熟乳酪的濃郁綿密，簡單卻深刻。",
+                "name": "北海道經典｜巴斯克乳酪",
+                "description": "使用味道輕盈的奶油乳酪，中心是半熟狀態，即便烘烤過，也能感受那綿密的口感。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282899/dessert/menu_item_d120a328-3222-4618-8aed-9a547f7b386a.webp",
                 "prices": [
                     {
@@ -106,7 +106,7 @@
                 ]
             },
             {
-                "name": "檸檬巴斯克",
+                "name": "檸檬｜巴斯克乳酪",
                 "description": "清爽檸檬香氣平衡乳酪濃郁，每一口都是夏日微風般的輕盈。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282850/dessert/menu_item_0a76fe1d-0302-4bff-8997-236d4a004b0b.webp",
                 "prices": [
@@ -125,7 +125,7 @@
                 ]
             },
             {
-                "name": "鹹蛋黃巴斯克",
+                "name": "鹹蛋黃｜巴斯克乳酪",
                 "description": "鹹香蛋黃與甜美乳酪的東西碰撞，獨特鹹甜滋味令人難忘。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282894/dessert/menu_item_7bb2e59f-934e-44a3-af13-d52c5c43853c.webp",
                 "prices": [
@@ -151,13 +151,13 @@
         "subtitle": "Shape of Air",
         "items": [
             {
-                "name": "莓果巧克力戚風蛋糕",
+                "name": "莓果巧克力｜戚風蛋糕",
                 "description": "比利時巧克力與新鮮莓果的浪漫邂逅，輕盈卻充滿層次。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923761/dessert/menu_item_e3a60ea8-aa3e-40f3-ad8e-3cc4dd12ec02.webp",
                 "prices": [
                     {
                         "spec": "四吋",
-                        "price": "$590"
+                        "price": "$550"
                     },
                     {
                         "spec": "六吋",
@@ -165,12 +165,12 @@
                     },
                     {
                         "spec": "八吋",
-                        "price": "$1,800"
+                        "price": "$1,700"
                     }
                 ]
             },
             {
-                "name": "烤焦糖布丁戚風蛋糕",
+                "name": "烤焦糖布丁｜戚風蛋糕",
                 "description": "焦糖布丁與雲朵般蛋糕體的溫柔相遇，甜蜜中帶著微微焦香。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282895/dessert/menu_item_8e59b833-853a-4164-b747-6382c4bd7658.webp",
                 "prices": [
@@ -189,13 +189,47 @@
                 ]
             },
             {
-                "name": "母親節限定｜北海道十勝戚風千層",
-                "description": "北海道十勝鮮奶油戚風千層，母親節限定款，附三種醬料組合。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1777026248/mom-cake-2026_ghriw2.webp",
+                "name": "北海道十勝戚風蛋糕",
+                "description": "輕盈柔軟的著陸點，在銳利的世界裡提供一場溫柔的安放。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282904/dessert/menu_item_e2fbf554-87d6-4e5f-86cf-c302d2f3bfc5.webp",
                 "prices": [
                     {
-                        "spec": "六寸｜三種醬料組合",
-                        "price": "$1,490"
+                        "spec": "六吋",
+                        "price": "$1,050"
+                    }
+                ]
+            },
+            {
+                "name": "檸檬蘋果戚風蛋糕",
+                "description": "明亮如陽光的清新力量，溫暖並照亮每一個被遺忘的角落。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282905/dessert/menu_item_f2861596-f10e-4c18-bfb0-5b63335329e9.webp",
+                "prices": [
+                    {
+                        "spec": "四吋",
+                        "price": "$550"
+                    },
+                    {
+                        "spec": "六吋",
+                        "price": "$1,050"
+                    }
+                ]
+            },
+            {
+                "name": "綜合水果戚風蛋糕",
+                "description": "點亮全場的色彩盛宴，將每一刻都轉化為永恆的快樂慶典。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282906/dessert/menu_item_3d59121a-b450-42a4-8fa0-be85f8b4b9bd.webp",
+                "prices": [
+                    {
+                        "spec": "四吋",
+                        "price": "$690"
+                    },
+                    {
+                        "spec": "六吋",
+                        "price": "$1,300"
+                    },
+                    {
+                        "spec": "八吋",
+                        "price": "$1,900"
                     }
                 ]
             }
@@ -207,7 +241,7 @@
         "subtitle": "Slices of Time",
         "items": [
             {
-                "name": "北海道十勝低糖原味千層",
+                "name": "北海道十勝低糖原味｜千層蛋糕",
                 "description": "嚴選北海道十勝鮮奶油，低糖配方突顯乳香，品嚐最純粹的美好。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282901/dessert/menu_item_e9fa32e1-d48a-4cbc-8663-f9888c18c3e2.webp",
                 "prices": [
@@ -218,8 +252,8 @@
                 ]
             },
             {
-                "name": "法芙娜巧克力布朗尼千層",
-                "description": "法國法芙娜巧克力的醇厚，搭配布朗尼碎片，巧克力控的天堂。",
+                "name": "巧克力布朗尼｜千層蛋糕",
+                "description": "把烤好的布朗尼，壓碎加入夾層中，搗碎的布朗尼中帶著堅果香氣跟巧克力濃郁的綿密，一次想用兩種巧克力甜點。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789289016/dessert/menu_item_d323bd72-12ff-4bbb-9533-16fac4d08bba.webp",
                 "prices": [
                     {
@@ -229,7 +263,7 @@
                 ]
             },
             {
-                "name": "特濃抹茶千層",
+                "name": "特濃宇治抹茶｜千層蛋糕",
                 "description": "濃郁抹茶層層堆疊，苦中帶甘，展現日式甜點的細膩哲學。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282889/dessert/menu_item_212f556e-502a-4e5a-90bb-e77e7b92f7ba.webp",
                 "prices": [
@@ -240,7 +274,7 @@
                 ]
             },
             {
-                "name": "伯爵茶千層",
+                "name": "格雷伯爵奶蓋｜千層蛋糕",
                 "description": "伯爵茶的佛手柑香氣在每一層綻放，優雅而不甜膩。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282888/dessert/menu_item_07aa3a7a-41dc-4f20-a48a-75293ff9778f.webp",
                 "prices": [
@@ -251,7 +285,7 @@
                 ]
             },
             {
-                "name": "檸檬日本柚子千層",
+                "name": "檸檬日本柚子｜千層蛋糕",
                 "description": "雙柑橘的清新酸甜，為千層蛋糕注入陽光般的活力。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282898/dessert/menu_item_c0820442-bab4-4c47-a4a8-60ef88da22d9.webp",
                 "prices": [
@@ -262,7 +296,7 @@
                 ]
             },
             {
-                "name": "蜜香紅茶拿鐵千層",
+                "name": "蜜香紅茶拿鐵｜千層蛋糕",
                 "description": "蜜香紅茶與鮮奶油的溫柔融合，如午後的一杯手調拿鐵。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282900/dessert/menu_item_e58bac5a-eb09-4a7d-b5ad-47e8491e63c0.webp",
                 "prices": [
@@ -273,7 +307,7 @@
                 ]
             },
             {
-                "name": "焙茶拿鐵千層",
+                "name": "特濃靜岡焙茶拿鐵｜千層蛋糕",
                 "description": "日本焙茶的炭火焙香，帶來沉穩內斂的和風韻味。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282891/dessert/menu_item_4543b86a-80a9-41d3-b8bb-b9bc505f5d8a.webp",
                 "prices": [
@@ -284,24 +318,13 @@
                 ]
             },
             {
-                "name": "十勝低糖水果森林千層",
-                "description": "繽紛水果與低糖鮮奶油的清爽組合，如漫步森林般的自然甜美。",
+                "name": "十勝水果派對｜千層蛋糕",
+                "description": "使用當季水果夾餡，搭配十勝鮮奶油與新鮮水果裝飾，是非常適合小孩吃的口味。\n",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282903/dessert/menu_item_f5c62e8d-59df-44c5-bcd6-d6473097b32b.webp",
                 "prices": [
                     {
                         "spec": "九吋",
                         "price": "$2,500"
-                    }
-                ]
-            },
-            {
-                "name": "母親節限定｜北海道十勝戚風千層",
-                "description": "北海道十勝鮮奶油戚風千層，母親節限定款，附三種醬料組合。",
-                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1777026248/mom-cake-2026_ghriw2.webp",
-                "prices": [
-                    {
-                        "spec": "六寸｜三種醬料組合",
-                        "price": "$1,490"
                     }
                 ]
             }
@@ -313,8 +336,8 @@
         "subtitle": "Small Treats",
         "items": [
             {
-                "name": "布丁",
-                "description": "經典法式烤布丁，焦糖脆片與滑嫩蛋奶的完美對話，簡單卻雋永。",
+                "name": "經典烤布丁｜乾濕分離",
+                "description": "設計出一款雞蛋、牛奶和鮮奶油的完美比例跟烘烤時間。焦糖醬是另外提供，可以根據自己的喜好添加。",
                 "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1789282892/dessert/menu_item_5fc488d8-c1dd-45c6-aa4f-e164b6d793ab.webp",
                 "prices": [
                     {
@@ -332,58 +355,84 @@
         "hidePrice": true,
         "items": [
             {
-                "name": "美式咖啡",
+                "name": "經典美式咖啡",
                 "description": "精選咖啡豆，呈現純粹的咖啡本味。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923752/dessert/menu_item_2dc91927-e761-480a-93db-ebfae8817e38.webp",
                 "prices": []
             },
             {
-                "name": "經典拿鐵",
-                "description": "濃縮咖啡與綿密奶泡的經典比例，溫暖而熟悉的日常陪伴。",
+                "name": "特濃拿鐵",
+                "description": "是一款咖啡濃郁的拿鐵咖啡。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923731/dessert/menu_item_eb996a87-bd03-40e2-af53-2bd6cbb901ed.webp",
                 "prices": []
             },
             {
                 "name": "日本柚子美式",
                 "description": "清新柚子香氣與咖啡的創新碰撞，清爽驚喜。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923696/dessert/menu_item_5ab98e4e-8cd2-45c2-a632-3c5be7f6acfe.webp",
                 "prices": []
             },
             {
-                "name": "薄荷茶",
+                "name": "台灣蜂蜜美式",
+                "description": "台灣蜂蜜、濃縮咖啡、冰塊。糖冰固定。",
+                "prices": []
+            },
+            {
+                "name": "甘草薄荷茶",
                 "description": "清涼薄荷葉沖泡，舒緩身心的草本香氣。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923738/dessert/menu_item_e23b16db-667c-47df-8be0-389784bd0a4b.webp",
                 "prices": []
             },
             {
-                "name": "焙茶拿鐵",
+                "name": "摩卡可可咖啡",
+                "description": "濃縮咖啡、黑可可粉、牛奶。冷／熱。",
+                "prices": []
+            },
+            {
+                "name": "靜岡焙茶拿鐵",
                 "description": "日本焙茶的炭火香氣融入鮮奶，溫潤而不甜膩。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923775/dessert/menu_item_b034d1d0-ccc5-4c11-86be-4c5e98e2733f.webp",
                 "prices": []
             },
             {
-                "name": "烤布丁拿鐵",
+                "name": "來一顆烤布丁拿鐵",
                 "description": "焦糖布丁風味融入拿鐵，甜蜜創意飲品。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923648/dessert/menu_item_775c1c37-44e2-4db2-824e-49a367e115c5.webp",
                 "prices": []
             },
             {
                 "name": "博士茶",
                 "description": "南非國寶茶，無咖啡因的溫潤口感。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923674/dessert/menu_item_1512f78c-0730-4e5e-95f5-92131af3f703.webp",
                 "prices": []
             },
             {
-                "name": "抹茶拿鐵",
+                "name": "小山園抹茶拿鐵",
                 "description": "濃郁抹茶與鮮奶的完美調和，品味日式優雅。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923688/dessert/menu_item_59cf2213-c7b4-44e0-9d65-5090d69ae878.webp",
                 "prices": []
             },
             {
-                "name": "花草茶",
+                "name": "舒緩花草茶",
                 "description": "精選花草調配，每一口都是大自然的療癒芬芳。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923754/dessert/menu_item_4663cb76-d1f4-442a-ae09-4da0233d2a3d.webp",
                 "prices": []
             },
             {
-                "name": "西西里美式",
+                "name": "西西里咖啡",
                 "description": "西西里檸檬與咖啡的浪漫，酸甜交織的夏日暢飲。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923767/dessert/menu_item_7778458e-2fda-4375-ae26-a36910e5453d.webp",
                 "prices": []
             },
             {
-                "name": "蕎麥茶",
+                "name": "黃金蕎麥茶",
                 "description": "日本蕎麥的香醇韻味，溫潤回甘。",
+                "image": "https://res.cloudinary.com/dvizdsv4m/image/upload/v1771923781/dessert/menu_item_e93637f2-e11c-4484-ad07-9c39b2134996.webp",
+                "prices": []
+            },
+            {
+                "name": "香橙柚子茶",
+                "description": "韓國蜂蜜柚子、日本柚子汁。冷／熱。",
                 "prices": []
             }
         ]
