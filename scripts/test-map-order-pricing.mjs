@@ -112,6 +112,11 @@ function createStubClient({ menuError = null, menuItems = MENU_ITEMS, menuVarian
   return {
     inserts,
     from(table) {
+      // 公休日檢查讀 business_settings（.select().in()）；這份測試只管計價，回傳「沒有任何設定」＝不擋。
+      // 公休日本身的測試在 scripts/test-map-order-closure.mjs。
+      if (table === 'business_settings') {
+        return { select: () => ({ in: async () => ({ data: [], error: null }) }) };
+      }
       if (table === 'orders') {
         return { insert(row) {
           inserts.push(structuredClone(row));
