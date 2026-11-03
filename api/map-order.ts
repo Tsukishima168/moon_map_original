@@ -234,6 +234,12 @@ export function validateOrderRequestPayload(order: unknown, items: unknown): str
   if (!isNonEmptyString(o.pickup_date, STRING_FIELD_MAX_LENGTHS.pickup_date)) {
     return 'Invalid or missing pickup_date'
   }
+  // 取貨日只收 YYYY-MM-DD，或 YYYY-MM-DD 後接 T／一個空白再接 HH:MM[:SS]，且必須是真的日期。
+  // 多一個字元（2026-11-13x、帶時區後綴…）都拒：寫入的 pickup_time 會被下游以前 10 個字元當日期，
+  // 若放行就能繞過公休日檢查（見 extractPickupDay）。
+  if (extractPickupDay(o.pickup_date) === null) {
+    return INVALID_PICKUP_DATE_MESSAGE
+  }
   if (!isOptionalString(o.order_note, STRING_FIELD_MAX_LENGTHS.order_note)) {
     return 'Invalid order_note'
   }
@@ -539,7 +545,9 @@ const isUniqueViolation = (error: { code?: string; message?: string } | null) =>
 const normalizePickupTime = (pickupDate: string) => {
   const value = String(pickupDate || '').trim()
   if (!value) return new Date().toISOString()
-  if (value.includes('T')) return value
+  // 已帶時間（YYYY-MM-DDTHH:MM 或 YYYY-MM-DD HH:MM，驗證只放行這兩種）就原樣寫入；
+  // 只有純日期才補預設取貨時間 13:00。
+  if (value.includes('T') || value.includes(' ')) return value
   return `${value} 13:00`
 }
 
@@ -643,6 +651,140 @@ const insertOrderWithRetry = async (
   return { data: null, error: lastError }
 }
 
+// ---------------------------------------------------------------------------
+// 公休日／店休日檢查（2026-11-01）
+//
+// 前端日曆（index.tsx filterDate）只是方便顧客：週一一律灰掉、daily_capacity.special_dates
+// 值為 0 的日期灰掉。繞過網頁直接送單就擋不住，所以伺服器端也要把關。拒單條件（任一成立）：
+// 1. business_settings.daily_capacity.special_dates[日期] === 0（與前端一致）
+// 2. business_settings.business_hours.special_closures 含該日期
+// 3. 該日期的星期在 business_hours.closed_days（0=週日…6=週六，1=週一）
+// 設定讀不到時 fail-open（放行並 console.error）：前端日曆已經擋過，不能因為讀設定失敗
+// 擋掉所有正常訂單。拒單回 400，菜單頁（lib/map-order-client.ts）會把中文 error 顯示給顧客。
+// ---------------------------------------------------------------------------
+
+export const CLOSED_PICKUP_DATE_MESSAGE = '這一天店休，請選其他取貨日'
+export const INVALID_PICKUP_DATE_MESSAGE = '取貨日期格式不正確，請重新選擇日期'
+
+const BUSINESS_SETTINGS_TABLE = 'business_settings'
+const DAILY_CAPACITY_KEY = 'daily_capacity'
+const BUSINESS_HOURS_KEY = 'business_hours'
+// 前端實際送的是本地日期 YYYY-MM-DD（index.tsx pickupDateStr）。只接受兩種完整格式，後面不能再有任何
+// 東西（含時區後綴、前後空白）：YYYY-MM-DD，或 YYYY-MM-DD 後接 T／一個空白，再接 HH:MM（可加 :SS）。
+const PICKUP_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?)?$/
+
+export interface PickupDay {
+  /** YYYY-MM-DD，取貨日當天（直接取字串，不經時區換算） */
+  date: string
+  /** 0=週日…6=週六；由年月日以 UTC 計算，不受伺服器時區影響 */
+  weekday: number
+}
+
+export type PickupClosureReason = 'special_date' | 'special_closure' | 'closed_weekday'
+
+export type PickupClosureResult =
+  | { closed: false }
+  | { closed: true; reason: PickupClosureReason; date: string }
+
+export interface PickupClosureSettings {
+  /** business_settings.daily_capacity 的 setting_value（{ default_limit, special_dates }） */
+  dailyCapacity: unknown
+  /** business_settings.business_hours 的 setting_value（{ closed_days, special_closures, ... }） */
+  businessHours: unknown
+}
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+/**
+ * 從 pickup_date 取出 YYYY-MM-DD 與星期；同時是取貨日格式的唯一判準（validateOrderRequestPayload
+ * 也用它）。格式不符、或不是真的日期（例：2026-02-31）回傳 null。通過驗證的請求不會再遇到 null，
+ * checkPickupDateClosure 對 null 仍維持放行，只是單獨呼叫時的保險。
+ */
+export function extractPickupDay(pickupDate: unknown): PickupDay | null {
+  if (typeof pickupDate !== 'string') return null
+  const match = PICKUP_DAY_PATTERN.exec(pickupDate)
+  if (!match) return null
+
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  // 用 UTC 建構再讀回：星期不受伺服器時區影響，也順便擋掉不存在的日期。
+  const utc = new Date(Date.UTC(year, month - 1, day))
+  if (utc.getUTCFullYear() !== year || utc.getUTCMonth() !== month - 1 || utc.getUTCDate() !== day) {
+    return null
+  }
+
+  return { date: `${match[1]}-${match[2]}-${match[3]}`, weekday: utc.getUTCDay() }
+}
+
+/**
+ * 純函式：這個取貨日是否公休。設定任何欄位缺少、型別不對一律當作空值（不擋）。
+ */
+export function checkPickupDateClosure(
+  pickupDate: unknown,
+  dailyCapacity: unknown,
+  businessHours: unknown
+): PickupClosureResult {
+  const pickupDay = extractPickupDay(pickupDate)
+  if (!pickupDay) return { closed: false }
+  const { date, weekday } = pickupDay
+
+  const specialDates = isPlainRecord(dailyCapacity) ? dailyCapacity.special_dates : undefined
+  if (isPlainRecord(specialDates) && specialDates[date] === 0) {
+    return { closed: true, reason: 'special_date', date }
+  }
+
+  const hours = isPlainRecord(businessHours) ? businessHours : null
+  const specialClosures = hours?.special_closures
+  if (
+    Array.isArray(specialClosures) &&
+    specialClosures.some((entry) => typeof entry === 'string' && entry.trim() === date)
+  ) {
+    return { closed: true, reason: 'special_closure', date }
+  }
+
+  const closedDays = hours?.closed_days
+  if (Array.isArray(closedDays) && closedDays.some((day) => day === weekday)) {
+    return { closed: true, reason: 'closed_weekday', date }
+  }
+
+  return { closed: false }
+}
+
+/**
+ * 一次查 business_settings 的 daily_capacity 與 business_hours。查詢失敗（含丟例外）回傳 null，
+ * 呼叫端 fail-open；查得到但缺其中一列／欄位，該份設定視為空值。
+ */
+export async function loadPickupClosureSettings(
+  adminClient: Pick<ReturnType<typeof createAdminClient>, 'from'>
+): Promise<PickupClosureSettings | null> {
+  try {
+    const { data, error } = await adminClient
+      .from(BUSINESS_SETTINGS_TABLE)
+      .select('setting_key,setting_value')
+      .in('setting_key', [DAILY_CAPACITY_KEY, BUSINESS_HOURS_KEY])
+
+    if (error) {
+      console.error('[map-order] 讀取公休日設定失敗，略過公休日檢查:', error)
+      return null
+    }
+
+    const rows: unknown[] = Array.isArray(data) ? data : []
+    const valueOf = (key: string): unknown => {
+      for (const row of rows) {
+        if (isPlainRecord(row) && row.setting_key === key) return row.setting_value
+      }
+      return null
+    }
+
+    return { dailyCapacity: valueOf(DAILY_CAPACITY_KEY), businessHours: valueOf(BUSINESS_HOURS_KEY) }
+  } catch (err) {
+    console.error('[map-order] 讀取公休日設定發生例外，略過公休日檢查:', err)
+    return null
+  }
+}
+
 /**
  * POST /api/map-order
  * 建立訂單（canonical orders）
@@ -667,6 +809,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const adminClient = createAdminClient()
     const orderPayload = order as OrderPayload
+
+    // 公休日不收單：驗證通過後、計價與寫入之前。讀不到設定就放行（見上方說明）。
+    const closureSettings = await loadPickupClosureSettings(adminClient)
+    if (closureSettings) {
+      const closure = checkPickupDateClosure(
+        orderPayload.pickup_date,
+        closureSettings.dailyCapacity,
+        closureSettings.businessHours
+      )
+      if (closure.closed) {
+        console.warn('[map-order] 取貨日為公休日，拒絕建立訂單:', {
+          order_number: orderPayload.order_number ?? null,
+          pickup_date: closure.date,
+          reason: closure.reason,
+        })
+        return res.status(400).json({ error: CLOSED_PICKUP_DATE_MESSAGE })
+      }
+    }
 
     const pricingResult = await priceOrderItemsFromMenu(adminClient, items as OrderItemPayload[])
     if (!pricingResult.ok) {
