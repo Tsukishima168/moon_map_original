@@ -234,6 +234,12 @@ export function validateOrderRequestPayload(order: unknown, items: unknown): str
   if (!isNonEmptyString(o.pickup_date, STRING_FIELD_MAX_LENGTHS.pickup_date)) {
     return 'Invalid or missing pickup_date'
   }
+  // 取貨日只收 YYYY-MM-DD，或 YYYY-MM-DD 後接 T／一個空白再接 HH:MM[:SS]，且必須是真的日期。
+  // 多一個字元（2026-11-13x、帶時區後綴…）都拒：寫入的 pickup_time 會被下游以前 10 個字元當日期，
+  // 若放行就能繞過公休日檢查（見 extractPickupDay）。
+  if (extractPickupDay(o.pickup_date) === null) {
+    return INVALID_PICKUP_DATE_MESSAGE
+  }
   if (!isOptionalString(o.order_note, STRING_FIELD_MAX_LENGTHS.order_note)) {
     return 'Invalid order_note'
   }
@@ -539,7 +545,9 @@ const isUniqueViolation = (error: { code?: string; message?: string } | null) =>
 const normalizePickupTime = (pickupDate: string) => {
   const value = String(pickupDate || '').trim()
   if (!value) return new Date().toISOString()
-  if (value.includes('T')) return value
+  // 已帶時間（YYYY-MM-DDTHH:MM 或 YYYY-MM-DD HH:MM，驗證只放行這兩種）就原樣寫入；
+  // 只有純日期才補預設取貨時間 13:00。
+  if (value.includes('T') || value.includes(' ')) return value
   return `${value} 13:00`
 }
 
@@ -656,13 +664,14 @@ const insertOrderWithRetry = async (
 // ---------------------------------------------------------------------------
 
 export const CLOSED_PICKUP_DATE_MESSAGE = '這一天店休，請選其他取貨日'
+export const INVALID_PICKUP_DATE_MESSAGE = '取貨日期格式不正確，請重新選擇日期'
 
 const BUSINESS_SETTINGS_TABLE = 'business_settings'
 const DAILY_CAPACITY_KEY = 'daily_capacity'
 const BUSINESS_HOURS_KEY = 'business_hours'
-// 前端實際送的是本地日期 YYYY-MM-DD（index.tsx pickupDateStr）；normalizePickupTime 也接受
-// 帶 T 的 ISO 字串或「日期 時間」，所以只認開頭的日期、後面必須是結尾或 T／空白。
-const PICKUP_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s])/
+// 前端實際送的是本地日期 YYYY-MM-DD（index.tsx pickupDateStr）。只接受兩種完整格式，後面不能再有任何
+// 東西（含時區後綴、前後空白）：YYYY-MM-DD，或 YYYY-MM-DD 後接 T／一個空白，再接 HH:MM（可加 :SS）。
+const PICKUP_DAY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?)?$/
 
 export interface PickupDay {
   /** YYYY-MM-DD，取貨日當天（直接取字串，不經時區換算） */
@@ -688,12 +697,13 @@ const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
 
 /**
- * 從 pickup_date 取出 YYYY-MM-DD 與星期。格式不符、或不是真的日期（例：2026-02-31）回傳 null，
- * 由呼叫端維持原本行為（不新增拒單）。
+ * 從 pickup_date 取出 YYYY-MM-DD 與星期；同時是取貨日格式的唯一判準（validateOrderRequestPayload
+ * 也用它）。格式不符、或不是真的日期（例：2026-02-31）回傳 null。通過驗證的請求不會再遇到 null，
+ * checkPickupDateClosure 對 null 仍維持放行，只是單獨呼叫時的保險。
  */
 export function extractPickupDay(pickupDate: unknown): PickupDay | null {
   if (typeof pickupDate !== 'string') return null
-  const match = PICKUP_DAY_PATTERN.exec(pickupDate.trim())
+  const match = PICKUP_DAY_PATTERN.exec(pickupDate)
   if (!match) return null
 
   const year = Number(match[1])

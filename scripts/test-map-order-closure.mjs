@@ -27,7 +27,9 @@ const {
   default: handler,
   extractPickupDay,
   checkPickupDateClosure,
+  validateOrderRequestPayload,
   CLOSED_PICKUP_DATE_MESSAGE,
+  INVALID_PICKUP_DATE_MESSAGE,
 } = await import(`data:text/javascript;base64,${Buffer.from(outputFiles[0].text).toString('base64')}`);
 
 // 正式庫 2026-11-01 店主設定 11/13–11/15 店休後的實際值。
@@ -52,19 +54,32 @@ console.error = (...args) => errors.push(args);
 const runPureChecks = (label) => {
   const at = (message) => `${label}: ${message}`;
 
-  // 前端實際送的格式是 YYYY-MM-DD（本地日期）；也接受 normalizePickupTime 會放行的帶 T／空白時間。
+  // 前端實際送的格式是 YYYY-MM-DD（本地日期）；另外只接受 T／一個空白後接 HH:MM[:SS]。
   assert.deepEqual(extractPickupDay('2026-11-13'), { date: '2026-11-13', weekday: 5 }, at('週五'));
   assert.deepEqual(extractPickupDay('2026-11-15'), { date: '2026-11-15', weekday: 0 }, at('週日'));
   assert.deepEqual(extractPickupDay('2026-11-02'), { date: '2026-11-02', weekday: 1 }, at('週一'));
   assert.deepEqual(extractPickupDay('2026-11-14T10:00:00'), { date: '2026-11-14', weekday: 6 }, at('T 時間'));
   assert.deepEqual(extractPickupDay('2026-11-14 13:00'), { date: '2026-11-14', weekday: 6 }, at('空白時間'));
-  assert.deepEqual(extractPickupDay('  2026-11-17  '), { date: '2026-11-17', weekday: 2 }, at('前後空白'));
+  assert.deepEqual(extractPickupDay('2026-11-17T13:00'), { date: '2026-11-17', weekday: 2 }, at('T HH:MM'));
+  assert.deepEqual(extractPickupDay('2026-11-17T13:00:59'), { date: '2026-11-17', weekday: 2 }, at('T HH:MM:SS'));
+  assert.deepEqual(extractPickupDay('2026-11-17 00:00'), { date: '2026-11-17', weekday: 2 }, at('空白 00:00'));
+  assert.deepEqual(extractPickupDay('2026-11-17 23:59:59'), { date: '2026-11-17', weekday: 2 }, at('空白 23:59:59'));
   // 跨年／閏日邊界。
   assert.equal(extractPickupDay('2028-02-29')?.weekday, 2, at('閏日 2028-02-29 週二'));
   assert.equal(extractPickupDay('2027-01-01')?.weekday, 5, at('2027-01-01 週五'));
 
-  // 取不出日期 → null（呼叫端維持原本行為）。
-  for (const bad of ['', '   ', 'tomorrow', '11/13/2026', '2026-11-1', '2026-11-130', '2026-13-01', '2026-02-31', '2026-00-10', '0050-01-01', 20261113, null, undefined, {}, ['2026-11-13']]) {
+  // 格式不合 → null（handler 在 validateOrderRequestPayload 以此回 400）。
+  // 前 6 個是複審重現的繞過寫法：日期後面多任何一個字元都不行。
+  for (const bad of [
+    '2026-11-13x', '2026-11-13Z', '2026-11-13.', '2026-11-13t10:00', '2026-11-130', '20261113',
+    '2026-11-13T10:00+08:00', '2026-11-13T10:00Z', '2026-11-13T10:00:00+08:00', '2026-11-13T10:00:00.000', '2026-11-13T10:00:00Z',
+    '2026-11-13 10:00 ', ' 2026-11-13', '2026-11-13 ', '  2026-11-17  ', '2026-11-13\n', '2026-11-13\t10:00', '2026-11-13  10:00',
+    '2026-11-13T', '2026-11-13 ', '2026-11-13T10', '2026-11-13T1:00', '2026-11-13T24:00', '2026-11-13T10:60', '2026-11-13T10:00:60',
+    '2026-11-13 10:00 extra', '2026-11-13-', '2026-11-13/',
+    '２０２６-11-13', '2026-1１-13',
+    '', '   ', 'tomorrow', '11/13/2026', '2026-11-1', '2026-13-01', '2026-02-31', '2026-02-29', '2026-04-31', '2026-00-10', '2026-11-00', '0050-01-01',
+    20261113, null, undefined, {}, ['2026-11-13'],
+  ]) {
     assert.equal(extractPickupDay(bad), null, at(`extractPickupDay(${JSON.stringify(bad)}) should be null`));
   }
 
@@ -112,8 +127,8 @@ const runPureChecks = (label) => {
   assert.deepEqual(closed('2026-11-13', { special_dates: ['2026-11-13'] }, { special_closures: '2026-11-13', closed_days: '1' }), { closed: false }, at('欄位型別錯（陣列／字串）'));
   assert.deepEqual(closed('2026-11-13', { special_dates: {} }, { special_closures: [null, 20261113, {}], closed_days: ['1', null] }), { closed: false }, at('陣列內容型別錯'));
 
-  // 7. 取不出日期 → 維持原本行為（不擋），即使設定全是公休。
-  for (const bad of ['', 'tomorrow', '2026-02-31', null, undefined, 20261113]) {
+  // 7. 取不出日期 → closure 函式本身不擋（保險；handler 已先在 validateOrderRequestPayload 以格式錯誤回 400）。
+  for (const bad of ['', 'tomorrow', '2026-02-31', '2026-11-13x', null, undefined, 20261113]) {
     assert.deepEqual(closed(bad, PROD_DAILY_CAPACITY, PROD_BUSINESS_HOURS), { closed: false }, at(`取不出日期 ${JSON.stringify(bad)} 不擋`));
   }
 };
@@ -265,8 +280,55 @@ assertAccepted(
   'handler setting_value 為 null',
 );
 
-// 取不出日期 → 維持原本行為（放行），不新增拒單。
-assertAccepted(await submit({ order: { pickup_date: 'tomorrow' }, client: createStubClient({ settingsRows: PROD_SETTINGS_ROWS }) }), 'handler pickup_date 取不出日期');
+// 取貨日格式（複審 FAIL 修正）：多打一個字元就能讓公休檢查取不出日期、再被 pickup_time 前 10 碼當成 11/13，
+// 所以格式錯一律在驗證階段回 400，連設定都不讀、不計價、不寫入。
+const assertInvalidPickupFormat = ({ res, inserts, calls }, label) => {
+  assert.equal(res.statusCode, 400, `${label}: ${JSON.stringify(res.body)}`);
+  assert.equal(res.body.error, INVALID_PICKUP_DATE_MESSAGE, label);
+  assert.equal(inserts.length, 0, `${label}: invalid pickup_date must not be written`);
+  assert.equal(calls.settings.length, 0, `${label}: must be rejected before reading settings`);
+  assert.equal(calls.menu_items + calls.menu_variants, 0, `${label}: must be rejected before pricing`);
+};
+for (const pickup_date of [
+  // 複審重現的 6 種寫法（正式庫兩份設定下，修正前全部回 200 並寫入訂單）。
+  '2026-11-13x', '2026-11-13Z', '2026-11-13.', '2026-11-13t10:00', '2026-11-130', '20261113',
+  // 不存在的日期、帶時區後綴、其他多餘字元。
+  '2026-02-31', '2026-11-13T10:00+08:00', '2026-11-13T10:00Z', '2026-11-12T23:00:00-10:00', '2026-11-13T10:00:00.000',
+  '2026-11-13 10:00 ', ' 2026-11-13', '2026-11-13  10:00', '2026-11-13T25:00', 'tomorrow',
+]) {
+  assertInvalidPickupFormat(
+    await submit({ order: { pickup_date }, client: createStubClient({ settingsRows: PROD_SETTINGS_ROWS }) }),
+    `handler pickup_date ${JSON.stringify(pickup_date)}`,
+  );
+}
+// 格式錯的訊息是客人看得懂的繁中，lib/map-order-client.ts 會原樣顯示。
+assert.match(INVALID_PICKUP_DATE_MESSAGE, /[㐀-鿿]/);
+assert.ok(INVALID_PICKUP_DATE_MESSAGE.length <= 200);
+// 直接驗證函式：格式錯回該訊息，合法格式（含店休日當天）通過驗證——店休由後面的檢查處理。
+assert.equal(validateOrderRequestPayload({ ...baseOrder, pickup_date: '2026-11-13x' }, [cakeLine]), INVALID_PICKUP_DATE_MESSAGE);
+assert.equal(validateOrderRequestPayload({ ...baseOrder, pickup_date: '2026-02-31' }, [cakeLine]), INVALID_PICKUP_DATE_MESSAGE);
+for (const ok of ['2026-11-17', '2026-11-17T13:00', '2026-11-17 13:00', '2026-11-17T13:00:00', '2026-11-13']) {
+  assert.equal(validateOrderRequestPayload({ ...baseOrder, pickup_date: ok }, [cakeLine]), null, `validate ${ok}`);
+}
+
+// 合法格式照常通過，pickup_time 寫入值：純日期補 13:00，已帶時間原樣（空白分隔不可重複補 13:00）。
+for (const [pickup_date, expectedPickupTime] of [
+  ['2026-11-17', '2026-11-17 13:00'],
+  ['2026-11-17T13:00', '2026-11-17T13:00'],
+  ['2026-11-17T13:00:30', '2026-11-17T13:00:30'],
+  ['2026-11-17 10:30', '2026-11-17 10:30'],
+  ['2026-11-17 10:30:15', '2026-11-17 10:30:15'],
+]) {
+  const result = await submit({ order: { pickup_date }, client: createStubClient({ settingsRows: PROD_SETTINGS_ROWS }) });
+  assertAccepted(result, `handler 合法格式 ${pickup_date}`);
+  assert.equal(result.inserts[0].pickup_time, expectedPickupTime, `pickup_time for ${pickup_date}`);
+  assert.equal(result.calls.settings.length, 1);
+}
+
+// 合法格式但是店休日（含空白分隔時間）仍然擋下，回店休而不是格式錯誤。
+for (const pickup_date of ['2026-11-13 10:00', '2026-11-14T10:00:00', '2026-11-16 09:30']) {
+  assertClosedRejection(await submit({ order: { pickup_date }, client: createStubClient({ settingsRows: PROD_SETTINGS_ROWS }) }), `handler 店休日帶時間 ${pickup_date}`);
+}
 
 // 查詢失敗（error 物件）／查詢丟例外 → fail-open：放行並 console.error。
 {
@@ -296,4 +358,4 @@ assertAccepted(await submit({ order: { pickup_date: 'tomorrow' }, client: create
 assert.match(CLOSED_PICKUP_DATE_MESSAGE, /[㐀-鿿]/);
 assert.ok(CLOSED_PICKUP_DATE_MESSAGE.length <= 200);
 
-console.log('Map order closure: server rejects special_dates=0 / special_closures / closed_days weekday before pricing, accepts normal days, special_dates!=0, missing settings, unparseable dates and settings-read failure (fail-open); weekday is timezone-independent (5 TZs); no DB or network accessed.');
+console.log('Map order closure: server rejects special_dates=0 / special_closures / closed_days weekday before pricing, accepts normal days, special_dates!=0, missing settings and settings-read failure (fail-open); malformed pickup_date (trailing chars, timezone suffix, nonexistent day) is a 400 before settings are read; weekday is timezone-independent (5 TZs); no DB or network accessed.');
