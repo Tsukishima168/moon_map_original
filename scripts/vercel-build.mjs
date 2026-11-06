@@ -70,7 +70,7 @@ await Promise.all(
       // packages: 'external' 移除：Build Output API 的 .func 目錄沒有 node_modules，
       // 必須把 npm 套件（@supabase/supabase-js 等）一起打進 bundle
       platform: 'node',
-      target: 'node20',
+      target: 'node24',
       format: 'cjs',          // CommonJS format
       outfile: join(funcDir, 'index.cjs'), // .cjs 明確告訴 Node 用 CJS，不受 package.json "type":"module" 影響
     })
@@ -78,7 +78,7 @@ await Promise.all(
     writeFileSync(
       join(funcDir, '.vc-config.json'),
       JSON.stringify({
-        runtime: 'nodejs20.x',
+        runtime: 'nodejs24.x',
         handler: 'index.cjs',  // 對應上面的 .cjs 檔名
         launcherType: 'Nodejs',
         shouldAddHelpers: true,
