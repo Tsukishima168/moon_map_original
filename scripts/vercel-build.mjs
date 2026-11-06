@@ -90,15 +90,24 @@ await Promise.all(
 )
 
 // ── 6. 輸出 Vercel routing config ───────────────────────────────────────────
+// Vite（rolldown）的 hash 檔名：<name>-<8 碼 base64url>.<ext>，例如 index-C8u_ucvv.js。
+// immutable 只能給「內容變了檔名就會變」的檔；public/assets 底下的檔（season-04/*、logo-chinese.*
+// 等）檔名不帶 hash，換圖不改檔名，不能套 immutable，否則客人最久一年看不到新圖。
+// ⚠ 所以 public/assets 的檔名尾段不要剛好變成 8 碼（-AbCdEfGh.png 這種）：會被這條規則誤判成 hash 檔。
+//   （目前 logo-chinese.*、*-desktop.* 的尾段是 7 碼，差一碼。）
+const HASHED_ASSET_SRC = '^/assets/[^/]+-[A-Za-z0-9_-]{8}\\.[A-Za-z0-9]+$'
+
 writeFileSync(
   `${OUT}/config.json`,
   JSON.stringify(
     {
       version: 3,
       routes: [
-        // 靜態資源：immutable cache
+        // hash 靜態檔：immutable cache。
+        // 放在 handle:'filesystem' 之前——該 phase 之後的規則只在 filesystem 沒命中時才檢查，
+        // 放後面就看不到已存在的檔案了。
         {
-          src: '/assets/(.*)',
+          src: HASHED_ASSET_SRC,
           headers: { 'Cache-Control': 'public, max-age=31536000, immutable' },
           continue: true,
         },
@@ -107,9 +116,11 @@ writeFileSync(
           src: `/api/${route}`,
           dest: `/api/${route}`,
         })),
-        // SPA fallback
+        // SPA fallback：排除 /assets/ 開頭的路徑——缺檔的 /assets/* 要回 404，
+        // 不能回 index.html（HTML 被當成 JS／圖片，還可能被快取）。
+        // /assets/ 底下沒有任何前端路由（SPA 路徑只有 / 與 /menu）。
         { handle: 'filesystem' },
-        { src: '/(.*)', dest: '/index.html' },
+        { src: '^/(?!assets/).*$', dest: '/index.html' },
       ],
     },
     null,
