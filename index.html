@@ -122,7 +122,9 @@
   }
 }
 </script>
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- LIFF SDK：defer 不再擋 HTML 解析。唯一讀 window.liff 的地方是 index.tsx 的 useEffect（module script），
+       defer 的 classic script 與 module script 同在「文件解析完後依文件順序執行」清單，SDK（此行）先於 /index.tsx 執行。 -->
+  <script defer charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     /* AI Semantic Layer - Visually Hidden */
     .visually-hidden {
