@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { VercelRequest, VercelResponse } from '../_utils/vercel-types.js'
 import { randomBytes } from 'crypto'
 import { verifyTrustedRequest } from '../_utils/verifyTrustedRequest.js'
 import { createAdminClient } from '../_utils/supabase-admin.js'

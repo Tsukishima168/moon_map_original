@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
 import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } from '../lib/menu-catalog.js'

@@ -1,4 +1,4 @@
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from './vercel-types.js';
 
 function normalizeOrigin(value: string): string {
   return value.trim().replace(/\/+$/, '').toLowerCase();
