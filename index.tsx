@@ -1,6 +1,7 @@
 
-import React, { Suspense, lazy, useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
+import LazyPickupDatePicker from './components/LazyPickupDatePicker';
 import KiwimuUniverseRail, { readSupabaseLoginStatus } from './components/KiwimuUniverseRail';
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
@@ -66,24 +67,6 @@ type CartItem = {
   price: string;
   count: number;
 };
-
-// 日期選擇器（react-datepicker 約 48 KB gzip + CSS）只在結帳表單用到，延後到表單出現才載入。
-const PickupDatePicker = lazy(() => import('./components/PickupDatePicker'));
-
-// 載入中的占位：尺寸與真正的 .custom-datepicker 輸入框相同（寬 100%、padding 12、1rem、border-box），避免版面跳動。
-// 樣式用 inline，因為 .custom-datepicker 的 CSS 跟著延後的 chunk 一起載入。
-const PickupDatePickerFallback = () => (
-  <div className="react-datepicker-wrapper-fallback" style={{ width: '100%' }}>
-    <input
-      type="text"
-      readOnly
-      disabled
-      aria-busy="true"
-      placeholder="請點擊選擇日期"
-      style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--c-line)', fontSize: '1rem', boxSizing: 'border-box' }}
-    />
-  </div>
-);
 
 const getInitialUrlSearch = () => {
   if (typeof window === 'undefined') {
@@ -3994,14 +3977,12 @@ const App = () => {
 
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
-                  <Suspense fallback={<PickupDatePickerFallback />}>
-                    <PickupDatePicker
-                      selected={pickupDate}
-                      onChange={(date: Date | null) => setPickupDate(date)}
-                      minDate={getMinPickupDate()}
-                      filterDate={filterDate}
-                    />
-                  </Suspense>
+                  <LazyPickupDatePicker
+                    selected={pickupDate}
+                    onChange={(date: Date | null) => setPickupDate(date)}
+                    minDate={getMinPickupDate()}
+                    filterDate={filterDate}
+                  />
                   <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
                     最快取貨日期：三天後 | 灰色為滿單或公休日<br />
