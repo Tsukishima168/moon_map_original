@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js';
 import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
 
 const DISCORD_API_URL = 'https://discord.com/api/v10';

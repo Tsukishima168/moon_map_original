@@ -1,4 +1,4 @@
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest } from './vercel-types.js';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { verifyTrustedRequest } from './verifyTrustedRequest.js';
 

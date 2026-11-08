@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import {
   fetchCanonicalMenuSnapshot,
   type CanonicalMbtiRecommendation,
