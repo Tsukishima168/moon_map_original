@@ -13,10 +13,11 @@ const inputStyle: React.CSSProperties = {
 
 // 日期選擇器（react-datepicker 約 48 KB gzip + CSS）只在結帳表單用到，延後到表單出現才載入。
 const load = () => import('./PickupDatePicker');
-let PickupDatePicker = lazy(load);
+const PickupDatePicker = lazy(load);
 
-// React.lazy 會快取失敗的 Promise；失敗後換一個新的 lazy，下次打開表單才會重新請求 chunk。
-const resetLazy = () => { PickupDatePicker = lazy(load); };
+// chunk 失敗後，這次瀏覽（直到重新整理）一律用原生日期欄位，不再重試：
+// Vite 的 CSS 預載只請求一次，失敗後再恢復會缺 react-datepicker 的 CSS（無框線、停用日不灰）。
+let chunkFailed = false;
 
 // 載入中的占位：尺寸與真正的輸入框相同（寬 100%、padding 12、1rem、border-box），避免版面跳動。
 // 樣式用 inline，因為 .custom-datepicker 的 CSS 跟著延後的 chunk 一起載入。
@@ -64,12 +65,12 @@ class PickerBoundary extends React.Component<{ fallback: React.ReactNode; childr
   static getDerivedStateFromError() { return { failed: true }; }
   componentDidCatch(error: unknown) {
     console.error('[PickupDatePicker] chunk 載入失敗，改用原生日期欄位', error);
-    resetLazy();
+    chunkFailed = true;
   }
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-const LazyPickupDatePicker: React.FC<Props> = (props) => (
+const LazyPickupDatePicker: React.FC<Props> = (props) => chunkFailed ? <NativeDateInput {...props} /> : (
   <PickerBoundary fallback={<NativeDateInput {...props} />}>
     <Suspense fallback={<Placeholder />}>
       <PickupDatePicker {...props} />
