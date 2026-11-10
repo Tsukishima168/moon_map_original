@@ -37,7 +37,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             padding: '24px',
             background: CONFIG.BRAND_COLORS.creamWhite,
             color: CONFIG.BRAND_COLORS.emotionBlack,
-            fontFamily: '"Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif',
           }}
         >
           <p style={{ fontSize: '18px', marginBottom: '16px' }}>

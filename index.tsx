@@ -1078,7 +1078,7 @@ const App = () => {
                 place-items: center;
                 background: #f8f8f8;
                 color: #111;
-                font-family: "Noto Sans TC", sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif;
               }
               .card {
                 max-width: 320px;
@@ -1710,20 +1710,20 @@ const App = () => {
         <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="white" stroke="black" stroke-width="2" stroke-dasharray="8,8"/>
         <rect x="0" y="0" width="${width}" height="10" fill="${CONFIG.BRAND_COLORS.moss}"/>
         
-        <text x="40" y="60" font-family="'Noto Sans TC', sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#888">MOON MOON MISSION CARD</text>
+        <text x="40" y="60" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-size="12" font-weight="600" letter-spacing="2" fill="#888">MOON MOON MISSION CARD</text>
         
-        <text x="40" y="100" font-family="'Noto Sans TC', sans-serif" font-weight="bold" font-size="14" fill="#aaa">CURRENT STATE:</text>
+        <text x="40" y="100" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-weight="bold" font-size="14" fill="#aaa">CURRENT STATE:</text>
         <text x="40" y="135" font-family="serif" font-size="28" font-weight="bold" letter-spacing="1" fill="${CONFIG.BRAND_COLORS.emotionBlack}">${data.title}</text>
         
         <line x1="40" y1="160" x2="360" y2="160" stroke="#000" stroke-width="0.5"/>
         
-        <text x="40" y="195" font-family="'Noto Sans TC', sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
+        <text x="40" y="195" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-weight="bold" font-size="14" fill="#000">為你推薦 RECOMMENDED:</text>
         ${cardItemLines}
         
         <line x1="40" y1="315" x2="360" y2="315" stroke="#000" stroke-width="0.5"/>
         
         <rect x="40" y="335" width="320" height="90" fill="#fcfcfc" stroke="#eee" stroke-width="1" rx="8"/>
-        <text x="60" y="360" font-family="'Noto Sans TC', sans-serif" font-weight="800" font-size="12" fill="#aaa">OUR MISSION FOR YOU:</text>
+        <text x="60" y="360" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-weight="800" font-size="12" fill="#aaa">OUR MISSION FOR YOU:</text>
         <text x="60" y="388" font-family="serif" font-size="14" line-height="1.6" fill="#444">
           <tspan x="60" dy="0">${data.mission.substring(0, 22)}</tspan>
           <tspan x="60" dy="20">${data.mission.substring(22, 44)}</tspan>
@@ -1731,9 +1731,9 @@ const App = () => {
         </text>
         
         <rect x="40" y="445" width="320" height="95" fill="${CONFIG.BRAND_COLORS.forestGold}" stroke="black" stroke-width="2" rx="4"/>
-        <text x="200" y="472" text-anchor="middle" font-family="'Noto Sans TC', sans-serif" font-weight="900" font-size="18" fill="#000">${coupon.header}</text>
+        <text x="200" y="472" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-weight="900" font-size="18" fill="#000">${coupon.header}</text>
         <text x="200" y="497" text-anchor="middle" font-family="serif" font-size="13" font-weight="bold" fill="#000">${coupon.line1}</text>
-        <text x="200" y="517" text-anchor="middle" font-family="'Noto Sans TC', sans-serif" font-size="10" font-weight="bold" fill="#000" opacity="0.9">${coupon.line2}</text>
+        <text x="200" y="517" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'PingFang TC', 'Heiti TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', sans-serif" font-size="10" font-weight="bold" fill="#000" opacity="0.9">${coupon.line2}</text>
         
         <text x="200" y="575" text-anchor="middle" font-family="monospace" font-size="9" fill="#bbb">${coupon.footer}</text>
       </svg>
