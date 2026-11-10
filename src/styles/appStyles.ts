@@ -65,7 +65,7 @@ export const APP_STYLES = `
         body {
           background: var(--c-cream);
           color: var(--c-black);
-          font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", sans-serif;
           line-height: 1.6;
           -webkit-font-smoothing: antialiased;
           min-height: 100vh;

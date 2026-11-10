@@ -110,7 +110,7 @@ html.map-menu-view .container {
   border: 1px solid var(--window-sun);
   border-radius: 0.5rem;
   background: var(--window-sun);
-  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
+  font-family: "JetBrains Mono", -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", ui-monospace, Menlo, monospace;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -276,7 +276,7 @@ button.season04-menu-cta {
 }
 
 /* ── 等寬標籤裡的中文：JetBrains Mono 沒有漢字，原堆疊會讓中文落到系統字（PingFang） ──────────────
-   在 JetBrains Mono 後面補 "Noto Sans TC"：英數字仍用 JetBrains Mono，中文改用站上載入的 Noto Sans TC。
+   在 JetBrains Mono 後面補系統中文堆疊：英數字仍用 JetBrains Mono，中文用手機內建字（站上不再載入網路中文字型）。
    三個來源都要蓋，且都不改 index.tsx：
    1) .map-site-kicker：本檔上方，直接改。
    2) .font-mono：定義在 index.tsx 的 <style>（body 內，文件順序比 CSS bundle 晚、權重 0,1,0），
@@ -284,9 +284,15 @@ button.season04-menu-cta {
    3) index.tsx 的 MONO_FONT_STACK 以 inline style 套用：只有 !important 蓋得過 inline，
       用屬性選擇器對應那串字，之後 index.tsx 改 MONO_FONT_STACK 時也不需要同步改這裡。 */
 body .font-mono {
-  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace;
+  font-family: "JetBrains Mono", -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", ui-monospace, Menlo, monospace;
 }
 
 [style*="JetBrains Mono"] {
-  font-family: "JetBrains Mono", "Noto Sans TC", ui-monospace, Menlo, monospace !important;
+  font-family: "JetBrains Mono", -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", ui-monospace, Menlo, monospace !important;
+}
+
+/* rail kit（五站 byte-identical，不能改）把 --ku-nav-font 設成網路中文字型；站上已不載入它。
+   用 aside. 提高優先度，把 rail 字型改成系統中文堆疊。 */
+aside.ku-universe-rail {
+  --ku-nav-font: -apple-system, BlinkMacSystemFont, "PingFang TC", "Heiti TC", "Noto Sans CJK TC", "Microsoft JhengHei", system-ui, sans-serif;
 }
