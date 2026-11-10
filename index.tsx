@@ -1,14 +1,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
+import LazyPickupDatePicker from './components/LazyPickupDatePicker';
 import KiwimuUniverseRail, { readSupabaseLoginStatus } from './components/KiwimuUniverseRail';
 import './styles/kiwimu-universe.css';
 import './styles/window-plan.css';
 import './styles/forest-a11y.css';
 import './styles/hidden-seal.css';
-import './styles/datepicker-overrides.css';
 import { supabase } from './lib/supabase';
 import { openPassportLogin, PASSPORT_AUTH_COMPLETE_EVENT } from './lib/authStorage';
 import { buildFromUrl, trackEvent, trackOutboundClick, trackUtmLanding } from './lib/crossSiteTracking';
@@ -3979,15 +3977,11 @@ const App = () => {
 
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 700, fontSize: '0.9rem' }}>預計取貨日期 Pickup Date <span style={{ color: 'red' }}>*</span></label>
-                  <DatePicker
+                  <LazyPickupDatePicker
                     selected={pickupDate}
                     onChange={(date: Date | null) => setPickupDate(date)}
                     minDate={getMinPickupDate()}
                     filterDate={filterDate}
-                    dateFormat="yyyy-MM-dd"
-                    placeholderText="請點擊選擇日期"
-                    className="custom-datepicker"
-                    required
                   />
                   <p style={{ fontSize: '0.8rem', color: CONFIG.BRAND_COLORS.grayText, marginTop: '5px' }}>
                     *請選擇您要來店取貨的日期<br />
