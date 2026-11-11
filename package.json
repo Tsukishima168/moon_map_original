@@ -11,6 +11,9 @@
     "patisserie",
     "brand-navigation"
   ],
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
