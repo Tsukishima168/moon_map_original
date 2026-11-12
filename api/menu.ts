@@ -112,7 +112,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return respondWithCategories(res, {
         categories,
         source: metadataCategories.length > 0 ? 'supabase_merged' : 'supabase_passthrough',
-        seasonal: canonicalMenu.seasonal,
+        // active 以實際輸出的品項為準：分類不在顯示清單內的季節品不會出現在畫面上，公告也不該說開放中。
+        seasonal: {
+          ...canonicalMenu.seasonal,
+          active: categories.some((category) => category.items.some((item) => item.seasonal === true)),
+        },
       })
     }
   } catch (error) {

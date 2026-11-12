@@ -100,4 +100,30 @@ globalThis.__MENU_TEST_CLIENT__ = stubClient(tables);
   assert.equal('seasonal' in mixed[2], false);
 }
 
-console.log('Menu availability: window states, canonical snapshot filtering (upcoming / ended / unavailable), seasonal flags, upcomingFrom, seasonal-first ordering passed; no DB or network accessed.');
+// 4. /api/menu handler：seasonal.active 以實際輸出的品項為準（真的 public/menu.json 當分類清單）
+{
+  process.chdir(new URL('..', import.meta.url).pathname);
+  const { default: menuHandler } = await bundle('../api/menu.ts', [stubAdminClient]);
+  const callMenu = async (menuItems) => {
+    globalThis.__MENU_TEST_CLIENT__ = stubClient({
+      menu_categories: [{ id: 'chiffon', title: '戚風', subtitle: null, sort_order: 1 }, { id: 'not_in_menu', title: '新分類', subtitle: null, sort_order: 2 }],
+      menu_items: menuItems,
+      menu_variants: menuItems.map((row) => ({ menu_item_id: row.id, spec: '六吋', price: 1000, sort_order: 1 })),
+    });
+    let body = null;
+    const res = { status: () => res, setHeader: () => res, json: (payload) => { body = payload; return res; } };
+    await menuHandler({ method: 'GET', query: {}, headers: {} }, res);
+    return body;
+  };
+  const window = { available_from: iso(real - DAY) };
+  const shown = await callMenu([item('plain', '一般戚風', { category_id: 'chiffon' }), item('season', '草莓戚風', { category_id: 'chiffon', ...window })]);
+  assert.equal(shown.source, 'supabase_merged');
+  assert.deepEqual(shown.seasonal, { active: true, upcomingFrom: null });
+  assert.deepEqual(shown.data.find((c) => c.id === 'chiffon').items.map((i) => i.name), ['草莓戚風', '一般戚風']);
+  // 季節品掛在顯示清單沒有的分類：畫面上不會出現，公告不可以說開放中
+  const hidden = await callMenu([item('plain', '一般戚風', { category_id: 'chiffon' }), item('season', '草莓新分類', { category_id: 'not_in_menu', ...window })]);
+  assert.equal(hidden.data.some((c) => c.items.some((i) => i.name === '草莓新分類')), false);
+  assert.deepEqual(hidden.seasonal, { active: false, upcomingFrom: null });
+}
+
+console.log('Menu availability: window states, canonical snapshot filtering (upcoming / ended / unavailable), seasonal flags, upcomingFrom, seasonal-first ordering, /api/menu seasonal.active from rendered items passed; no DB or network accessed.');
