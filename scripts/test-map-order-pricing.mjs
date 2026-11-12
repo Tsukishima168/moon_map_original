@@ -34,6 +34,10 @@ const bundleLib = async (relativePath) => {
 const { attachMenuItemIds } = await bundleLib('../lib/menu-shared.ts');
 const { MENU_ITEM_CATALOG, INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } = await bundleLib('../lib/menu-catalog.ts');
 
+// 開賣日／截止日測試用時間點（相對於執行當下，避免日期過期）。
+const DAY_MS = 86400000;
+const isoOffset = (days) => new Date(Date.now() + days * DAY_MS).toISOString();
+
 const MENU_ITEMS = [
   { id: 'item-cake', name: '巴斯克乳酪蛋糕', category_id: 'cakes', is_available: true },
   { id: 'item-cookie', name: '月島餅乾', category_id: 'cookies', is_available: true },
@@ -69,6 +73,11 @@ const MENU_ITEMS = [
   { id: 'item-drink-zh-liao', name: '氣泡莓果', category_id: '冷飲料區', is_available: true },
   { id: 'item-drink-cold', name: '青檸蘇打', category_id: 'cold_drink', is_available: true },
   { id: 'item-drink-upper', name: '鮮榨果汁', category_id: 'DRINKS', is_available: true },
+  // 開賣日／截止日：未開賣、已截止、時間窗內、兩欄 null。
+  { id: 'item-win-upcoming', name: '時間窗未開賣塔', category_id: 'tarts', is_available: true, available_from: isoOffset(5), available_until: null },
+  { id: 'item-win-ended', name: '時間窗已截止塔', category_id: 'tarts', is_available: true, available_from: null, available_until: isoOffset(-1) },
+  { id: 'item-win-open', name: '時間窗內塔', category_id: 'tarts', is_available: true, available_from: isoOffset(-1), available_until: isoOffset(5) },
+  { id: 'item-win-null', name: '時間窗全空塔', category_id: 'tarts', is_available: true, available_from: null, available_until: null },
 ];
 const MENU_VARIANTS = [
   { id: 'v-cake-6', menu_item_id: 'item-cake', spec: '6吋', price: '1990' },
@@ -104,6 +113,10 @@ const MENU_VARIANTS = [
   { id: 'v-drink-zh-liao', menu_item_id: 'item-drink-zh-liao', spec: '標準', price: '130' },
   { id: 'v-drink-cold', menu_item_id: 'item-drink-cold', spec: '標準', price: '110' },
   { id: 'v-drink-upper', menu_item_id: 'item-drink-upper', spec: '標準', price: '140' },
+  { id: 'v-win-upcoming', menu_item_id: 'item-win-upcoming', spec: '標準', price: '250' },
+  { id: 'v-win-ended', menu_item_id: 'item-win-ended', spec: '標準', price: '250' },
+  { id: 'v-win-open', menu_item_id: 'item-win-open', spec: '標準', price: '250' },
+  { id: 'v-win-null', menu_item_id: 'item-win-null', spec: '標準', price: '250' },
 ];
 
 function createStubClient({ menuError = null, menuItems = MENU_ITEMS, menuVariants = MENU_VARIANTS } = {}) {
@@ -250,6 +263,16 @@ assertRejected(await submit([line('不存在的蛋糕', '標準', 100, 1)]), /�
 
 // 5. 不可訂購的品項拒絕。
 assertRejected(await submit([line('夏季限定塔', '標準', 220, 1)]), /目前不可訂購/);
+
+// 5b. 開賣日／截止日：未開賣、已截止 → 400（沿用「目前不可訂購」）；時間窗內與兩欄 null → 200 且金額依資料庫。
+assertRejected(await submit([line('時間窗未開賣塔', '標準', 250, 1)], { order: { total_amount: 250 } }), /目前不可訂購/);
+assertRejected(await submit([line('時間窗已截止塔', '標準', 250, 1)], { order: { total_amount: 250 } }), /目前不可訂購/);
+for (const name of ['時間窗內塔', '時間窗全空塔']) {
+  const { res, inserts } = await submit([line(name, '標準', 1, 2)], { order: { total_amount: 1 } });
+  assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+  assert.equal(inserts[0].items[0].price, 250);
+  assert.equal(inserts[0].total_price, 500);
+}
 
 // 6. 數量非正整數拒絕（含小數、0、負數、字串）。
 for (const quantity of [0, -1, 1.5, '2', Number.NaN, 1001]) {

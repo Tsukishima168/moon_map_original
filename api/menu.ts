@@ -4,6 +4,7 @@ import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import {
   fetchCanonicalMenuSnapshot,
   type CanonicalMbtiRecommendation,
+  type CanonicalMenuSeasonal,
 } from './_utils/menu-source.js'
 import {
   fetchSiteMenuDisplayConfig,
@@ -42,6 +43,7 @@ function respondWithCategories(
     source,
     fallback = false,
     mbtiRecommendation = null,
+    seasonal = null,
   }: {
     message?: string
     categories: StaticMenuCategory[]
@@ -53,6 +55,7 @@ function respondWithCategories(
       | 'static_fallback'
     fallback?: boolean
     mbtiRecommendation?: CanonicalMbtiRecommendation | null
+    seasonal?: CanonicalMenuSeasonal | null
   }
 ) {
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600')
@@ -62,6 +65,7 @@ function respondWithCategories(
     fallback,
     message,
     mbtiRecommendation,
+    seasonal,
     data: categories,
     total: categories.length,
   })
@@ -108,6 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return respondWithCategories(res, {
         categories,
         source: metadataCategories.length > 0 ? 'supabase_merged' : 'supabase_passthrough',
+        seasonal: canonicalMenu.seasonal,
       })
     }
   } catch (error) {

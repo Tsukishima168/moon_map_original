@@ -193,6 +193,7 @@ function normalizeMenuCategories(categories: MenuCategory[]) {
       image: resolveMenuItemImage(item.name, item.image),
       description: item.description,
       prices: item.prices || [],
+      ...(item.seasonal === true ? { seasonal: true } : {}),
     })),
   }));
 }
@@ -847,6 +848,7 @@ const App = () => {
   // --- MENU & USER DATA ---
   const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const [loadingMenu, setLoadingMenu] = useState(false);
+  const [menuSeasonal, setMenuSeasonal] = useState<{ active: boolean; upcomingFrom: string | null } | null>(null);
   const [profile, setProfile] = useState<{ nickname: string, mbti_type: string } | null>(null);
   const [menuMbtiApiRecommendation, setMenuMbtiApiRecommendation] = useState<MbtiApiRecommendation | null>(null);
   const [profileMbtiApiRecommendation, setProfileMbtiApiRecommendation] = useState<MbtiApiRecommendation | null>(null);
@@ -860,6 +862,7 @@ const App = () => {
       try {
         setLoadingMenu(true);
         let categories: MenuCategory[] = [];
+        let seasonalInfo: { active: boolean; upcomingFrom: string | null } | null = null;
         const normalizedMbtiType = getMbtiTypeKey(mbtiType);
         const menuApiUrl = normalizedMbtiType
           ? `/api/menu?mbti=${encodeURIComponent(normalizedMbtiType)}`
@@ -878,9 +881,20 @@ const App = () => {
           if (!hasRenderableMenu(categories)) {
             throw new Error('Merged menu payload was empty');
           }
+          // 季節品資訊：缺 key 或格式不對一律當作沒有。
+          const rawSeasonal: unknown = menuPayload.seasonal;
+          if (rawSeasonal && typeof rawSeasonal === 'object') {
+            const active = 'active' in rawSeasonal ? rawSeasonal.active : undefined;
+            const upcomingFrom = 'upcomingFrom' in rawSeasonal ? rawSeasonal.upcomingFrom : undefined;
+            seasonalInfo = {
+              active: active === true,
+              upcomingFrom: typeof upcomingFrom === 'string' ? upcomingFrom : null,
+            };
+          }
         } catch (menuErr) {
           console.warn('Failed to load merged menu contract, falling back to menu.json:', menuErr);
 
+          seasonalInfo = null;
           const staticRes = await fetch('/menu.json');
           if (!staticRes.ok) throw new Error(`HTTP ${staticRes.status}`);
 
@@ -892,11 +906,13 @@ const App = () => {
         }
 
         setMenuCategories(categories);
+        setMenuSeasonal(seasonalInfo);
         const isOnlyMenuUrl = typeof window !== 'undefined' && /^\/menu\/?$/i.test(window.location.pathname);
         setCollapsedCategories(isOnlyMenuUrl ? new Set() : new Set(categories.map((cat) => cat.id)));
       } catch (err) {
         console.error('Failed to load menu categories:', err);
         setMenuCategories([]);
+        setMenuSeasonal(null);
       } finally {
         setLoadingMenu(false);
       }
@@ -2003,6 +2019,24 @@ const App = () => {
         </div>
       )}
 
+      {(() => {
+        // 季節品公告：開賣中／即將開賣；兩者皆無則不渲染。
+        if (!menuSeasonal) return null;
+        let noticeText: string | null = null;
+        if (menuSeasonal.active) {
+          noticeText = `${CONFIG.SEASONAL_CAMPAIGN_LABEL}開放預訂中｜季節限定品項排在各分類最前面`;
+        } else if (menuSeasonal.upcomingFrom) {
+          const fromDate = new Date(menuSeasonal.upcomingFrom);
+          if (!Number.isNaN(fromDate.getTime())) {
+            const parts = new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric' }).formatToParts(fromDate);
+            const month = parts.find((part) => part.type === 'month')?.value;
+            const day = parts.find((part) => part.type === 'day')?.value;
+            if (month && day) noticeText = `${CONFIG.SEASONAL_CAMPAIGN_LABEL}｜${month}/${day} 起開放預訂`;
+          }
+        }
+        return noticeText ? <p className="menu-seasonal-notice" role="status">{noticeText}</p> : null;
+      })()}
+
       <section className="season04-menu-curation" aria-label="甜點目錄策展說明">
         <div className="font-mono season04-menu-curation-kicker">
           CURATION / DESSERT MENU
@@ -2129,7 +2163,7 @@ const App = () => {
                         </div>
                       )}
                       <div>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 700 }}>{item.name}</h4>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 700 }}>{item.name}{item.seasonal && <span className="menu-seasonal-tag">季節限定</span>}</h4>
                         {item.description && (
                           <p style={{ fontSize: '0.85rem', color: '#666', lineHeight: '1.6', marginBottom: '12px', whiteSpace: 'pre-line' }}>
                             {item.description}

@@ -7,6 +7,7 @@ export const CONFIG = {
   STORE_NAME_EN: "MOON MOON",
   TAGLINE: "甜點目錄：把光、茶與奶油放慢。",
   CURRENT_SEASON: "Season 04｜窗邊計畫",
+  SEASONAL_CAMPAIGN_LABEL: "草莓季",
   // Key 以實際色相命名（2026-10-14 由 moonSilver/moonShadow/islandBlue/nightBlue/nightBlueDeep 更名，值不變）。
   BRAND_COLORS: {
     creamWhite: '#F5F0E8',   // 奶油紙底

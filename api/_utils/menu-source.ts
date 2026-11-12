@@ -1,5 +1,6 @@
 import { resolveMenuItemId } from '../../lib/menu-catalog.js'
 import type { SharedMenuCategory, MenuPrice } from '../../lib/menu-shared.js'
+import { getAvailabilityState, isSeasonalWindow } from '../../lib/menu-availability.js'
 import { createAdminClient } from './supabase-admin.js'
 
 interface DbMenuCategoryRow {
@@ -17,6 +18,8 @@ interface DbMenuItemRow {
   description: string | null
   sort_order: number | null
   is_available: boolean
+  available_from?: string | null
+  available_until?: string | null
 }
 
 interface DbMenuVariantRow {
@@ -46,8 +49,14 @@ export interface CanonicalMbtiRecommendation {
   linkageType: string | null
 }
 
+export interface CanonicalMenuSeasonal {
+  active: boolean
+  upcomingFrom: string | null
+}
+
 export interface CanonicalMenuSnapshot {
   categories: SharedMenuCategory[]
+  seasonal: CanonicalMenuSeasonal
 }
 
 const normalizeMbtiType = (mbtiType: string | null | undefined) => {
@@ -74,7 +83,7 @@ export async function fetchCanonicalMenuSnapshot(): Promise<CanonicalMenuSnapsho
       .order('sort_order', { ascending: true }),
     adminClient
       .from('menu_items')
-      .select('id,category_id,name,image,description,sort_order,is_available')
+      .select('id,category_id,name,image,description,sort_order,is_available,available_from,available_until')
       .order('sort_order', { ascending: true })
       .order('name', { ascending: true }),
     adminClient
@@ -91,7 +100,20 @@ export async function fetchCanonicalMenuSnapshot(): Promise<CanonicalMenuSnapsho
   const categories = (categoriesResult.data ?? []) as DbMenuCategoryRow[]
   const allItems = (itemsResult.data ?? []) as DbMenuItemRow[]
   const variants = (variantsResult.data ?? []) as DbMenuVariantRow[]
-  const activeItems = allItems.filter((item) => item.is_available)
+  // 開賣日／截止日：now 只取一次；未到開賣或已過截止的品項不顯示。
+  const nowMs = Date.now()
+  const activeItems = allItems.filter(
+    (item) => item.is_available && getAvailabilityState(item, nowMs) === 'active'
+  )
+  let upcomingFromMs: number | null = null
+  for (const item of allItems) {
+    if (!item.is_available || getAvailabilityState(item, nowMs) !== 'upcoming') continue
+    const fromMs = Date.parse(item.available_from ?? '')
+    if (Number.isFinite(fromMs) && (upcomingFromMs === null || fromMs < upcomingFromMs)) {
+      upcomingFromMs = fromMs
+    }
+  }
+  let hasActiveSeasonal = false
 
   const variantsByItemId = new Map<string, MenuPrice[]>()
 
@@ -111,7 +133,9 @@ export async function fetchCanonicalMenuSnapshot(): Promise<CanonicalMenuSnapsho
       image: item.image,
       description: item.description,
       prices: variantsByItemId.get(item.id) ?? [],
+      ...(isSeasonalWindow(item) ? { seasonal: true } : {}),
     })
+    if (isSeasonalWindow(item)) hasActiveSeasonal = true
     itemsByCategoryId.set(item.category_id, categoryItems)
   }
 
@@ -122,6 +146,10 @@ export async function fetchCanonicalMenuSnapshot(): Promise<CanonicalMenuSnapsho
       subtitle: category.subtitle,
       items: itemsByCategoryId.get(category.id) ?? [],
     })),
+    seasonal: {
+      active: hasActiveSeasonal,
+      upcomingFrom: upcomingFromMs === null ? null : new Date(upcomingFromMs).toISOString(),
+    },
   }
 }
 
