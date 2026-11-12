@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
+import { getAvailabilityState } from '../lib/menu-availability.js'
 import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } from '../lib/menu-catalog.js'
 
 export interface OrderPayload {
@@ -62,6 +63,8 @@ interface MenuItemRow {
   name: string | null
   category_id: string | null
   is_available: boolean | null
+  available_from?: string | null
+  available_until?: string | null
 }
 
 interface MenuVariantRow {
@@ -383,7 +386,7 @@ export async function priceOrderItemsFromMenu(
   }
 
   const [menuItemsResult, menuVariantsResult] = await Promise.all([
-    adminClient.from('menu_items').select('id,name,category_id,is_available'),
+    adminClient.from('menu_items').select('id,name,category_id,is_available,available_from,available_until'),
     adminClient.from('menu_variants').select('id,menu_item_id,spec,price'),
   ])
 
@@ -409,6 +412,7 @@ export async function priceOrderItemsFromMenu(
     return { ok: false, status: 500, error: '目前無法確認商品價格，請稍後再試或直接聯繫門市' }
   }
 
+  const nowMs = Date.now()
   const pricedItems: PricedOrderItem[] = []
   const mismatches: PriceMismatch[] = []
 
@@ -421,8 +425,12 @@ export async function priceOrderItemsFromMenu(
     // 品項（INACTIVE_MENU_ITEM_IDS，例：母親節限定；資料庫那邊可能仍標 available，但前端看不到，
     // 手工組的請求也不能訂）。
     const requestedNameInactive = isInactiveCatalogItem(displayName)
+    // 另外要在開賣日～截止日之內（now 整次請求只取一次）。
     const isOrderableRow = (menuItem: MenuItemRow) =>
-      menuItem.is_available === true && !requestedNameInactive && !isInactiveCatalogItem(menuItem.name)
+      menuItem.is_available === true &&
+      !requestedNameInactive &&
+      !isInactiveCatalogItem(menuItem.name) &&
+      getAvailabilityState(menuItem, nowMs) === 'active'
     const collectCandidates = (rows: MenuItemRow[]) =>
       rows.flatMap((menuItem) =>
         menuVariants

@@ -11,6 +11,7 @@ export interface MenuItem {
   description?: string | null;
   image?: string | null;
   prices?: MenuPrice[];
+  seasonal?: boolean;
 }
 
 export interface MenuCategory {
@@ -112,10 +113,15 @@ export function buildMenuFromSharedCategories(
               spec: variant.spec ?? '標準',
               price: formatPrice(variant.price),
             })),
+          ...(item.seasonal === true ? { seasonal: true } : {}),
           __order: staticOrder ?? index,
         };
       })
       .sort((a, b) => {
+        // 季節品置頂，彼此依品名；非季節品維持原排序規則。
+        if (a.seasonal === true && b.seasonal !== true) return -1;
+        if (a.seasonal !== true && b.seasonal === true) return 1;
+        if (a.seasonal === true && b.seasonal === true) return a.name.localeCompare(b.name, 'zh-Hant');
         if (a.__order !== b.__order) return a.__order - b.__order;
         return a.name.localeCompare(b.name, 'zh-Hant');
       })

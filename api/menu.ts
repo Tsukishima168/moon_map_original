@@ -4,6 +4,7 @@ import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import {
   fetchCanonicalMenuSnapshot,
   type CanonicalMbtiRecommendation,
+  type CanonicalMenuSeasonal,
 } from './_utils/menu-source.js'
 import {
   fetchSiteMenuDisplayConfig,
@@ -42,6 +43,7 @@ function respondWithCategories(
     source,
     fallback = false,
     mbtiRecommendation = null,
+    seasonal = null,
   }: {
     message?: string
     categories: StaticMenuCategory[]
@@ -53,6 +55,7 @@ function respondWithCategories(
       | 'static_fallback'
     fallback?: boolean
     mbtiRecommendation?: CanonicalMbtiRecommendation | null
+    seasonal?: CanonicalMenuSeasonal | null
   }
 ) {
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600')
@@ -62,6 +65,7 @@ function respondWithCategories(
     fallback,
     message,
     mbtiRecommendation,
+    seasonal,
     data: categories,
     total: categories.length,
   })
@@ -108,6 +112,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return respondWithCategories(res, {
         categories,
         source: metadataCategories.length > 0 ? 'supabase_merged' : 'supabase_passthrough',
+        // active 以實際輸出的品項為準：分類不在顯示清單內的季節品不會出現在畫面上，公告也不該說開放中。
+        seasonal: {
+          ...canonicalMenu.seasonal,
+          active: categories.some((category) => category.items.some((item) => item.seasonal === true)),
+        },
       })
     }
   } catch (error) {
