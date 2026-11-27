@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js'
 import { verifyTrustedRequest } from './_utils/verifyTrustedRequest.js'
 import { createAdminClient } from './_utils/supabase-admin.js'
 import { INACTIVE_MENU_ITEM_IDS, resolveMenuItemId } from '../lib/menu-catalog.js'
+import { buildDiscordOrderContent, sendDiscordOrderMessage } from './_utils/discord-order-notify.js'
 
 export interface OrderPayload {
   order_number: string
@@ -853,6 +854,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (orderError) {
       console.error('[map-order] orders insert error:', orderError)
       return res.status(500).json({ error: orderError.message })
+    }
+
+    // 建單成功才通知 Discord（伺服器端、寫入之後）。要 await：serverless 回應後未完成的
+    // 請求可能被砍掉。sendDiscordOrderMessage 不會 throw、最多約 4 秒逾時，失敗不擋訂單。
+    const discord = await sendDiscordOrderMessage(
+      buildDiscordOrderContent({
+        orderId: createdOrder.order_id,
+        totalAmount: pricing.total,
+        amountConfirmed: true,
+        pickupDate: orderPayload.pickup_date,
+        customerName: orderPayload.customer_name,
+        customerPhone: orderPayload.customer_phone,
+        orderNote: orderPayload.order_note,
+        items: pricing.items.map((item) => ({
+          name: item.item_name,
+          spec: item.item_spec,
+          count: item.quantity,
+          price: item.unit_price,
+        })),
+        source: 'moon_map_menu',
+      })
+    )
+    if (discord.status !== 'sent') {
+      console.error('[map-order] Discord 通知未送出（訂單已建立）:', {
+        order_id: createdOrder.order_id,
+        discord: discord.status,
+      })
     }
 
     return res.status(200).json({

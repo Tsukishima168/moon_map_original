@@ -72,7 +72,7 @@ async function runCheckout(api, { mobile = true, cart = CART } = {}) {
   const window = { location: { href: 'https://map.kiwimu.com/menu' }, open() { throw new Error('window.open must not be called'); } };
   const context = {
     ...client,
-    cart, submitting: false, user: null, orderNote: '',
+    cart, submitting: false, submitLockRef: { current: false }, user: null, orderNote: '',
     customerName: '測試顧客', customerPhone: '0912345678', pickupDate: new Date(2026, 9, 25),
     setSubmitting: (value) => calls.submitting.push(value),
     setCheckoutError: (value) => calls.checkoutErrors.push(value),
@@ -97,6 +97,7 @@ async function runCheckout(api, { mobile = true, cart = CART } = {}) {
     window,
     setOrderMessage: (value) => { calls.orderMessage = value; },
     setShowDesktopOrderSuccess: (value) => { calls.desktopSuccess = value; },
+    setOrderUnconfirmed: (value) => { calls.orderUnconfirmed = value; },
     console: { error() {}, warn() {}, log() {} },
   };
   await vm.runInNewContext(confirmAndSendCode, context);
@@ -142,7 +143,7 @@ for (const api of [{ status: 500, body: { error: 'Internal server error' } }, { 
   assert.equal(calls.cleared, 1);
   assert.equal(calls.checkoutErrors.at(-1), null);
 }
-// 2d. 200：LINE、Discord、GA4 一律用伺服器 total_price 與逐項價格；價格不同要提示顧客。
+// 2d. 200：LINE、GA4 一律用伺服器 total_price 與逐項價格；價格不同要提示顧客；前端不發 Discord。
 {
   const { calls, lineMessage } = await runCheckout({ status: 200, body: { success: true, order: SERVER_ORDER } });
   assert.match(lineMessage, /訂單編號：ORD-SERVER-1/);
@@ -156,9 +157,8 @@ for (const api of [{ status: 500, body: { error: 'Internal server error' } }, { 
       { item_name: '月島餅乾', item_variant: '標準', price: 120, quantity: 1 },
     ],
   } }]);
-  assert.equal(calls.discord[0].totalAmount, 4100);
-  assert.equal(calls.discord[0].amountConfirmed, true);
-  assert.deepEqual(calls.discord[0].items.map((item) => item.price), [1990, 120]);
+  // 建單成功的 Discord 通知改由 /api/map-order 在伺服器端發，前端不再發。
+  assert.equal(calls.discord.length, 0, 'confirmed order must not notify Discord from the browser');
   assert.ok(calls.notices.some((notice) => notice.message === client.PRICE_UPDATED_NOTICE));
   assert.equal(calls.cleared, 1);
 }
@@ -191,7 +191,7 @@ for (const api of [{ status: 500, body: { error: 'Internal server error' } }, { 
   process.env.DISCORD_WEBHOOK_URL = 'https://discord.invalid/test-webhook';
   const sent = [];
   globalThis.fetch = async (url, init) => {
-    assert.equal(url, 'https://discord.invalid/test-webhook', 'only the stub webhook may be called');
+    assert.ok(String(url).startsWith('https://discord.invalid/test-webhook'), 'only the stub webhook may be called');
     sent.push(JSON.parse(init.body).content);
     return { ok: true, status: 204, statusText: 'No Content', json: async () => null };
   };
@@ -208,12 +208,13 @@ for (const api of [{ status: 500, body: { error: 'Internal server error' } }, { 
   assert.doesNotMatch(unconfirmed, /總金額|單價/);
   const confirmedOutcome = client.resolveMapOrderOutcome({ status: 200, body: { order: SERVER_ORDER }, proposedOrderId: 'ORD-PROP', cart: CART });
   const confirmedMsg = await notify(client.buildDiscordOrderPayload(confirmedOutcome, contact, CART));
-  assert.match(confirmedMsg, /💰 總金額：\$4100/);
+  // 備援端點只給「訂單不在資料庫」的情況用：就算請求說已確認，也一律標未確認。
+  assert.match(confirmedMsg, /⚠️ 金額未經系統確認/);
+  assert.match(confirmedMsg, /💰 預估金額：\$4100（待門市確認）/);
   assert.match(confirmedMsg, /• 巴斯克乳酪蛋糕 \| 6吋 x 2（單價 \$1990）/);
-  assert.doesNotMatch(confirmedMsg, /⚠️|預估/);
-  // 舊格式呼叫（沒有 amountConfirmed、price 是字串）維持原本輸出。
+  // 舊格式呼叫（沒有 amountConfirmed、price 是字串）：照樣出訊息，價格字串不顯示。
   const legacy = await notify({ orderId: 'X', totalAmount: 100, items: [{ name: 'A', spec: 'B', count: 1, price: '$100' }] });
-  assert.match(legacy, /💰 總金額：\$100/);
+  assert.match(legacy, /💰 預估金額：\$100（待門市確認）/);
   assert.match(legacy, /• A \| B x 1$/m);
 }
 
