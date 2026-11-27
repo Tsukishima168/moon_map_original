@@ -623,7 +623,8 @@ export const toCanonicalOrder = (
     utm_content: sanitizeAttributionString(order.utm_content),
     utm_term: sanitizeAttributionString(order.utm_term),
     user_id: order.user_id || null,
-    status: order.payment_status || 'pending',
+    // 建單一律待付款：付款狀態只能由門市後台改，不能由前端（或偽造請求）指定
+    status: 'pending',
   }
 }
 

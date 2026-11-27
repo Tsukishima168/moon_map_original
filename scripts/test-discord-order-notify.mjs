@@ -183,4 +183,56 @@ if (res.statusCode === 200) {
   assert.fail(`map-order 應建單成功，實際 ${res.statusCode} ${JSON.stringify(res.body)}`);
 }
 
+// ---------------------------------------------------------------------------
+// E. 偽造 payment_status:'paid' 也只能建出待付款訂單
+// ---------------------------------------------------------------------------
+const inserted = [];
+globalThis.__TEST_CLIENT__ = {
+  from: (table) => {
+    if (table === 'orders') {
+      return { insert: (row) => { inserted.push(row); return { select: () => ({ single: async () => ({ data: { id: 'db-uuid', ...row }, error: null }) }) }; } };
+    }
+    return orderClient().from(table);
+  },
+};
+globalThis.__MAP_ORDER_TEST_CLIENT__ = globalThis.__TEST_CLIENT__;
+res = mockRes();
+await mapOrder({
+  method: 'POST', headers: { origin: 'https://map.kiwimu.com' },
+  body: {
+    order: {
+      order_number: 'ORD1127120000003', customer_name: '王小明', customer_phone: '0912345678', customer_email: null,
+      total_amount: 1990, pickup_date: '2026-11-29', order_note: null, user_id: null,
+      payment_status: 'paid', source: 'moon_map', ga_client_id: null,
+    },
+    items: [{ item_name: '巴斯克乳酪蛋糕', item_spec: '6吋', unit_price: 1990, quantity: 1, subtotal: 1990 }],
+  },
+}, res);
+assert.equal(res.statusCode, 200, JSON.stringify(res.body));
+assert.equal(inserted.at(-1).status, 'pending', '前端送 paid 也要寫成 pending');
+
+// ---------------------------------------------------------------------------
+// F. 抽籤通知：擋 mention、略過未知類型、換行不能偽造新行
+// ---------------------------------------------------------------------------
+const activity = (await load('../api/notify-discord-activity.ts')).default;
+sent.length = 0; discordStatus = 200;
+res = mockRes();
+await activity(fbReq({ activityType: 'draw_fortune', level: '@everyone 大吉\n💰 假行', state: '想吃甜點', timestamp: '偽造時間' }), res);
+assert.equal(res.body.status, 'sent');
+assert.equal(sent.length, 1);
+assert.deepEqual(sent[0].body.allowed_mentions, { parse: [] });
+assert.doesNotMatch(sent[0].body.content, /\n💰 假行/);
+assert.doesNotMatch(sent[0].body.content, /偽造時間/);
+
+sent.length = 0;
+res = mockRes();
+await activity(fbReq({ activityType: '@everyone spam' }), res);
+assert.deepEqual(res.body, { status: 'skipped', reason: 'unknown_activity' });
+assert.equal(sent.length, 0);
+
+res = mockRes();
+await activity({ method: 'POST', headers: { origin: 'https://evil.example' }, body: {} }, res);
+assert.equal(res.statusCode, 401);
+console.log('E/F. 強制待付款、抽籤通知防護 OK');
+
 console.log('discord order notify checks passed');
