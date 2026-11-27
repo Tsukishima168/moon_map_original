@@ -46,7 +46,12 @@ const PROD_SETTINGS_ROWS = [
 const warnings = [];
 const errors = [];
 console.warn = (...args) => warnings.push(args);
-console.error = (...args) => errors.push(args);
+// Discord 通知的 log（測試環境沒設 token）不算在「設定查詢失敗」的計數裡
+console.error = (...args) => {
+  const first = String(args[0] ?? '');
+  if (first.startsWith('[DISCORD]') || first.includes('Discord 通知未送出')) return;
+  errors.push(args);
+};
 
 // ---------------------------------------------------------------------------
 // A. 純函式：extractPickupDay

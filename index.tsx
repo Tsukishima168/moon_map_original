@@ -270,7 +270,9 @@ const resolveMbtiDisplayRecommendation = (
 /** Check if user is on a mobile device */
 const isMobileDevice = () => {
   if (typeof window === 'undefined') return false;
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) return true;
+  // iPadOS 13+ 的 Safari 預設回報桌機 UA（Macintosh），用觸控點數辨認
+  return /Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1;
 };
 
 type NoticeTone = 'info' | 'success' | 'warning' | 'error';
@@ -694,11 +696,15 @@ const App = () => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // 同步鎖：state 要等下一次 render 才更新，快速連點時第二下會穿過 `if (submitting)`
+  const submitLockRef = useRef(false);
   // 伺服器明確拒單（400）時顯示在結帳視窗裡的原因（不自動消失）
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   // Desktop Order Success Modal
   const [showDesktopOrderSuccess, setShowDesktopOrderSuccess] = useState(false);
   const [orderMessage, setOrderMessage] = useState('');
+  // 建單 API 失敗（訂單沒進資料庫）時，成功視窗改說「待門市確認」
+  const [orderUnconfirmed, setOrderUnconfirmed] = useState(false);
   // Valentine Golden Egg
   const [showValentineModal, setShowValentineModal] = useState(false);
   // VIP Island Modal
@@ -1326,24 +1332,28 @@ const App = () => {
       setShowCheckoutConfirm(false);
       return;
     }
-    if (submitting) return;
+    if (submitting || submitLockRef.current) return;
+    submitLockRef.current = true;
     setSubmitting(true);
     setCheckoutError(null);
 
     // 1. Validation
     if (!customerName || customerName.length < 2) {
       showUiNotice('請填寫完整姓名，至少需要 2 個字。', 'warning');
+      submitLockRef.current = false;
       setSubmitting(false);
       return;
     }
     const phoneRegex = /^09\d{8}$/;
     if (!customerPhone || !phoneRegex.test(customerPhone)) {
       showUiNotice('請填寫有效的手機號碼，格式需為 09 開頭共 10 碼。', 'warning');
+      submitLockRef.current = false;
       setSubmitting(false);
       return;
     }
     if (!pickupDate) {
       showUiNotice('請先選擇取貨日期。', 'warning');
+      submitLockRef.current = false;
       setSubmitting(false);
       return;
     }
@@ -1450,8 +1460,11 @@ const App = () => {
         await sendReliableGaEvent('purchase', buildGaPurchasePayload(outcome));
       }
 
-      // 6. Discord 通知（避免手機跳 LINE 時取消請求）；未確認時標示「待門市確認」
-      await notifyDiscordOrder(buildDiscordOrderPayload(outcome, orderContact, cart));
+      // 6. Discord 通知：建單成功時 /api/map-order 已在伺服器端發過，這裡不再發。
+      // 只有建單 API 失敗（訂單沒進資料庫）時才走備援端點，標示「待門市確認」。
+      if (outcome.kind === 'unconfirmed') {
+        await notifyDiscordOrder(buildDiscordOrderPayload(outcome, orderContact, cart));
+      }
 
       // 7. Build LINE message（確認：伺服器金額；未確認：預估金額＋待門市確認）
       const msg = buildLineOrderMessage(outcome, orderContact, cart);
@@ -1467,16 +1480,19 @@ const App = () => {
       setShowCheckoutConfirm(false);
       clearCart();
 
+      // 手機也先把成功視窗（含複製訊息與 LINE 按鈕）準備好：萬一 LINE 沒打開、顧客按返回，
+      // 購物車雖已清空，訂單訊息還在，可以手動複製再傳。
+      setOrderMessage(msg);
+      setOrderUnconfirmed(outcome.kind === 'unconfirmed');
+      setShowDesktopOrderSuccess(true);
       if (isMobileDevice()) {
         window.location.href = lineUrl;
-      } else {
-        setOrderMessage(msg);
-        setShowDesktopOrderSuccess(true);
       }
     } catch (error) {
       console.error('結帳錯誤:', error);
       showUiNotice('發生錯誤，請稍後再試。', 'error');
     } finally {
+      submitLockRef.current = false;
       setSubmitting(false);
     }
   };
@@ -4072,13 +4088,13 @@ const App = () => {
           <div className="modal-overlay" onClick={() => setShowDesktopOrderSuccess(false)} style={{ zIndex: 3000 }}>
             <div className="modal-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px', zIndex: 3001 }}>
               <div className="modal-header" style={{ background: CONFIG.BRAND_COLORS.forestGold }}>
-                <h3 className="font-mono" style={{ margin: 0 }}>✅ 訂單已建立 Order Confirmed</h3>
+                <h3 className="font-mono" style={{ margin: 0 }}>{orderUnconfirmed ? '📨 訂單已送出・待門市確認' : '✅ 訂單已建立 Order Confirmed'}</h3>
                 <button type="button" aria-label="關閉視窗" className="close-btn" onClick={() => setShowDesktopOrderSuccess(false)}>×</button>
               </div>
               <div className="modal-body">
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                   <p style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '10px' }}>
-                    🎉 訂單已成功送出！
+                    {orderUnconfirmed ? '系統暫時無法確認訂單，請把訊息傳到 LINE，門市會回覆確認。' : '🎉 訂單已成功送出！'}
                   </p>
                   <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: '1.6' }}>
                     請完成以下步驟以確認訂單：

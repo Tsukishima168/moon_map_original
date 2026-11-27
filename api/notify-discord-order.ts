@@ -1,9 +1,15 @@
 import type { VercelRequest, VercelResponse } from './_utils/vercel-types.js';
 import { authorizeDiscordNotifyRequest } from './_utils/authorizeDiscordNotifyRequest.js';
+import { createAdminClient } from './_utils/supabase-admin.js';
+import { buildDiscordOrderContent, sendDiscordOrderMessage } from './_utils/discord-order-notify.js';
 
-const DISCORD_API_URL = 'https://discord.com/api/v10';
-const CHANNEL_ID = '1467024414699819152'; // 月島訂單通知頻道
-
+/**
+ * 備援用：只在「建單 API 失敗（5xx／網路）、訂單沒進資料庫」時，由菜單頁呼叫。
+ *
+ * 2026-11-27 起，建單成功的通知改由 /api/map-order 寫入後在伺服器端發送。因此這裡：
+ * - 訂單編號已在 orders 裡 → 不再發（伺服器已發過；也擋掉快取舊版前端造成的重複通知）。
+ * - 其餘一律標「⚠️ 金額未經系統確認」，就算有人偽造請求，看起來也不會像正常訂單。
+ */
 export default async function handler(
   request: VercelRequest,
   response: VercelResponse
@@ -16,117 +22,31 @@ export default async function handler(
     return response.status(401).json({ error: 'Unauthorized' });
   }
 
-  const botToken = process.env.DISCORD_TOKEN;
-  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  const body: Record<string, unknown> =
+    request.body && typeof request.body === 'object' ? request.body : {};
+  const orderId = typeof body.orderId === 'string' ? body.orderId.trim().slice(0, 64) : '';
 
-  if (!botToken && !webhookUrl) {
-    console.error('[DISCORD][ORDER] ❌ Neither DISCORD_WEBHOOK_URL nor DISCORD_TOKEN is configured');
-    return response.status(200).json({
-      status: 'error',
-      message: 'Discord credentials not configured'
-    });
-  }
-
-  const {
-    orderId,
-    totalAmount,
-    pickupDate,
-    customerName,
-    customerPhone,
-    orderNote,
-    items,
-    source = 'moon_map_original',
-    // 菜單頁在建單 API 失敗（5xx／網路）時仍照常轉 LINE，此時金額是前端預估、未經伺服器
-    // 依資料庫價格確認，會送 amountConfirmed: false。未帶此欄位的舊呼叫端維持原樣。
-    amountConfirmed,
-  } = request.body || {};
-
-  try {
-    const lines: string[] = [];
-
-    lines.push(`📦 **有新的月島訂單來自 ${source}！**`);
-    if (orderId) lines.push(`\n🧾 訂單編號：\`${orderId}\``);
-    if (customerName || customerPhone) {
-      lines.push(`👤 訂購人：${customerName || '（未填）'} ${customerPhone ? `(${customerPhone})` : ''}`);
-    }
-    const amountUnconfirmed = amountConfirmed === false;
-    if (amountUnconfirmed) {
-      lines.push(`⚠️ 金額未經系統確認（建單 API 失敗或回應異常）：請到後台確認是否已建單，並人工核對品項與金額`);
-    }
-    if (typeof totalAmount === 'number') {
-      lines.push(
-        amountUnconfirmed
-          ? `💰 預估金額：$${totalAmount}（待門市確認）`
-          : `💰 總金額：$${totalAmount}`
-      );
-    }
-    if (pickupDate) {
-      lines.push(`🗓 取貨日期：${pickupDate}`);
-    }
-
-    if (Array.isArray(items) && items.length > 0) {
-      lines.push(`\n🧁 訂購內容：`);
-      for (const item of items) {
-        lines.push(
-          `• ${item.name ?? '未知品項'} | ${item.spec ?? ''} x ${item.count ?? 1}` +
-            (typeof item.price === 'number' && Number.isFinite(item.price)
-              ? `（單價 $${item.price}）`
-              : '')
-        );
+  if (orderId) {
+    try {
+      const { data, error } = await createAdminClient()
+        .from('orders')
+        .select('order_id')
+        .eq('order_id', orderId)
+        .maybeSingle();
+      if (error) {
+        console.error('[DISCORD][ORDER] orders lookup failed, sending fallback anyway:', error);
+      } else if (data) {
+        return response.status(200).json({ status: 'skipped', reason: 'order_exists' });
       }
+    } catch (error) {
+      console.error('[DISCORD][ORDER] orders lookup threw, sending fallback anyway:', error);
     }
-
-    if (orderNote) {
-      lines.push(`\n📝 備註：${orderNote}`);
-    }
-
-    lines.push(`\n⏰ 建立時間：${new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' })}`);
-
-    const discordPayload = {
-      content: lines.join('\n'),
-    };
-
-    let fetchUrl = '';
-    const fetchHeaders: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
-
-    if (botToken) {
-      // Prioritize Bot Token as requested
-      fetchUrl = `${DISCORD_API_URL}/channels/${CHANNEL_ID}/messages`;
-      fetchHeaders['Authorization'] = `Bot ${botToken}`;
-    } else if (webhookUrl) {
-      fetchUrl = webhookUrl;
-    }
-
-    const discordRes = await fetch(fetchUrl, {
-      method: 'POST',
-      headers: fetchHeaders,
-      body: JSON.stringify(discordPayload),
-    });
-
-    const responseData = discordRes.status === 204
-      ? null
-      : await discordRes.json().catch(() => null);
-
-    if (!discordRes.ok) {
-      console.error('[DISCORD][ORDER] ❌ Discord API error:', {
-        status: discordRes.status,
-        response: responseData
-      });
-      throw new Error(`Discord API error: ${discordRes.statusText}`);
-    }
-
-    return response.status(200).json({
-      status: 'sent',
-      messageId: responseData?.id ?? null
-    });
-  } catch (error) {
-    console.error('[DISCORD][ORDER] ❌ Failed to send order notification:', error);
-    // 回傳 200 以免影響前端流程
-    return response.status(200).json({
-      status: 'error',
-      error: error instanceof Error ? error.message : String(error)
-    });
   }
+
+  const result = await sendDiscordOrderMessage(
+    buildDiscordOrderContent({ ...body, orderId, amountConfirmed: false })
+  );
+
+  // 一律回 200，不影響前端跳 LINE 的流程
+  return response.status(200).json(result);
 }
